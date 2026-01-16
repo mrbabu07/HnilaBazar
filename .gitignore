@@ -1,2 +1,40 @@
+# Environment variables (IMPORTANT - Contains secrets!)
 .env
-.env.example
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# MongoDB
+*.pem
+
+# Misc
+.cache/
+coverage/
