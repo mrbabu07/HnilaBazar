@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getProducts } from "../services/api";
 import ProductCard from "../components/ProductCard";
+import CategoryScroller from "../components/CategoryScroller";
 import Loading from "../components/Loading";
 
 export default function Home() {
@@ -173,6 +174,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Category Scroller */}
+      <CategoryScroller />
 
       {/* Features */}
       <section className="py-12 bg-white border-b border-gray-100">

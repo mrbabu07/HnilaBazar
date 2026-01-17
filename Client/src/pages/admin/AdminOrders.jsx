@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { getAllOrders, updateOrderStatus } from "../../services/api";
 import Loading from "../../components/Loading";
 
@@ -28,8 +29,8 @@ export default function AdminOrders() {
       await updateOrderStatus(orderId, newStatus);
       setOrders(
         orders.map((order) =>
-          order._id === orderId ? { ...order, status: newStatus } : order
-        )
+          order._id === orderId ? { ...order, status: newStatus } : order,
+        ),
       );
     } catch (error) {
       console.error("Failed to update status:", error);
@@ -76,8 +77,31 @@ export default function AdminOrders() {
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-          <p className="text-gray-600">Manage and track customer orders</p>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/admin"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Back to Dashboard"
+            >
+              <svg
+                className="w-6 h-6 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
+              <p className="text-gray-600">Manage and track customer orders</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -171,7 +195,7 @@ export default function AdminOrders() {
                   className="p-6 cursor-pointer hover:bg-gray-50 transition"
                   onClick={() =>
                     setExpandedOrder(
-                      expandedOrder === order._id ? null : order._id
+                      expandedOrder === order._id ? null : order._id,
                     )
                   }
                 >
@@ -193,7 +217,7 @@ export default function AdminOrders() {
                               day: "numeric",
                               hour: "2-digit",
                               minute: "2-digit",
-                            }
+                            },
                           )}
                         </p>
                       </div>

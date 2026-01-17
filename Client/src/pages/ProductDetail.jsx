@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { getProductById } from "../services/api";
 import useCart from "../hooks/useCart";
 import Loading from "../components/Loading";
+import AutoSlideshow from "../components/AutoSlideshow";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -10,27 +11,76 @@ export default function ProductDetail() {
   const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [showSizeChart, setShowSizeChart] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(null);
 
   useEffect(() => {
     fetchProduct();
   }, [id]);
 
+  useEffect(() => {
+    // If we get a 404 error, start countdown and redirect to home
+    if (error && error.includes("not found")) {
+      setRedirectCountdown(8);
+      const timer = setInterval(() => {
+        setRedirectCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            navigate("/");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [error, navigate]);
+
   const fetchProduct = async () => {
     try {
+      // Validate product ID format
+      if (!id || id.length !== 24) {
+        console.error("Invalid product ID format:", id);
+        setError("Invalid product ID");
+        setLoading(false);
+        return;
+      }
+
       const response = await getProductById(id);
       const data = response.data.data;
       setProduct(data);
-      setSelectedImage(data.image || (data.images && data.images[0]) || "");
+
+      // Set initial selected image
+      const initialImage = data.image || (data.images && data.images[0]) || "";
+      setSelectedImage(initialImage);
+
       if (data.sizes && data.sizes.length > 0) {
         setSelectedSize(data.sizes[0]);
       }
+      setError(null);
     } catch (error) {
       console.error("Failed to fetch product:", error);
+      // Log more details about the error
+      if (error.response) {
+        console.error("Error status:", error.response.status);
+        console.error("Error data:", error.response.data);
+        if (error.response.status === 404) {
+          setError(
+            "Product not found. This product may have been removed or the link is invalid.",
+          );
+        } else if (error.response.status === 400) {
+          setError("Invalid product link. Please check the URL and try again.");
+        } else {
+          setError("Failed to load product. Please try again later.");
+        }
+      } else {
+        setError("Network error. Please check your connection and try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -42,7 +92,7 @@ export default function ProductDetail() {
       return;
     }
     setIsAdding(true);
-    addToCart({ ...product, selectedSize }, quantity);
+    addToCart(product, quantity, selectedImage, selectedSize);
     setTimeout(() => setIsAdding(false), 1500);
   };
 
@@ -51,21 +101,118 @@ export default function ProductDetail() {
       alert("Please select a size");
       return;
     }
-    addToCart({ ...product, selectedSize }, quantity);
+    addToCart(product, quantity, selectedImage, selectedSize);
     navigate("/cart");
   };
 
-  const allImages =
-    product?.images?.length > 0
-      ? product.images
-      : product?.image
-      ? [product.image]
-      : [];
+  // Prepare images for slideshow
+  const allImages = [];
+  if (product?.images?.length > 0) {
+    allImages.push(...product.images);
+  } else if (product?.image) {
+    allImages.push(product.image);
+  }
 
   const fallbackImage =
     "https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=600&h=600&fit=crop";
 
+  // Use fallback if no images available
+  const displayImages = allImages.length > 0 ? allImages : [fallbackImage];
+
   if (loading) return <Loading text="Loading product..." />;
+
+  if (error) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg
+              className="w-12 h-12 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{error}</h2>
+          <p className="text-gray-600 mb-6">
+            {error.includes("not found")
+              ? "The product you're looking for might have been removed, is out of stock, or the link is invalid."
+              : "There was an issue loading this product. Please try refreshing the page or go back to browse other products."}
+          </p>
+          {redirectCountdown && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-blue-700 text-sm">
+                Redirecting to home page in {redirectCountdown} seconds...
+              </p>
+            </div>
+          )}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/" className="btn-primary">
+              Back to Home
+            </Link>
+            <button
+              onClick={() => window.location.reload()}
+              className="btn-secondary"
+            >
+              Refresh Page
+            </button>
+          </div>
+
+          {/* Suggested Products */}
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+              Browse Our Categories Instead
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <Link
+                to="/mens"
+                className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center"
+              >
+                <div className="text-2xl mb-2">👔</div>
+                <span className="text-sm font-medium text-gray-700">
+                  Men's Fashion
+                </span>
+              </Link>
+              <Link
+                to="/womens"
+                className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center"
+              >
+                <div className="text-2xl mb-2">👗</div>
+                <span className="text-sm font-medium text-gray-700">
+                  Women's Fashion
+                </span>
+              </Link>
+              <Link
+                to="/electronics"
+                className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center"
+              >
+                <div className="text-2xl mb-2">📱</div>
+                <span className="text-sm font-medium text-gray-700">
+                  Electronics
+                </span>
+              </Link>
+              <Link
+                to="/baby"
+                className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center"
+              >
+                <div className="text-2xl mb-2">🍼</div>
+                <span className="text-sm font-medium text-gray-700">
+                  Baby & Kids
+                </span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -85,51 +232,103 @@ export default function ProductDetail() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Breadcrumb */}
-      <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-8">
-        <Link to="/" className="hover:text-primary-500">
-          Home
+      <div className="flex items-center gap-4 mb-8">
+        <Link
+          to="/"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          title="Back to Home"
+        >
+          <svg
+            className="w-6 h-6 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
         </Link>
-        <span>→</span>
-        <span className="text-gray-900 font-medium truncate">
-          {product.title}
-        </span>
-      </nav>
+        <nav className="flex items-center space-x-2 text-sm text-gray-500">
+          <Link to="/" className="hover:text-primary-500">
+            Home
+          </Link>
+          <span>→</span>
+          <span className="text-gray-900 font-medium truncate">
+            {product.title}
+          </span>
+        </nav>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         {/* Product Images */}
         <div className="space-y-4">
-          {/* Main Image */}
-          <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
-            <img
-              src={selectedImage || fallbackImage}
-              alt={product.title}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.src = fallbackImage;
-              }}
-            />
-          </div>
+          {/* Auto Slideshow */}
+          <AutoSlideshow
+            images={displayImages}
+            autoPlay={displayImages.length > 1}
+            interval={5000}
+            showDots={displayImages.length > 1}
+            showArrows={displayImages.length > 1}
+            className="rounded-2xl"
+            aspectRatio="aspect-square"
+          />
 
           {/* Thumbnail Gallery */}
-          {allImages.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {allImages.map((img, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(img)}
-                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition ${
-                    selectedImage === img
-                      ? "border-primary-500"
-                      : "border-transparent hover:border-gray-300"
-                  }`}
+          {displayImages.length > 1 && (
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-gray-700">
+                Product Images ({displayImages.length})
+              </h4>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {displayImages.map((img, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(img)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all hover:shadow-md ${
+                      selectedImage === img
+                        ? "border-primary-500 shadow-md"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <img
+                      src={img}
+                      alt={`View ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Image Actions */}
+          {displayImages.length > 0 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() =>
+                  window.open(selectedImage || displayImages[0], "_blank")
+                }
+                className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <img
-                    src={img}
-                    alt=""
-                    className="w-full h-full object-cover"
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
-                </button>
-              ))}
+                </svg>
+                View Full Size
+              </button>
             </div>
           )}
         </div>
@@ -237,8 +436,8 @@ export default function ProductDetail() {
                   isAdding
                     ? "bg-green-500 text-white"
                     : product.stock === 0
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-primary-500 hover:bg-primary-600 text-white"
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-primary-500 hover:bg-primary-600 text-white"
                 }`}
               >
                 {isAdding ? "✓ Added!" : "Add to Cart"}

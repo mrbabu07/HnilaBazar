@@ -1,32 +1,44 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { getProducts } from "../services/api";
+import { useParams, Link, useLocation } from "react-router-dom";
+import { getProducts, getCategories } from "../services/api";
 import ProductCard from "../components/ProductCard";
 import Loading from "../components/Loading";
 
 export default function CategoryPage() {
   const { category } = useParams();
+  const location = useLocation();
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("default");
   const [viewMode, setViewMode] = useState("grid");
 
-  useEffect(() => {
-    fetchProducts();
-  }, [category]);
+  // Determine if this is "all categories" or "all products" page
+  const isAllCategories = location.pathname === "/categories";
+  const isAllProducts =
+    location.pathname === "/products" || (!category && !isAllCategories);
 
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const response = await getProducts(category);
-      setProducts(response.data.data);
-    } catch (error) {
-      console.error("Failed to fetch products:", error);
-    } finally {
-      setLoading(false);
+  // Extract category from legacy routes
+  const getCurrentCategory = () => {
+    if (category) return category; // Dynamic route like /category/mens
+
+    // Legacy routes
+    const path = location.pathname.slice(1); // Remove leading slash
+    if (
+      path === "mens" ||
+      path === "womens" ||
+      path === "electronics" ||
+      path === "baby"
+    ) {
+      return path;
     }
+
+    return null;
   };
 
+  const currentCategorySlug = getCurrentCategory();
+
+  // Define category info first
   const categoryInfo = {
     mens: {
       name: "Men's Collection",
@@ -54,11 +66,70 @@ export default function CategoryPage() {
     },
   };
 
-  const currentCategory = categoryInfo[category] || {
-    name: "Products",
-    description: "Browse our collection",
-    image:
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=400&fit=crop",
+  // Get current page info
+  const getCurrentPageInfo = () => {
+    if (isAllCategories) {
+      return {
+        name: "All Categories",
+        description: "Browse all available categories",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=400&fit=crop",
+      };
+    }
+
+    if (isAllProducts) {
+      return {
+        name: "All Products",
+        description: "Discover our complete collection",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=400&fit=crop",
+      };
+    }
+
+    return (
+      categoryInfo[currentCategorySlug] || {
+        name: "Products",
+        description: "Browse our collection",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=400&fit=crop",
+      }
+    );
+  };
+
+  const currentCategory = getCurrentPageInfo();
+
+  useEffect(() => {
+    if (isAllCategories) {
+      fetchCategories();
+    } else {
+      fetchProducts();
+    }
+  }, [category, currentCategorySlug, isAllCategories]);
+
+  const fetchCategories = async () => {
+    setLoading(true);
+    try {
+      const response = await getCategories();
+      setCategories(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const response = await getProducts(
+        isAllProducts ? null : currentCategorySlug,
+      );
+      setProducts(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const sortedProducts = [...products].sort((a, b) => {
@@ -194,6 +265,29 @@ export default function CategoryPage() {
         {/* Products */}
         {loading ? (
           <Loading />
+        ) : isAllCategories ? (
+          // Show categories grid
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {categories.map((cat) => (
+              <Link
+                key={cat._id}
+                to={`/category/${cat.slug}`}
+                className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition group"
+              >
+                <div className="aspect-video bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center">
+                  <span className="text-4xl">📦</span>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-gray-900 group-hover:text-primary-500 transition">
+                    {cat.name}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Browse {cat.name.toLowerCase()}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
         ) : products.length === 0 ? (
           <div className="text-center py-20">
             <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">

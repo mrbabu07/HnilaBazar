@@ -77,30 +77,38 @@ export default function ProductForm() {
     setFormData({ ...formData, sizes: newSizes });
   };
 
-  const handleImageUpload = async (file) => {
-    if (!file || !file.type.startsWith("image/")) {
-      alert("Please select a valid image file");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image size should be less than 5MB");
-      return;
-    }
+  const handleImageUpload = async (files) => {
+    const fileArray = Array.isArray(files) ? files : [files];
+    const validFiles = fileArray.filter((file) => {
+      if (!file || !file.type.startsWith("image/")) {
+        alert(`${file?.name || "File"} is not a valid image file`);
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name} is too large. Image size should be less than 5MB`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
 
     setUploading(true);
     try {
-      const imageUrl = await uploadImage(file);
+      const uploadPromises = validFiles.map((file) => uploadImage(file));
+      const imageUrls = await Promise.all(uploadPromises);
+
       // Add to images array
-      const newImages = [...formData.images, imageUrl];
-      // Set first image as main image
+      const newImages = [...formData.images, ...imageUrls];
+      // Set first image as main image if no main image exists
       setFormData({
         ...formData,
         images: newImages,
-        image: formData.image || imageUrl,
+        image: formData.image || newImages[0],
       });
     } catch (error) {
       console.error("Upload failed:", error);
-      alert("Failed to upload image");
+      alert("Failed to upload one or more images");
     } finally {
       setUploading(false);
     }
@@ -117,12 +125,12 @@ export default function ProductForm() {
     e.stopPropagation();
     setDragActive(false);
     const files = Array.from(e.dataTransfer.files);
-    if (files[0]) handleImageUpload(files[0]);
+    if (files.length > 0) handleImageUpload(files);
   };
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    if (files[0]) handleImageUpload(files[0]);
+    if (files.length > 0) handleImageUpload(files);
     e.target.value = "";
   };
 
@@ -169,20 +177,43 @@ export default function ProductForm() {
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-6">
-          <nav className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-            <Link to="/admin" className="hover:text-gray-700">
-              Dashboard
+          <div className="flex items-center gap-4 mb-4">
+            <Link
+              to="/admin/products"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Back to Products"
+            >
+              <svg
+                className="w-6 h-6 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
             </Link>
-            <span>→</span>
-            <Link to="/admin/products" className="hover:text-gray-700">
-              Products
-            </Link>
-            <span>→</span>
-            <span className="text-gray-900">{isEdit ? "Edit" : "Add"}</span>
-          </nav>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {isEdit ? "Edit Product" : "Add New Product"}
-          </h1>
+            <div>
+              <nav className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                <Link to="/admin" className="hover:text-gray-700">
+                  Dashboard
+                </Link>
+                <span>→</span>
+                <Link to="/admin/products" className="hover:text-gray-700">
+                  Products
+                </Link>
+                <span>→</span>
+                <span className="text-gray-900">{isEdit ? "Edit" : "Add"}</span>
+              </nav>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {isEdit ? "Edit Product" : "Add New Product"}
+              </h1>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -194,28 +225,73 @@ export default function ProductForm() {
 
             {/* Uploaded Images */}
             {formData.images.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                {formData.images.map((img, index) => (
-                  <div
-                    key={index}
-                    className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100"
-                  >
-                    <img
-                      src={img}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                    {formData.image === img && (
-                      <span className="absolute top-2 left-2 px-2 py-1 bg-primary-500 text-white text-xs rounded">
-                        Main
-                      </span>
-                    )}
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
-                      {formData.image !== img && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-700">
+                    Product Images ({formData.images.length})
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Click on an image to set as main • Drag to reorder
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {formData.images.map((img, index) => (
+                    <div
+                      key={index}
+                      className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 transition-all hover:shadow-md"
+                      style={{
+                        borderColor:
+                          formData.image === img ? "#3B82F6" : "#E5E7EB",
+                      }}
+                    >
+                      <img
+                        src={img}
+                        alt={`Product ${index + 1}`}
+                        className="w-full h-full object-cover cursor-pointer"
+                        onClick={() => setMainImage(img)}
+                      />
+
+                      {/* Main Image Badge */}
+                      {formData.image === img && (
+                        <div className="absolute top-2 left-2 px-2 py-1 bg-primary-500 text-white text-xs font-medium rounded shadow-sm">
+                          Main
+                        </div>
+                      )}
+
+                      {/* Image Index */}
+                      <div className="absolute top-2 right-2 w-6 h-6 bg-black/60 text-white text-xs font-medium rounded-full flex items-center justify-center">
+                        {index + 1}
+                      </div>
+
+                      {/* Hover Controls */}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        {formData.image !== img && (
+                          <button
+                            type="button"
+                            onClick={() => setMainImage(img)}
+                            className="p-2 bg-white rounded-full text-gray-700 hover:bg-gray-100 transition-colors"
+                            title="Set as main image"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => setMainImage(img)}
-                          className="p-2 bg-white rounded-full text-gray-700 hover:bg-gray-100"
+                          onClick={() => removeImage(index)}
+                          className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                          title="Remove image"
                         >
                           <svg
                             className="w-4 h-4"
@@ -227,33 +303,14 @@ export default function ProductForm() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M5 13l4 4L19 7"
+                              d="M6 18L18 6M6 6l12 12"
                             />
                           </svg>
                         </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
 
@@ -274,6 +331,7 @@ export default function ProductForm() {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -317,10 +375,10 @@ export default function ProductForm() {
                     />
                   </svg>
                   <p className="text-gray-600 font-medium">
-                    Drag & drop images or click to upload
+                    Drag & drop multiple images or click to upload
                   </p>
                   <p className="text-sm text-gray-400 mt-1">
-                    PNG, JPG up to 5MB
+                    PNG, JPG up to 5MB each • Multiple files supported
                   </p>
                 </>
               )}

@@ -21,8 +21,16 @@ class Order {
   }
 
   async create(orderData) {
+    // Calculate delivery charge
+    const subtotal = orderData.total || 0;
+    const deliveryCharge = subtotal < 100 ? 100 : 0; // 100tk delivery if order < 100tk
+    const finalTotal = subtotal + deliveryCharge;
+
     const result = await this.collection.insertOne({
       ...orderData,
+      subtotal,
+      deliveryCharge,
+      total: finalTotal,
       status: "pending",
       createdAt: new Date(),
     });
@@ -32,7 +40,7 @@ class Order {
   async updateStatus(id, status) {
     return await this.collection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: { status, updatedAt: new Date() } }
+      { $set: { status, updatedAt: new Date() } },
     );
   }
 }

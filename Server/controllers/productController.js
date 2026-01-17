@@ -15,16 +15,32 @@ const getAllProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     const Product = req.app.locals.models.Product;
-    const product = await Product.findById(req.params.id);
+    const { id } = req.params;
+
+    // Log the request for debugging
+    console.log(`🔍 Product request: ${id}`);
+
+    // Validate ObjectId format
+    if (!id || typeof id !== "string" || id.length !== 24) {
+      console.log(`❌ Invalid ID format: ${id}`);
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid product ID format" });
+    }
+
+    const product = await Product.findById(id);
 
     if (!product) {
+      console.log(`❌ Product not found: ${id}`);
       return res
         .status(404)
         .json({ success: false, error: "Product not found" });
     }
 
+    console.log(`✅ Product found: ${product.title}`);
     res.json({ success: true, data: product });
   } catch (error) {
+    console.error("Error fetching product:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

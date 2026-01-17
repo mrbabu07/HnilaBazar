@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   getCategories,
   createCategory,
@@ -64,11 +65,32 @@ export default function AdminCategories() {
       <div className="bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
-              <p className="text-gray-600">
-                {categories.length} categories total
-              </p>
+            <div className="flex items-center gap-4">
+              <Link
+                to="/admin"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Back to Dashboard"
+              >
+                <svg
+                  className="w-6 h-6 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
+                <p className="text-gray-600">
+                  {categories.length} categories total
+                </p>
+              </div>
             </div>
             <button
               onClick={() => setShowForm(!showForm)}

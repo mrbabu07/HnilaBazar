@@ -12,33 +12,70 @@ export default function CartProvider({ children }) {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product, quantity = 1) => {
+  const addToCart = (
+    product,
+    quantity = 1,
+    selectedImage = null,
+    selectedSize = null,
+  ) => {
     setCart((prev) => {
-      const existing = prev.find((item) => item._id === product._id);
+      const cartItem = {
+        ...product,
+        quantity,
+        selectedImage:
+          selectedImage ||
+          product.image ||
+          (product.images && product.images[0]),
+        selectedSize: selectedSize || product.selectedSize,
+        addedAt: Date.now(), // For unique identification if same product with different options
+      };
+
+      // Create unique key for cart item (product + size combination)
+      const itemKey = `${product._id}_${selectedSize || "no-size"}`;
+      const existing = prev.find(
+        (item) =>
+          item._id === product._id &&
+          (item.selectedSize || "no-size") === (selectedSize || "no-size"),
+      );
+
       if (existing) {
         return prev.map((item) =>
-          item._id === product._id
+          item._id === product._id &&
+          (item.selectedSize || "no-size") === (selectedSize || "no-size")
             ? { ...item, quantity: item.quantity + quantity }
-            : item
+            : item,
         );
       }
-      return [...prev, { ...product, quantity }];
+      return [...prev, cartItem];
     });
   };
 
-  const removeFromCart = (productId) => {
-    setCart((prev) => prev.filter((item) => item._id !== productId));
+  const removeFromCart = (productId, selectedSize = null) => {
+    setCart((prev) =>
+      prev.filter(
+        (item) =>
+          !(
+            item._id === productId &&
+            (item.selectedSize || "no-size") ===
+              (selectedSize || item.selectedSize || "no-size")
+          ),
+      ),
+    );
   };
 
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = (productId, quantity, selectedSize = null) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(productId, selectedSize);
       return;
     }
     setCart((prev) =>
       prev.map((item) =>
-        item._id === productId ? { ...item, quantity } : item
-      )
+        item._id === productId &&
+        (item.selectedSize || "no-size") ===
+          (selectedSize || item.selectedSize || "no-size")
+          ? { ...item, quantity }
+          : item,
+      ),
     );
   };
 
@@ -48,7 +85,7 @@ export default function CartProvider({ children }) {
 
   const cartTotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
-    0
+    0,
   );
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 

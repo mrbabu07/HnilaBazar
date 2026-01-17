@@ -27,7 +27,7 @@ export default function AdminDashboard() {
       const orders = ordersRes.data.data || [];
       const revenue = orders.reduce(
         (sum, order) => sum + (order.total || 0),
-        0
+        0,
       );
 
       setStats({
@@ -145,13 +145,34 @@ export default function AdminDashboard() {
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Admin Dashboard
-              </h1>
-              <p className="text-gray-600">
-                Welcome back! Here's what's happening.
-              </p>
+            <div className="flex items-center gap-4">
+              <Link
+                to="/"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Back to Home"
+              >
+                <svg
+                  className="w-6 h-6 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Admin Dashboard
+                </h1>
+                <p className="text-gray-600">
+                  Welcome back! Here's what's happening.
+                </p>
+              </div>
             </div>
             <Link
               to="/admin/products/add"

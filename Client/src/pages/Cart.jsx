@@ -15,6 +15,8 @@ export default function Cart() {
     navigate("/checkout");
   };
 
+  const getItemKey = (item) => `${item._id}_${item.selectedSize || "no-size"}`;
+
   if (cart.length === 0) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
@@ -50,114 +52,203 @@ export default function Cart() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+      <div className="flex items-center gap-4 mb-8">
+        <Link
+          to="/"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          title="Back to Home"
+        >
+          <svg
+            className="w-6 h-6 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </Link>
+        <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
-          {cart.map((item) => (
-            <div key={item._id} className="card p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row gap-4">
-                {/* Image */}
-                <div className="w-full sm:w-32 h-32 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                  <img
-                    src={
-                      item.image ||
-                      "https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=200"
-                    }
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+          {cart.map((item) => {
+            const displayImage =
+              item.selectedImage ||
+              item.image ||
+              (item.images && item.images[0]) ||
+              "https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=200";
 
-                {/* Details */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">
-                        {item.title}
-                      </h3>
-                      <p className="text-primary-500 font-bold text-lg">
-                        ${item.price?.toFixed(2)}
-                      </p>
+            const allImages =
+              item.images && item.images.length > 0
+                ? item.images
+                : item.image
+                  ? [item.image]
+                  : [];
+
+            return (
+              <div key={getItemKey(item)} className="card p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {/* Image Section */}
+                  <div className="w-full sm:w-40 flex-shrink-0">
+                    {/* Main Image */}
+                    <div className="w-full sm:w-32 h-32 bg-gray-100 rounded-xl overflow-hidden mb-2">
+                      <img
+                        src={displayImage}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <p className="text-lg font-bold text-gray-900 sm:text-right">
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </p>
+
+                    {/* Image Gallery - Show if multiple images */}
+                    {allImages.length > 1 && (
+                      <div className="flex gap-1 overflow-x-auto">
+                        {allImages.slice(0, 4).map((img, index) => (
+                          <div
+                            key={index}
+                            className={`w-8 h-8 rounded border-2 overflow-hidden flex-shrink-0 ${
+                              img === displayImage
+                                ? "border-primary-500"
+                                : "border-gray-200"
+                            }`}
+                          >
+                            <img
+                              src={img}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ))}
+                        {allImages.length > 4 && (
+                          <div className="w-8 h-8 rounded border-2 border-gray-200 bg-gray-100 flex items-center justify-center">
+                            <span className="text-xs text-gray-500">
+                              +{allImages.length - 4}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center border border-gray-200 rounded-lg">
-                      <button
-                        onClick={() =>
-                          updateQuantity(item._id, item.quantity - 1)
-                        }
-                        className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-l-lg transition-colors"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                  {/* Details */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
+                      <div>
+                        <Link
+                          to={`/product/${item._id}`}
+                          className="font-semibold text-gray-900 mb-1 line-clamp-2 hover:text-primary-600 transition-colors"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M20 12H4"
-                          />
-                        </svg>
-                      </button>
-                      <span className="w-12 text-center font-medium">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          updateQuantity(item._id, item.quantity + 1)
-                        }
-                        className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-r-lg transition-colors"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4v16m8-8H4"
-                          />
-                        </svg>
-                      </button>
+                          {item.title}
+                        </Link>
+
+                        {/* Selected Size */}
+                        {item.selectedSize && (
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm text-gray-500">Size:</span>
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded-md font-medium">
+                              {item.selectedSize}
+                            </span>
+                          </div>
+                        )}
+
+                        <p className="text-primary-500 font-bold text-lg">
+                          ${item.price?.toFixed(2)}
+                        </p>
+                      </div>
+                      <p className="text-lg font-bold text-gray-900 sm:text-right">
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </p>
                     </div>
 
-                    <button
-                      onClick={() => removeFromCart(item._id)}
-                      className="flex items-center space-x-1 text-red-500 hover:text-red-600 transition-colors"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    {/* Actions */}
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="flex items-center border border-gray-200 rounded-lg">
+                        <button
+                          onClick={() =>
+                            updateQuantity(
+                              item._id,
+                              item.quantity - 1,
+                              item.selectedSize,
+                            )
+                          }
+                          className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-l-lg transition-colors"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M20 12H4"
+                            />
+                          </svg>
+                        </button>
+                        <span className="w-12 text-center font-medium">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() =>
+                            updateQuantity(
+                              item._id,
+                              item.quantity + 1,
+                              item.selectedSize,
+                            )
+                          }
+                          className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-r-lg transition-colors"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 4v16m8-8H4"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() =>
+                          removeFromCart(item._id, item.selectedSize)
+                        }
+                        className="flex items-center space-x-1 text-red-500 hover:text-red-600 transition-colors"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                      <span className="text-sm font-medium">Remove</span>
-                    </button>
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                        <span className="text-sm font-medium">Remove</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Order Summary */}
@@ -176,18 +267,52 @@ export default function Cart() {
                 <span className="font-medium">${cartTotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-gray-600">
-                <span>Shipping</span>
-                <span className="font-medium text-green-600">Free</span>
+                <span className="flex items-center gap-2">
+                  Delivery Charge
+                  {cartTotal >= 100 && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                      FREE
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={`font-medium ${cartTotal >= 100 ? "line-through text-gray-400" : ""}`}
+                >
+                  ${cartTotal < 100 ? "100.00" : "0.00"}
+                </span>
               </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Tax</span>
-                <span className="font-medium">Calculated at checkout</span>
-              </div>
+
+              {cartTotal < 100 && (
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">🚚</span>
+                    <p className="text-sm font-semibold text-amber-800">
+                      Almost there for FREE delivery!
+                    </p>
+                  </div>
+                  <p className="text-xs text-amber-700">
+                    Add{" "}
+                    <span className="font-bold">
+                      ${(100 - cartTotal).toFixed(2)}
+                    </span>{" "}
+                    more to get free delivery
+                  </p>
+                  <div className="mt-2 bg-amber-200 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-amber-400 to-orange-400 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${Math.min((cartTotal / 100) * 100, 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="border-t border-gray-200 pt-4">
                 <div className="flex justify-between">
                   <span className="text-lg font-bold text-gray-900">Total</span>
                   <span className="text-2xl font-bold text-primary-500">
-                    ${cartTotal.toFixed(2)}
+                    ${(cartTotal + (cartTotal < 100 ? 100 : 0)).toFixed(2)}
                   </span>
                 </div>
               </div>

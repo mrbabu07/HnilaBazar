@@ -36,7 +36,7 @@ export default function AdminProducts() {
   };
 
   const filteredProducts = products.filter((product) =>
-    product.title.toLowerCase().includes(searchTerm.toLowerCase())
+    product.title.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (loading) return <Loading />;
@@ -47,9 +47,32 @@ export default function AdminProducts() {
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-              <p className="text-gray-600">{products.length} products total</p>
+            <div className="flex items-center gap-4">
+              <Link
+                to="/admin"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Back to Dashboard"
+              >
+                <svg
+                  className="w-6 h-6 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+                <p className="text-gray-600">
+                  {products.length} products total
+                </p>
+              </div>
             </div>
             <Link
               to="/admin/products/add"
@@ -176,15 +199,15 @@ export default function AdminProducts() {
                             product.stock > 10
                               ? "bg-green-100 text-green-800"
                               : product.stock > 0
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
                           }`}
                         >
                           {product.stock > 10
                             ? "In Stock"
                             : product.stock > 0
-                            ? "Low Stock"
-                            : "Out of Stock"}
+                              ? "Low Stock"
+                              : "Out of Stock"}
                         </span>
                       </td>
                       <td className="px-6 py-4">

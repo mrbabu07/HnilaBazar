@@ -73,6 +73,30 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 p-2 hover:bg-white rounded-lg transition-colors"
+            title="Back to Home"
+          >
+            <svg
+              className="w-6 h-6 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            <span className="text-gray-600 font-medium">Back to Home</span>
+          </Link>
+        </div>
+
         {/* Profile Card */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-8">
           {/* Cover */}
@@ -226,7 +250,7 @@ export default function Profile() {
                           year: "numeric",
                           month: "long",
                           day: "numeric",
-                        }
+                        },
                       )
                     : "N/A"}
                 </p>

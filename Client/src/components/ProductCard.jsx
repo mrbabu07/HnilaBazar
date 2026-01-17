@@ -1,49 +1,62 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import useCart from "../hooks/useCart";
+import AutoSlideshow from "./AutoSlideshow";
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
-  const [imageError, setImageError] = useState(false);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsAdding(true);
-    addToCart(product);
+    const imageToUse =
+      product.image || (product.images && product.images[0]) || fallbackImage;
+    addToCart(product, 1, imageToUse);
     setTimeout(() => setIsAdding(false), 1000);
   };
 
   const fallbackImage =
     "https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=400&h=400&fit=crop";
 
+  // Prepare images for slideshow
+  const productImages =
+    product.images && product.images.length > 0
+      ? product.images
+      : product.image
+        ? [product.image]
+        : [fallbackImage];
+
   return (
     <Link to={`/product/${product._id}`} className="group">
       <div className="card overflow-hidden">
-        {/* Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-gray-100">
-          <img
-            src={imageError ? fallbackImage : product.image || fallbackImage}
-            alt={product.title}
-            onError={() => setImageError(true)}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+        {/* Image Container with Auto Slideshow */}
+        <div className="relative">
+          <AutoSlideshow
+            images={productImages}
+            autoPlay={productImages.length > 1}
+            interval={4000}
+            showDots={productImages.length > 1}
+            showArrows={false}
+            className="hover:scale-105 transition-transform duration-500"
+            aspectRatio="aspect-square"
           />
 
           {/* Stock Badge */}
           {product.stock <= 5 && product.stock > 0 && (
-            <span className="absolute top-3 left-3 bg-amber-500 text-white text-xs font-medium px-2 py-1 rounded-full">
+            <span className="absolute top-3 left-3 bg-amber-500 text-white text-xs font-medium px-2 py-1 rounded-full z-10">
               Only {product.stock} left
             </span>
           )}
           {product.stock === 0 && (
-            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full">
+            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full z-10">
               Out of Stock
             </span>
           )}
 
           {/* Quick Add Button */}
-          <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
             <button
               onClick={handleAddToCart}
               disabled={product.stock === 0 || isAdding}
@@ -51,8 +64,8 @@ export default function ProductCard({ product }) {
                 isAdding
                   ? "bg-green-500 text-white"
                   : product.stock === 0
-                  ? "bg-gray-400 text-white cursor-not-allowed"
-                  : "bg-white text-gray-900 hover:bg-primary-500 hover:text-white"
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-white text-gray-900 hover:bg-primary-500 hover:text-white"
               }`}
             >
               {isAdding ? (

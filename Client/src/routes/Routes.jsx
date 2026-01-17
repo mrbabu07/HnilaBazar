@@ -16,6 +16,7 @@ import AdminOrders from "../pages/admin/AdminOrders";
 import ProductForm from "../pages/admin/ProductForm";
 import PrivateRoute from "../components/PrivateRoute";
 import AdminRoute from "../components/AdminRoute";
+import SearchResults from "../pages/SearchResults";
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,12 @@ const router = createBrowserRouter([
       { path: "/", element: <Home /> },
       { path: "/login", element: <Login /> },
       { path: "/register", element: <Register /> },
+      { path: "/category/:category", element: <CategoryPage /> },
+      { path: "/categories", element: <CategoryPage /> },
+      { path: "/products", element: <CategoryPage /> },
+      { path: "/search", element: <SearchResults /> },
+
+      // Legacy routes for backward compatibility
       { path: "/mens", element: <CategoryPage /> },
       { path: "/womens", element: <CategoryPage /> },
       { path: "/electronics", element: <CategoryPage /> },
