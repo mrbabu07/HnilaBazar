@@ -320,6 +320,36 @@ export default function Cart() {
                 </span>
               </div>
 
+              {/* Coupon Teaser */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="w-6 h-6 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-green-900 mb-1">
+                      💰 Have a coupon code?
+                    </p>
+                    <p className="text-xs text-green-700">
+                      You can apply your coupon code at checkout to save on your
+                      order!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {cartTotal < 100 && (
                 <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">

@@ -18,6 +18,8 @@ export default function Orders() {
   const [returnFormData, setReturnFormData] = useState({
     reason: "",
     description: "",
+    refundMethod: "",
+    refundAccountNumber: "",
   });
   const [uploadingImages, setUploadingImages] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -105,10 +107,17 @@ export default function Orders() {
         reason: returnFormData.reason,
         description: returnFormData.description,
         images: imageUrls,
+        refundMethod: returnFormData.refundMethod,
+        refundAccountNumber: returnFormData.refundAccountNumber,
       });
 
       setShowReturnModal(false);
-      setReturnFormData({ reason: "", description: "" });
+      setReturnFormData({
+        reason: "",
+        description: "",
+        refundMethod: "",
+        refundAccountNumber: "",
+      });
       setSelectedFiles([]);
       alert(
         "Return request submitted successfully! You can track it in the Returns section.",
@@ -127,7 +136,12 @@ export default function Orders() {
     setShowReturnModal(false);
     setSelectedProduct(null);
     setSelectedOrder(null);
-    setReturnFormData({ reason: "", description: "" });
+    setReturnFormData({
+      reason: "",
+      description: "",
+      refundMethod: "",
+      refundAccountNumber: "",
+    });
     setSelectedFiles([]);
   };
 
@@ -703,6 +717,201 @@ export default function Orders() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                   placeholder="Please provide additional details about your return request..."
                 />
+              </div>
+
+              {/* Refund Method Section */}
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                  Refund Information
+                </h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Refund Method *
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <label
+                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                          returnFormData.refundMethod === "bkash"
+                            ? "border-primary-500 bg-primary-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="refundMethod"
+                          value="bkash"
+                          checked={returnFormData.refundMethod === "bkash"}
+                          onChange={(e) =>
+                            setReturnFormData({
+                              ...returnFormData,
+                              refundMethod: e.target.value,
+                            })
+                          }
+                          required
+                          className="w-4 h-4 text-primary-500"
+                        />
+                        <div className="ml-3">
+                          <span className="text-sm font-semibold text-gray-900">
+                            bKash
+                          </span>
+                          <p className="text-xs text-gray-500">
+                            Mobile Banking
+                          </p>
+                        </div>
+                      </label>
+
+                      <label
+                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                          returnFormData.refundMethod === "nagad"
+                            ? "border-primary-500 bg-primary-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="refundMethod"
+                          value="nagad"
+                          checked={returnFormData.refundMethod === "nagad"}
+                          onChange={(e) =>
+                            setReturnFormData({
+                              ...returnFormData,
+                              refundMethod: e.target.value,
+                            })
+                          }
+                          required
+                          className="w-4 h-4 text-primary-500"
+                        />
+                        <div className="ml-3">
+                          <span className="text-sm font-semibold text-gray-900">
+                            Nagad
+                          </span>
+                          <p className="text-xs text-gray-500">
+                            Mobile Banking
+                          </p>
+                        </div>
+                      </label>
+
+                      <label
+                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                          returnFormData.refundMethod === "rocket"
+                            ? "border-primary-500 bg-primary-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="refundMethod"
+                          value="rocket"
+                          checked={returnFormData.refundMethod === "rocket"}
+                          onChange={(e) =>
+                            setReturnFormData({
+                              ...returnFormData,
+                              refundMethod: e.target.value,
+                            })
+                          }
+                          required
+                          className="w-4 h-4 text-primary-500"
+                        />
+                        <div className="ml-3">
+                          <span className="text-sm font-semibold text-gray-900">
+                            Rocket
+                          </span>
+                          <p className="text-xs text-gray-500">DBBL Mobile</p>
+                        </div>
+                      </label>
+
+                      <label
+                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                          returnFormData.refundMethod === "upay"
+                            ? "border-primary-500 bg-primary-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="refundMethod"
+                          value="upay"
+                          checked={returnFormData.refundMethod === "upay"}
+                          onChange={(e) =>
+                            setReturnFormData({
+                              ...returnFormData,
+                              refundMethod: e.target.value,
+                            })
+                          }
+                          required
+                          className="w-4 h-4 text-primary-500"
+                        />
+                        <div className="ml-3">
+                          <span className="text-sm font-semibold text-gray-900">
+                            Upay
+                          </span>
+                          <p className="text-xs text-gray-500">
+                            Mobile Banking
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Account Number *
+                    </label>
+                    <input
+                      type="tel"
+                      value={returnFormData.refundAccountNumber}
+                      onChange={(e) =>
+                        setReturnFormData({
+                          ...returnFormData,
+                          refundAccountNumber: e.target.value,
+                        })
+                      }
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                      placeholder="01XXXXXXXXX"
+                      pattern="[0-9]{11}"
+                      title="Please enter a valid 11-digit mobile number"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter your{" "}
+                      {returnFormData.refundMethod
+                        ? returnFormData.refundMethod.charAt(0).toUpperCase() +
+                          returnFormData.refundMethod.slice(1)
+                        : "mobile banking"}{" "}
+                      account number (11 digits)
+                    </p>
+                  </div>
+
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <svg
+                        className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-amber-800">
+                          Important
+                        </p>
+                        <p className="text-xs text-amber-700 mt-1">
+                          Please ensure the account number is correct. Refunds
+                          will be processed to this account once your return is
+                          approved.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Image Upload Section */}

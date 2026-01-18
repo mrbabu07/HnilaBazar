@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import useCart from "../hooks/useCart";
-import { createOrder } from "../services/api";
+import {
+  createOrder,
+  getDefaultAddress,
+  getUserAddresses,
+} from "../services/api";
 import { auth } from "../firebase/firebase.config";
 import CouponInput from "../components/CouponInput";
 
@@ -11,6 +15,10 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [defaultAddress, setDefaultAddress] = useState(null);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [showAddressSelector, setShowAddressSelector] = useState(false);
+  const [addressLoaded, setAddressLoaded] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -28,6 +36,69 @@ export default function Checkout() {
   const discountAmount = appliedCoupon?.discountAmount || 0;
   const deliveryCharge = subtotal - discountAmount < 100 ? 100 : 0;
   const finalTotal = subtotal - discountAmount + deliveryCharge;
+
+  // Fetch default address and set user email on mount
+  useEffect(() => {
+    const fetchDefaultAddress = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        // Set user's email and name from Firebase auth
+        setFormData((prev) => ({
+          ...prev,
+          email: user.email || prev.email,
+          name: user.displayName || prev.name,
+        }));
+
+        // Try to get default address
+        try {
+          const response = await getDefaultAddress();
+          if (response.data.success && response.data.data) {
+            setDefaultAddress(response.data.data);
+          }
+        } catch (error) {
+          // If no default address, fetch all addresses
+          if (error.response?.status === 404) {
+            const addressesResponse = await getUserAddresses();
+            if (addressesResponse.data.data?.length > 0) {
+              setSavedAddresses(addressesResponse.data.data);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch addresses:", error);
+      }
+    };
+
+    fetchDefaultAddress();
+  }, []);
+
+  // Auto-fill form with default address
+  const loadAddress = (address) => {
+    setFormData({
+      ...formData,
+      name: address.name,
+      phone: address.phone,
+      address: address.address,
+      city: address.city,
+      area: address.area,
+      zipCode: address.zipCode || "",
+    });
+    setAddressLoaded(true);
+    setShowAddressSelector(false);
+  };
+
+  // Load all saved addresses
+  const fetchSavedAddresses = async () => {
+    try {
+      const response = await getUserAddresses();
+      setSavedAddresses(response.data.data || []);
+      setShowAddressSelector(true);
+    } catch (error) {
+      console.error("Failed to fetch addresses:", error);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -80,7 +151,7 @@ export default function Checkout() {
         subtotal: subtotal,
         shippingInfo: {
           name: formData.name,
-          email: formData.email || `${formData.phone}@temp.com`, // Provide default email if not given
+          email: user.email || formData.email, // Always use authenticated user's email
           phone: formData.phone,
           address: formData.address,
           city: formData.city,
@@ -250,10 +321,42 @@ export default function Checkout() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Shipping Information */}
               <div className="bg-white rounded-2xl shadow-sm border p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-blue-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Delivery Information
+                    </h2>
+                  </div>
+
+                  {/* Load Saved Address Button */}
+                  <button
+                    type="button"
+                    onClick={fetchSavedAddresses}
+                    className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary-50 transition-colors"
+                  >
                     <svg
-                      className="w-5 h-5 text-blue-600"
+                      className="w-4 h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -262,35 +365,180 @@ export default function Checkout() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                       />
+                    </svg>
+                    Use Saved Address
+                  </button>
+                </div>
+
+                {/* Default Address Suggestion */}
+                {defaultAddress && !addressLoaded && (
+                  <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-primary-50 border border-blue-200 rounded-xl">
+                    <div className="flex items-start gap-3">
+                      <svg
+                        className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-blue-900 mb-1">
+                          💡 Use your default address?
+                        </p>
+                        <p className="text-xs text-blue-700 mb-2">
+                          {defaultAddress.name} • {defaultAddress.phone}
+                          <br />
+                          {defaultAddress.address}, {defaultAddress.area},{" "}
+                          {defaultAddress.city}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => loadAddress(defaultAddress)}
+                          className="text-xs font-semibold text-primary-600 hover:text-primary-700 bg-white px-3 py-1.5 rounded-lg border border-primary-200 hover:border-primary-300 transition-colors"
+                        >
+                          Use This Address
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Address Loaded Success Message */}
+                {addressLoaded && (
+                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
+                    <svg
+                      className="w-5 h-5 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
+                    <p className="text-sm text-green-800 font-medium">
+                      Address loaded successfully! You can edit if needed.
+                    </p>
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Delivery Information
-                  </h2>
-                </div>
+                )}
+
+                {/* Saved Addresses Selector Modal */}
+                {showAddressSelector && savedAddresses.length > 0 && (
+                  <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        Select a saved address
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddressSelector(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {savedAddresses.map((addr) => (
+                        <button
+                          key={addr._id}
+                          type="button"
+                          onClick={() => loadAddress(addr)}
+                          className="w-full text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-gray-900">
+                                {addr.name}
+                                {addr.isDefault && (
+                                  <span className="ml-2 text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full">
+                                    Default
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-xs text-gray-600 mt-1">
+                                {addr.phone}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {addr.address}, {addr.area}, {addr.city}
+                              </p>
+                            </div>
+                            <svg
+                              className="w-5 h-5 text-primary-600 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5l7 7-7 7"
+                              />
+                            </svg>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Full Name *
                     </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      placeholder="John Doe"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        readOnly
+                        required
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <svg
+                          className="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Name from your account (read-only)
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -310,14 +558,34 @@ export default function Checkout() {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Email Address
                     </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="john@example.com"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                    />
+                    <div className="relative">
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        readOnly
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <svg
+                          className="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Email from your account (read-only)
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -625,6 +893,16 @@ export default function Checkout() {
                 ))}
               </div>
 
+              {/* Coupon Input */}
+              <div className="mb-6">
+                <CouponInput
+                  orderTotal={cartTotal}
+                  onCouponApplied={handleCouponApplied}
+                  onCouponRemoved={handleCouponRemoved}
+                  appliedCoupon={appliedCoupon}
+                />
+              </div>
+
               {/* Pricing Breakdown */}
               <div className="border-t pt-4 space-y-3">
                 <div className="flex justify-between text-gray-600">
@@ -634,6 +912,30 @@ export default function Checkout() {
                   </span>
                   <span>${cartTotal.toFixed(2)}</span>
                 </div>
+
+                {appliedCoupon && (
+                  <div className="flex justify-between text-green-600">
+                    <span className="flex items-center gap-2">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                        />
+                      </svg>
+                      Coupon Discount ({appliedCoupon.code})
+                    </span>
+                    <span className="font-semibold">
+                      -${discountAmount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex justify-between text-gray-600">
                   <span className="flex items-center gap-2">
@@ -653,7 +955,7 @@ export default function Checkout() {
                   </span>
                 </div>
 
-                {cartTotal < 100 && (
+                {cartTotal < 100 && !appliedCoupon && (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                     <p className="text-xs text-amber-700">
                       💡 Add ${(100 - cartTotal).toFixed(2)} more to get FREE

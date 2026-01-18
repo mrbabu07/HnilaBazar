@@ -32,6 +32,8 @@ class Return {
       ...returnData,
       status: "pending", // pending, approved, rejected, processing, completed
       images: returnData.images || [], // Support for multiple images
+      refundMethod: returnData.refundMethod || null, // bkash, nagad, rocket, upay
+      refundAccountNumber: returnData.refundAccountNumber || null, // Mobile banking account number
       createdAt: new Date(),
       updatedAt: new Date(),
     };

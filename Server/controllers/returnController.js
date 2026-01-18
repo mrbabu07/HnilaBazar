@@ -1,8 +1,57 @@
+const { ObjectId } = require("mongodb");
+
 const getAllReturns = async (req, res) => {
   try {
     const Return = req.app.locals.models.Return;
+    const User = req.app.locals.models.User;
+    const db = req.app.locals.db;
+
     const returns = await Return.findAll();
-    res.json({ success: true, data: returns });
+
+    // Populate user information for each return
+    const returnsWithUserInfo = await Promise.all(
+      returns.map(async (returnItem) => {
+        try {
+          // Get user from Firebase UID
+          const user = await User.findByFirebaseUid(returnItem.userId);
+
+          // Get order to fetch shipping info - convert orderId string to ObjectId
+          const order = await db.collection("orders").findOne({
+            _id: new ObjectId(returnItem.orderId),
+          });
+
+          return {
+            ...returnItem,
+            userInfo: user
+              ? {
+                  name: user.name || order?.shippingInfo?.name || "N/A",
+                  email: user.email || order?.shippingInfo?.email || "N/A",
+                  phone: order?.shippingInfo?.phone || "N/A",
+                }
+              : {
+                  name: order?.shippingInfo?.name || "N/A",
+                  email: order?.shippingInfo?.email || "N/A",
+                  phone: order?.shippingInfo?.phone || "N/A",
+                },
+          };
+        } catch (error) {
+          console.error(
+            `Error fetching user info for return ${returnItem._id}:`,
+            error,
+          );
+          return {
+            ...returnItem,
+            userInfo: {
+              name: "N/A",
+              email: "N/A",
+              phone: "N/A",
+            },
+          };
+        }
+      }),
+    );
+
+    res.json({ success: true, data: returnsWithUserInfo });
   } catch (error) {
     console.error("Error fetching returns:", error);
     res.status(500).json({ success: false, error: error.message });
@@ -53,7 +102,15 @@ const createReturnRequest = async (req, res) => {
   try {
     const Return = req.app.locals.models.Return;
     const userId = req.user.uid;
-    const { orderId, productId, reason, description, images = [] } = req.body;
+    const {
+      orderId,
+      productId,
+      reason,
+      description,
+      images = [],
+      refundMethod,
+      refundAccountNumber,
+    } = req.body;
 
     if (!orderId || !productId || !reason) {
       return res.status(400).json({
@@ -81,6 +138,8 @@ const createReturnRequest = async (req, res) => {
       reason,
       description,
       images,
+      refundMethod,
+      refundAccountNumber,
       refundAmount:
         canReturn.orderProduct.price * canReturn.orderProduct.quantity,
     };
@@ -199,8 +258,6 @@ const getReturnStats = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
-
-const { ObjectId } = require("mongodb");
 
 const getOrderReturns = async (req, res) => {
   try {

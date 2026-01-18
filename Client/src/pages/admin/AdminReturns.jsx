@@ -198,6 +198,9 @@ export default function AdminReturns() {
                       Amount
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Refund Method
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -218,7 +221,23 @@ export default function AdminReturns() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {returnItem.userId}
+                          {returnItem.userInfo ? (
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {returnItem.userInfo.name}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {returnItem.userInfo.email}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                📞 {returnItem.userInfo.phone}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-500">
+                              {returnItem.userId}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -271,6 +290,29 @@ export default function AdminReturns() {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        {returnItem.refundMethod &&
+                        returnItem.refundAccountNumber ? (
+                          <div className="text-sm">
+                            <div className="font-medium text-gray-900 capitalize">
+                              {returnItem.refundMethod === "bkash" &&
+                                "📱 bKash"}
+                              {returnItem.refundMethod === "nagad" &&
+                                "📱 Nagad"}
+                              {returnItem.refundMethod === "rocket" &&
+                                "📱 Rocket"}
+                              {returnItem.refundMethod === "upay" && "📱 Upay"}
+                            </div>
+                            <div className="text-xs text-gray-500 font-mono">
+                              {returnItem.refundAccountNumber}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">
+                            Not provided
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(returnItem.status)}`}
                         >
@@ -308,6 +350,48 @@ export default function AdminReturns() {
       >
         {selectedReturn && (
           <div className="space-y-6">
+            {/* Customer Information */}
+            {selectedReturn.userInfo && (
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+                <h4 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  Customer Information
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                  <div>
+                    <span className="text-purple-700 font-medium">Name:</span>
+                    <p className="text-purple-900 font-semibold mt-1">
+                      {selectedReturn.userInfo.name}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-purple-700 font-medium">Email:</span>
+                    <p className="text-purple-900 font-semibold mt-1 break-all">
+                      {selectedReturn.userInfo.email}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-purple-700 font-medium">Phone:</span>
+                    <p className="text-purple-900 font-semibold mt-1">
+                      📞 {selectedReturn.userInfo.phone}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Return Details */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="font-medium text-gray-900 mb-2">Return Details</h4>
@@ -335,6 +419,99 @@ export default function AdminReturns() {
                   <p className="text-sm mt-1">{selectedReturn.description}</p>
                 </div>
               )}
+
+              {/* Refund Banking Information */}
+              {selectedReturn.refundMethod &&
+                selectedReturn.refundAccountNumber && (
+                  <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg shadow-sm">
+                    <h5 className="font-bold text-green-900 mb-3 flex items-center gap-2 text-base">
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                        />
+                      </svg>
+                      💰 Refund Payment Details
+                    </h5>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-3 border border-green-200">
+                        <span className="text-green-700 font-semibold text-sm block mb-2">
+                          Refund Method:
+                        </span>
+                        <p className="text-green-900 font-bold text-lg capitalize flex items-center gap-2">
+                          {selectedReturn.refundMethod === "bkash" &&
+                            "📱 bKash"}
+                          {selectedReturn.refundMethod === "nagad" &&
+                            "📱 Nagad"}
+                          {selectedReturn.refundMethod === "rocket" &&
+                            "📱 Rocket"}
+                          {selectedReturn.refundMethod === "upay" && "📱 Upay"}
+                        </p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3 border border-green-200">
+                        <span className="text-green-700 font-semibold text-sm block mb-2">
+                          Account Number:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <p className="text-green-900 font-bold text-lg font-mono">
+                            {selectedReturn.refundAccountNumber}
+                          </p>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(
+                                selectedReturn.refundAccountNumber,
+                              );
+                              alert("Account number copied to clipboard!");
+                            }}
+                            className="p-1.5 hover:bg-green-100 rounded transition-colors"
+                            title="Copy account number"
+                          >
+                            <svg
+                              className="w-4 h-4 text-green-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-start gap-2 text-sm bg-green-100 rounded-lg p-3">
+                      <svg
+                        className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-700"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <p className="text-green-800 font-medium">
+                        <strong>Important:</strong> Process refund to this{" "}
+                        {selectedReturn.refundMethod.toUpperCase()} account when
+                        approved. Customer is expecting payment to this number.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
               {/* Display uploaded images */}
               {selectedReturn.images && selectedReturn.images.length > 0 && (
