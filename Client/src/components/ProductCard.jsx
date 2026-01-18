@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import useCart from "../hooks/useCart";
 import AutoSlideshow from "./AutoSlideshow";
+import WishlistButton from "./WishlistButton";
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
@@ -42,6 +43,11 @@ export default function ProductCard({ product }) {
             className="hover:scale-105 transition-transform duration-500"
             aspectRatio="aspect-square"
           />
+
+          {/* Wishlist Button */}
+          <div className="absolute top-3 right-3 z-10">
+            <WishlistButton product={product} size="md" />
+          </div>
 
           {/* Stock Badge */}
           {product.stock <= 5 && product.stock > 0 && (
@@ -99,6 +105,40 @@ export default function ProductCard({ product }) {
           <h3 className="font-medium text-gray-900 mb-1 line-clamp-2 group-hover:text-primary-500 transition-colors">
             {product.title}
           </h3>
+
+          {/* Size and Color Indicators */}
+          {(product.sizes?.length > 0 || product.colors?.length > 0) && (
+            <div className="flex items-center gap-2 mb-2">
+              {product.sizes?.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-500">Sizes:</span>
+                  <span className="text-xs text-gray-700 font-medium">
+                    {product.sizes.length} options
+                  </span>
+                </div>
+              )}
+              {product.colors?.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-500">Colors:</span>
+                  <div className="flex gap-1">
+                    {product.colors.slice(0, 3).map((color, index) => (
+                      <div
+                        key={index}
+                        className="w-3 h-3 rounded-full border border-gray-300"
+                        style={{ backgroundColor: color.value }}
+                        title={color.name}
+                      />
+                    ))}
+                    {product.colors.length > 3 && (
+                      <span className="text-xs text-gray-500 ml-1">
+                        +{product.colors.length - 3}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center justify-between mt-2">
             <span className="text-xl font-bold text-primary-500">

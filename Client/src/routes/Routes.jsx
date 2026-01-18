@@ -6,6 +6,7 @@ import Register from "../pages/Register";
 import CategoryPage from "../pages/CategoryPage";
 import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
+import Wishlist from "../pages/Wishlist";
 import Checkout from "../pages/Checkout";
 import Orders from "../pages/Orders";
 import Profile from "../pages/Profile";
@@ -38,6 +39,14 @@ const router = createBrowserRouter([
       { path: "/baby", element: <CategoryPage /> },
       { path: "/product/:id", element: <ProductDetail /> },
       { path: "/cart", element: <Cart /> },
+      {
+        path: "/wishlist",
+        element: (
+          <PrivateRoute>
+            <Wishlist />
+          </PrivateRoute>
+        ),
+      },
       {
         path: "/checkout",
         element: (

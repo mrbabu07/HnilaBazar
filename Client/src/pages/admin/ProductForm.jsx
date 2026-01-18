@@ -30,10 +30,26 @@ export default function ProductForm() {
     stock: "",
     description: "",
     sizes: [],
+    colors: [],
     sizeChart: "",
   });
 
   const availableSizes = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+
+  const availableColors = [
+    { name: "Black", value: "#000000" },
+    { name: "White", value: "#FFFFFF" },
+    { name: "Red", value: "#EF4444" },
+    { name: "Blue", value: "#3B82F6" },
+    { name: "Green", value: "#10B981" },
+    { name: "Yellow", value: "#F59E0B" },
+    { name: "Purple", value: "#8B5CF6" },
+    { name: "Pink", value: "#EC4899" },
+    { name: "Gray", value: "#6B7280" },
+    { name: "Brown", value: "#92400E" },
+    { name: "Navy", value: "#1E3A8A" },
+    { name: "Orange", value: "#F97316" },
+  ];
 
   useEffect(() => {
     fetchCategories();
@@ -57,6 +73,7 @@ export default function ProductForm() {
         ...product,
         images: product.images || [],
         sizes: product.sizes || [],
+        colors: product.colors || [],
         sizeChart: product.sizeChart || "",
       });
     } catch (error) {
@@ -75,6 +92,13 @@ export default function ProductForm() {
       ? formData.sizes.filter((s) => s !== size)
       : [...formData.sizes, size];
     setFormData({ ...formData, sizes: newSizes });
+  };
+
+  const handleColorToggle = (color) => {
+    const newColors = formData.colors.some((c) => c.name === color.name)
+      ? formData.colors.filter((c) => c.name !== color.name)
+      : [...formData.colors, color];
+    setFormData({ ...formData, colors: newColors });
   };
 
   const handleImageUpload = async (files) => {
@@ -491,6 +515,64 @@ export default function ProductForm() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Colors Section (Optional) */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold mb-2">Colors (Optional)</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Select available colors for this product
+            </p>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+              {availableColors.map((color) => (
+                <button
+                  key={color.name}
+                  type="button"
+                  onClick={() => handleColorToggle(color)}
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 font-medium transition hover:shadow-sm ${
+                    formData.colors.some((c) => c.name === color.name)
+                      ? "border-primary-500 bg-primary-50 text-primary-700"
+                      : "border-gray-300 text-gray-600 hover:border-gray-400"
+                  }`}
+                >
+                  <div
+                    className="w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0"
+                    style={{ backgroundColor: color.value }}
+                  />
+                  <span className="text-sm truncate">{color.name}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Selected Colors Preview */}
+            {formData.colors.length > 0 && (
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                  Selected Colors ({formData.colors.length}):
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {formData.colors.map((color) => (
+                    <div
+                      key={color.name}
+                      className="flex items-center gap-2 px-3 py-1 bg-white rounded-full border text-sm"
+                    >
+                      <div
+                        className="w-4 h-4 rounded-full border"
+                        style={{ backgroundColor: color.value }}
+                      />
+                      <span>{color.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleColorToggle(color)}
+                        className="text-gray-400 hover:text-red-500 ml-1"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Size Chart (Optional) */}

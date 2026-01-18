@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ path: "./Server/.env" });
 const { MongoClient, ServerApiVersion } = require("mongodb");
 
 const uri = process.env.MONGO_URI;
@@ -63,6 +63,12 @@ async function seed() {
         description:
           "Comfortable cotton t-shirt for everyday wear. Made from 100% premium cotton with a classic fit.",
         sizes: ["S", "M", "L", "XL"],
+        colors: [
+          { name: "Black", value: "#000000" },
+          { name: "White", value: "#FFFFFF" },
+          { name: "Navy", value: "#1E3A8A" },
+          { name: "Gray", value: "#6B7280" },
+        ],
       },
       {
         title: "Men's Denim Jeans",
@@ -80,6 +86,11 @@ async function seed() {
         description:
           "Classic fit denim jeans with premium quality fabric and modern styling.",
         sizes: ["30", "32", "34", "36"],
+        colors: [
+          { name: "Blue", value: "#3B82F6" },
+          { name: "Black", value: "#000000" },
+          { name: "Gray", value: "#6B7280" },
+        ],
       },
       {
         title: "Men's Leather Jacket",
@@ -114,6 +125,12 @@ async function seed() {
         description:
           "Comfortable running shoes with advanced cushioning and breathable design.",
         sizes: ["8", "9", "10", "11", "12"],
+        colors: [
+          { name: "Black", value: "#000000" },
+          { name: "White", value: "#FFFFFF" },
+          { name: "Red", value: "#EF4444" },
+          { name: "Blue", value: "#3B82F6" },
+        ],
       },
 
       // Women's products
@@ -133,6 +150,12 @@ async function seed() {
         description:
           "Light and breezy summer dress perfect for warm weather and casual occasions.",
         sizes: ["XS", "S", "M", "L"],
+        colors: [
+          { name: "Pink", value: "#EC4899" },
+          { name: "Blue", value: "#3B82F6" },
+          { name: "White", value: "#FFFFFF" },
+          { name: "Yellow", value: "#F59E0B" },
+        ],
       },
       {
         title: "Women's Handbag",

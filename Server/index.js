@@ -8,12 +8,16 @@ const User = require("./models/User");
 const Product = require("./models/Product");
 const Category = require("./models/Category");
 const Order = require("./models/Order");
+const Wishlist = require("./models/Wishlist");
+const Review = require("./models/Review");
 
 // Import routes
 const productRoutes = require("./routes/productRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const userRoutes = require("./routes/userRoutes");
+const wishlistRoutes = require("./routes/wishlistRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -46,6 +50,8 @@ async function run() {
       Product: new Product(db),
       Category: new Category(db),
       Order: new Order(db),
+      Wishlist: new Wishlist(db),
+      Review: new Review(db),
     };
 
     // Routes
@@ -57,6 +63,8 @@ async function run() {
           categories: "/api/categories",
           orders: "/api/orders",
           user: "/api/user",
+          wishlist: "/api/wishlist",
+          reviews: "/api/reviews",
         },
       });
     });
@@ -65,6 +73,8 @@ async function run() {
     app.use("/api/categories", categoryRoutes);
     app.use("/api/orders", orderRoutes);
     app.use("/api/user", userRoutes);
+    app.use("/api/wishlist", wishlistRoutes);
+    app.use("/api/reviews", reviewRoutes);
 
     // Error handling middleware
     app.use((err, req, res, next) => {

@@ -15,7 +15,8 @@ export default function Cart() {
     navigate("/checkout");
   };
 
-  const getItemKey = (item) => `${item._id}_${item.selectedSize || "no-size"}`;
+  const getItemKey = (item) =>
+    `${item._id}_${item.selectedSize || "no-size"}_${item.selectedColor?.name || "no-color"}`;
 
   if (cart.length === 0) {
     return (
@@ -157,6 +158,26 @@ export default function Cart() {
                           </div>
                         )}
 
+                        {/* Selected Color */}
+                        {item.selectedColor && (
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm text-gray-500">
+                              Color:
+                            </span>
+                            <div className="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-md">
+                              <div
+                                className="w-4 h-4 rounded-full border border-gray-300"
+                                style={{
+                                  backgroundColor: item.selectedColor.value,
+                                }}
+                              />
+                              <span className="text-gray-700 text-sm font-medium">
+                                {item.selectedColor.name}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
                         <p className="text-primary-500 font-bold text-lg">
                           ${item.price?.toFixed(2)}
                         </p>
@@ -175,6 +196,7 @@ export default function Cart() {
                               item._id,
                               item.quantity - 1,
                               item.selectedSize,
+                              item.selectedColor,
                             )
                           }
                           className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-l-lg transition-colors"
@@ -202,6 +224,7 @@ export default function Cart() {
                               item._id,
                               item.quantity + 1,
                               item.selectedSize,
+                              item.selectedColor,
                             )
                           }
                           className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-r-lg transition-colors"
@@ -224,7 +247,11 @@ export default function Cart() {
 
                       <button
                         onClick={() =>
-                          removeFromCart(item._id, item.selectedSize)
+                          removeFromCart(
+                            item._id,
+                            item.selectedSize,
+                            item.selectedColor,
+                          )
                         }
                         className="flex items-center space-x-1 text-red-500 hover:text-red-600 transition-colors"
                       >

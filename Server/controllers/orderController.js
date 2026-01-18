@@ -22,12 +22,42 @@ const createOrder = async (req, res) => {
   try {
     const Order = req.app.locals.models.Order;
     const Product = req.app.locals.models.Product;
-    const { products, total } = req.body;
+    const {
+      products,
+      total,
+      shippingInfo,
+      paymentMethod,
+      specialInstructions,
+    } = req.body;
+
+    // Log the received data for debugging
+    console.log("📦 Creating order with data:", {
+      userId: req.user.uid,
+      productsCount: products?.length,
+      total,
+      shippingInfo,
+      paymentMethod,
+      specialInstructions,
+    });
 
     if (!products || !Array.isArray(products) || products.length === 0) {
       return res
         .status(400)
         .json({ success: false, error: "Invalid products" });
+    }
+
+    // Validate required shipping information
+    if (
+      !shippingInfo ||
+      !shippingInfo.name ||
+      !shippingInfo.phone ||
+      !shippingInfo.address
+    ) {
+      console.log("❌ Missing shipping info:", shippingInfo);
+      return res.status(400).json({
+        success: false,
+        error: "Missing required shipping information",
+      });
     }
 
     // Update stock for each product
@@ -39,10 +69,15 @@ const createOrder = async (req, res) => {
       userId: req.user.uid,
       products,
       total: parseFloat(total),
+      shippingInfo,
+      paymentMethod,
+      specialInstructions,
     });
 
+    console.log("✅ Order created successfully:", orderId);
     res.status(201).json({ success: true, data: { id: orderId } });
   } catch (error) {
+    console.error("❌ Error creating order:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -54,7 +89,7 @@ const updateOrderStatus = async (req, res) => {
 
     if (
       !["pending", "processing", "shipped", "delivered", "cancelled"].includes(
-        status
+        status,
       )
     ) {
       return res.status(400).json({ success: false, error: "Invalid status" });

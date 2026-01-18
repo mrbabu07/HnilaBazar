@@ -14,6 +14,7 @@ export default function ProductDetail() {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
+  const [selectedColor, setSelectedColor] = useState(null);
   const [selectedImage, setSelectedImage] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [showSizeChart, setShowSizeChart] = useState(false);
@@ -62,6 +63,10 @@ export default function ProductDetail() {
       if (data.sizes && data.sizes.length > 0) {
         setSelectedSize(data.sizes[0]);
       }
+
+      if (data.colors && data.colors.length > 0) {
+        setSelectedColor(data.colors[0]);
+      }
       setError(null);
     } catch (error) {
       console.error("Failed to fetch product:", error);
@@ -91,8 +96,12 @@ export default function ProductDetail() {
       alert("Please select a size");
       return;
     }
+    if (product.colors?.length > 0 && !selectedColor) {
+      alert("Please select a color");
+      return;
+    }
     setIsAdding(true);
-    addToCart(product, quantity, selectedImage, selectedSize);
+    addToCart(product, quantity, selectedImage, selectedSize, selectedColor);
     setTimeout(() => setIsAdding(false), 1500);
   };
 
@@ -101,7 +110,11 @@ export default function ProductDetail() {
       alert("Please select a size");
       return;
     }
-    addToCart(product, quantity, selectedImage, selectedSize);
+    if (product.colors?.length > 0 && !selectedColor) {
+      alert("Please select a color");
+      return;
+    }
+    addToCart(product, quantity, selectedImage, selectedSize, selectedColor);
     navigate("/cart");
   };
 
@@ -399,6 +412,65 @@ export default function ProductDetail() {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Color Selection */}
+          {product.colors && product.colors.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Select Color
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {product.colors.map((color) => (
+                  <button
+                    key={color.name}
+                    onClick={() => setSelectedColor(color)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg border-2 font-medium transition hover:shadow-sm ${
+                      selectedColor?.name === color.name
+                        ? "border-primary-500 bg-primary-50 text-primary-700 shadow-sm"
+                        : "border-gray-300 text-gray-600 hover:border-gray-400"
+                    }`}
+                  >
+                    <div
+                      className="w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0"
+                      style={{ backgroundColor: color.value }}
+                    />
+                    <span>{color.name}</span>
+                    {selectedColor?.name === color.name && (
+                      <svg
+                        className="w-4 h-4 text-primary-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Selected Color Display */}
+              {selectedColor && (
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span>Selected:</span>
+                    <div
+                      className="w-4 h-4 rounded-full border"
+                      style={{ backgroundColor: selectedColor.value }}
+                    />
+                    <span className="font-medium text-gray-900">
+                      {selectedColor.name}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

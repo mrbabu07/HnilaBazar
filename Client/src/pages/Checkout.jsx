@@ -40,6 +40,7 @@ export default function Checkout() {
           price: item.price,
           quantity: item.quantity,
           selectedSize: item.selectedSize || null,
+          selectedColor: item.selectedColor || null,
           image: item.image,
         })),
         total: cartTotal, // This will be recalculated on server
