@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getAllOrders, updateOrderStatus } from "../../services/api";
 import Loading from "../../components/Loading";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -34,6 +35,7 @@ export default function AdminOrders() {
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
+    const loadingToast = toast.loading("Updating order status...");
     try {
       await updateOrderStatus(orderId, newStatus);
       setOrders(
@@ -41,9 +43,18 @@ export default function AdminOrders() {
           order._id === orderId ? { ...order, status: newStatus } : order,
         ),
       );
+
+      // Note: Notification will be sent to the customer's account
+      // This would require backend implementation to send notifications to specific users
+
+      toast.success(`Order status updated to ${newStatus}!`, {
+        id: loadingToast,
+      });
     } catch (error) {
       console.error("Failed to update status:", error);
-      alert("Failed to update order status");
+      toast.error("Failed to update order status", {
+        id: loadingToast,
+      });
     }
   };
 
@@ -83,6 +94,30 @@ export default function AdminOrders() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: "#10B981",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            duration: 4000,
+            iconTheme: {
+              primary: "#EF4444",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

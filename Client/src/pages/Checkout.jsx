@@ -8,10 +8,12 @@ import {
 } from "../services/api";
 import { auth } from "../firebase/firebase.config";
 import CouponInput from "../components/CouponInput";
+import { useNotifications } from "../context/NotificationContext";
 
 export default function Checkout() {
   const { cart, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -170,6 +172,19 @@ export default function Checkout() {
 
       const response = await createOrder(orderData);
       console.log("Order response:", response);
+
+      // Get order ID safely
+      const orderId = response.data?.data?._id || response.data?._id || "NEW";
+      const orderIdShort =
+        orderId !== "NEW" ? orderId.slice(-8).toUpperCase() : "NEW";
+
+      // Add notification for successful order
+      addNotification({
+        type: "order",
+        title: "Order Placed Successfully!",
+        message: `Your order #${orderIdShort} has been placed and is being processed.`,
+        link: "/orders",
+      });
 
       clearCart();
       navigate("/orders", { state: { orderSuccess: true } });

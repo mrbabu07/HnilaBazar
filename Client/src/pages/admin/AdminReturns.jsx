@@ -74,6 +74,10 @@ export default function AdminReturns() {
         parseFloat(refundData.refundAmount),
         refundData.refundMethod,
       );
+
+      // Note: Notification will be sent to the customer's account
+      // This would require backend implementation to send notifications to specific users
+
       await fetchReturns();
       setShowModal(false);
       setSelectedReturn(null);

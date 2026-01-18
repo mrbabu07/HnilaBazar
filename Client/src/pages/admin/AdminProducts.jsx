@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getProducts, deleteProduct } from "../../services/api";
 import { Link } from "react-router-dom";
 import Loading from "../../components/Loading";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
@@ -25,13 +26,19 @@ export default function AdminProducts() {
   };
 
   const handleDelete = async (id) => {
+    const loadingToast = toast.loading("Deleting product...");
     try {
       await deleteProduct(id);
       setProducts(products.filter((p) => p._id !== id));
       setDeleteId(null);
+      toast.success("Product deleted successfully!", {
+        id: loadingToast,
+      });
     } catch (error) {
       console.error("Failed to delete product:", error);
-      alert("Failed to delete product");
+      toast.error("Failed to delete product", {
+        id: loadingToast,
+      });
     }
   };
 
@@ -43,6 +50,30 @@ export default function AdminProducts() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: "#10B981",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            duration: 4000,
+            iconTheme: {
+              primary: "#EF4444",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

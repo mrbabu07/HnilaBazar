@@ -4,6 +4,8 @@ import useAuth from "../hooks/useAuth";
 import useCart from "../hooks/useCart";
 import useWishlist from "../hooks/useWishlist";
 import { getCategories } from "../services/api";
+import ThemeToggle from "./ThemeToggle";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
   const { user, logout, isAdmin } = useAuth();
@@ -39,14 +41,12 @@ export default function Navbar() {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "All Products", path: "/products" },
-    { name: "About", path: "/about" },
-    { name: "Contact", path: "/contact" },
   ];
 
   return (
     <>
       {/* Top Bar */}
-      <div className="bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm">
+      <div className="bg-gradient-to-r from-primary-600 to-secondary-600 dark:from-primary-700 dark:to-secondary-700 text-white text-sm">
         <div className="max-w-7xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -65,7 +65,7 @@ export default function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <nav className="bg-white shadow-lg sticky top-0 z-50 border-b">
+      <nav className="bg-white dark:bg-gray-900 shadow-lg sticky top-0 z-50 border-b dark:border-gray-800 transition-colors">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -77,7 +77,7 @@ export default function Navbar() {
                 <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
                   HnilaBazar
                 </span>
-                <p className="text-xs text-gray-500 -mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1">
                   Your Shopping Destination
                 </p>
               </div>
@@ -91,10 +91,10 @@ export default function Navbar() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search products..."
-                  className="w-full px-4 py-2.5 pl-12 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 pl-12 pr-4 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 />
                 <svg
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -118,8 +118,8 @@ export default function Navbar() {
                   className={({ isActive }) =>
                     `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? "bg-primary-50 text-primary-600"
-                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                     }`
                   }
                 >
@@ -131,7 +131,7 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setCategoriesOpen(!categoriesOpen)}
-                  className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-all duration-200"
+                  className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                 >
                   Categories
                   <svg
@@ -150,9 +150,9 @@ export default function Navbar() {
                 </button>
 
                 {categoriesOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900">
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                    <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
                         Shop by Category
                       </p>
                     </div>
@@ -162,18 +162,18 @@ export default function Navbar() {
                           key={category._id}
                           to={`/category/${category.slug}`}
                           onClick={() => setCategoriesOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                         >
-                          <div className="w-8 h-8 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-lg flex items-center justify-center">
+                          <div className="w-8 h-8 bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/30 dark:to-secondary-900/30 rounded-lg flex items-center justify-center">
                             <span className="text-sm">📦</span>
                           </div>
-                          <span className="text-sm font-medium text-gray-700 hover:text-primary-600">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400">
                             {category.name}
                           </span>
                         </Link>
                       ))
                     ) : (
-                      <div className="px-4 py-3 text-sm text-gray-500">
+                      <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                         No categories available
                       </div>
                     )}
@@ -182,15 +182,21 @@ export default function Navbar() {
               </div>
             </div>
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-2">
+              {/* Theme Toggle */}
+              <ThemeToggle />
+
+              {/* Notification Bell - Show for all logged-in users (customers and admins) */}
+              {user && <NotificationBell />}
+
               {/* Wishlist */}
               {user && (
                 <Link
                   to="/wishlist"
-                  className="relative p-2.5 rounded-xl hover:bg-gray-100 transition-colors group"
+                  className="relative p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
                 >
                   <svg
-                    className="w-6 h-6 text-gray-700 group-hover:text-red-500"
+                    className="w-6 h-6 text-gray-700 dark:text-gray-300 group-hover:text-red-500"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -213,10 +219,10 @@ export default function Navbar() {
               {/* Cart */}
               <Link
                 to="/cart"
-                className="relative p-2.5 rounded-xl hover:bg-gray-100 transition-colors group"
+                className="relative p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
               >
                 <svg
-                  className="w-6 h-6 text-gray-700 group-hover:text-primary-600"
+                  className="w-6 h-6 text-gray-700 dark:text-gray-300 group-hover:text-primary-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

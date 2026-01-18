@@ -4,6 +4,7 @@ import { getUserOrders, createReturnRequest } from "../services/api";
 import { uploadToImgBB } from "../services/imageUpload";
 import Loading from "../components/Loading";
 import Modal from "../components/Modal";
+import { useNotifications } from "../context/NotificationContext";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -11,6 +12,7 @@ export default function Orders() {
   const [filter, setFilter] = useState("all");
   const location = useLocation();
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -119,6 +121,16 @@ export default function Orders() {
         refundAccountNumber: "",
       });
       setSelectedFiles([]);
+
+      // Add notification for return request
+      addNotification({
+        type: "return",
+        title: "Return Request Submitted",
+        message:
+          "Your return request has been submitted and is under review by our team.",
+        link: "/returns",
+      });
+
       alert(
         "Return request submitted successfully! You can track it in the Returns section.",
       );
