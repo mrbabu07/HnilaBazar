@@ -31,7 +31,7 @@ export default function ProductCard({ product }) {
 
   return (
     <Link to={`/product/${product._id}`} className="group">
-      <div className="card overflow-hidden">
+      <div className="card overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-lg transition-all">
         {/* Image Container with Auto Slideshow */}
         <div className="relative">
           <AutoSlideshow
@@ -102,7 +102,7 @@ export default function ProductCard({ product }) {
 
         {/* Product Info */}
         <div className="p-4">
-          <h3 className="font-medium text-gray-900 mb-1 line-clamp-2 group-hover:text-primary-500 transition-colors">
+          <h3 className="font-medium text-gray-900 dark:text-white mb-1 line-clamp-2 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
             {product.title}
           </h3>
 
@@ -111,26 +111,30 @@ export default function ProductCard({ product }) {
             <div className="flex items-center gap-2 mb-2">
               {product.sizes?.length > 0 && (
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500">Sizes:</span>
-                  <span className="text-xs text-gray-700 font-medium">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    Sizes:
+                  </span>
+                  <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
                     {product.sizes.length} options
                   </span>
                 </div>
               )}
               {product.colors?.length > 0 && (
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500">Colors:</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    Colors:
+                  </span>
                   <div className="flex gap-1">
                     {product.colors.slice(0, 3).map((color, index) => (
                       <div
                         key={index}
-                        className="w-3 h-3 rounded-full border border-gray-300"
+                        className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
                         style={{ backgroundColor: color.value }}
                         title={color.name}
                       />
                     ))}
                     {product.colors.length > 3 && (
-                      <span className="text-xs text-gray-500 ml-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
                         +{product.colors.length - 3}
                       </span>
                     )}
@@ -141,11 +145,11 @@ export default function ProductCard({ product }) {
           )}
 
           <div className="flex items-center justify-between mt-2">
-            <span className="text-xl font-bold text-primary-500">
+            <span className="text-xl font-bold text-primary-500 dark:text-primary-400">
               ${product.price?.toFixed(2)}
             </span>
             {product.stock > 0 && (
-              <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full">
+              <span className="text-xs text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">
                 In Stock
               </span>
             )}

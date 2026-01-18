@@ -197,7 +197,7 @@ export default function ProductForm() {
   if (loading && isEdit) return <Loading />;
 
   return (
-    <div className="min-h-screen bg-gray-100 pb-12">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pb-12">
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-6">

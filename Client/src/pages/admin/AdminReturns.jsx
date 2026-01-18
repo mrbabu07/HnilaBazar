@@ -129,7 +129,7 @@ export default function AdminReturns() {
   if (loading) return <Loading />;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       <Toaster
         position="top-right"
         toastOptions={{

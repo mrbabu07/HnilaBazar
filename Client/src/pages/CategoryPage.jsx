@@ -158,7 +158,7 @@ export default function CategoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Category Hero Banner */}
       <div className="relative h-64 md:h-80 overflow-hidden">
         <img

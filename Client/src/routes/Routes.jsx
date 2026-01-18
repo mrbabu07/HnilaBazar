@@ -6,6 +6,7 @@ import Contact from "../pages/Contact";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import CategoryPage from "../pages/CategoryPage";
+import Products from "../pages/Products";
 import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
 import Wishlist from "../pages/Wishlist";
@@ -37,7 +38,7 @@ const router = createBrowserRouter([
       { path: "/register", element: <Register /> },
       { path: "/category/:category", element: <CategoryPage /> },
       { path: "/categories", element: <CategoryPage /> },
-      { path: "/products", element: <CategoryPage /> },
+      { path: "/products", element: <Products /> },
       { path: "/search", element: <SearchResults /> },
 
       // Legacy routes for backward compatibility
