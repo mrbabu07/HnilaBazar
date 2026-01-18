@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
 import {
   getAllReturns,
   updateReturnStatus,
@@ -39,6 +40,7 @@ export default function AdminReturns() {
 
   const handleStatusUpdate = async (e) => {
     e.preventDefault();
+    const loadingToast = toast.loading("Updating return status...");
     try {
       await updateReturnStatus(
         selectedReturn._id,
@@ -49,18 +51,23 @@ export default function AdminReturns() {
       setShowModal(false);
       setSelectedReturn(null);
       setStatusUpdate({ status: "", adminNotes: "" });
-      alert("Return status updated successfully!");
+      toast.success("Return status updated successfully!", {
+        id: loadingToast,
+      });
     } catch (error) {
-      alert("Failed to update return status");
+      toast.error("Failed to update return status", {
+        id: loadingToast,
+      });
     }
   };
 
   const handleProcessRefund = async () => {
     if (!refundData.refundAmount) {
-      alert("Please enter refund amount");
+      toast.error("Please enter refund amount");
       return;
     }
 
+    const loadingToast = toast.loading("Processing refund...");
     try {
       await processRefund(
         selectedReturn._id,
@@ -71,9 +78,13 @@ export default function AdminReturns() {
       setShowModal(false);
       setSelectedReturn(null);
       setRefundData({ refundAmount: "", refundMethod: "original" });
-      alert("Refund processed successfully!");
+      toast.success("Refund processed successfully!", {
+        id: loadingToast,
+      });
     } catch (error) {
-      alert("Failed to process refund");
+      toast.error("Failed to process refund", {
+        id: loadingToast,
+      });
     }
   };
 
@@ -115,6 +126,30 @@ export default function AdminReturns() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: "#10B981",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            duration: 4000,
+            iconTheme: {
+              primary: "#EF4444",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -293,21 +328,65 @@ export default function AdminReturns() {
                         {returnItem.refundMethod &&
                         returnItem.refundAccountNumber ? (
                           <div className="text-sm">
-                            <div className="font-medium text-gray-900 capitalize">
-                              {returnItem.refundMethod === "bkash" &&
-                                "📱 bKash"}
-                              {returnItem.refundMethod === "nagad" &&
-                                "📱 Nagad"}
-                              {returnItem.refundMethod === "rocket" &&
-                                "📱 Rocket"}
-                              {returnItem.refundMethod === "upay" && "📱 Upay"}
+                            <div className="font-semibold text-gray-900 capitalize mb-1 flex items-center gap-2">
+                              {returnItem.refundMethod === "bkash" && (
+                                <span className="flex items-center gap-1">
+                                  <span className="w-2 h-2 bg-pink-500 rounded-full"></span>
+                                  📱 bKash
+                                </span>
+                              )}
+                              {returnItem.refundMethod === "nagad" && (
+                                <span className="flex items-center gap-1">
+                                  <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                                  📱 Nagad
+                                </span>
+                              )}
+                              {returnItem.refundMethod === "rocket" && (
+                                <span className="flex items-center gap-1">
+                                  <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                                  📱 Rocket
+                                </span>
+                              )}
+                              {returnItem.refundMethod === "upay" && (
+                                <span className="flex items-center gap-1">
+                                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                  📱 Upay
+                                </span>
+                              )}
                             </div>
-                            <div className="text-xs text-gray-500 font-mono">
-                              {returnItem.refundAccountNumber}
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-600 font-mono bg-gray-100 px-2 py-1 rounded font-semibold">
+                                {returnItem.refundAccountNumber}
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(
+                                    returnItem.refundAccountNumber,
+                                  );
+                                  toast.success("Account number copied!");
+                                }}
+                                className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                title="Copy account number"
+                              >
+                                <svg
+                                  className="w-3 h-3 text-gray-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                  />
+                                </svg>
+                              </button>
                             </div>
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-400">
+                          <span className="text-sm text-gray-400 italic">
                             Not provided
                           </span>
                         )}
@@ -468,7 +547,12 @@ export default function AdminReturns() {
                               navigator.clipboard.writeText(
                                 selectedReturn.refundAccountNumber,
                               );
-                              alert("Account number copied to clipboard!");
+                              toast.success(
+                                "Account number copied to clipboard!",
+                                {
+                                  icon: "📋",
+                                },
+                              );
                             }}
                             className="p-1.5 hover:bg-green-100 rounded transition-colors"
                             title="Copy account number"
