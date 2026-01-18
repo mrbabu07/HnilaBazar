@@ -1,3 +1,5 @@
+const emailService = require("../services/emailService");
+
 const getAllOrders = async (req, res) => {
   try {
     const Order = req.app.locals.models.Order;
@@ -28,6 +30,7 @@ const createOrder = async (req, res) => {
       shippingInfo,
       paymentMethod,
       specialInstructions,
+      couponCode,
     } = req.body;
 
     // Log the received data for debugging
@@ -35,12 +38,14 @@ const createOrder = async (req, res) => {
       userId: req.user.uid,
       productsCount: products?.length,
       total,
-      shippingInfo,
+      shippingInfo: shippingInfo ? "provided" : "missing",
       paymentMethod,
-      specialInstructions,
+      specialInstructions: specialInstructions ? "provided" : "none",
+      couponCode: couponCode || "none",
     });
 
     if (!products || !Array.isArray(products) || products.length === 0) {
+      console.error("❌ Order creation failed: Invalid products");
       return res
         .status(400)
         .json({ success: false, error: "Invalid products" });
@@ -50,34 +55,117 @@ const createOrder = async (req, res) => {
     if (
       !shippingInfo ||
       !shippingInfo.name ||
+      !shippingInfo.email ||
       !shippingInfo.phone ||
-      !shippingInfo.address
+      !shippingInfo.address ||
+      !shippingInfo.city
     ) {
-      console.log("❌ Missing shipping info:", shippingInfo);
+      console.error(
+        "❌ Order creation failed: Missing shipping info",
+        shippingInfo,
+      );
       return res.status(400).json({
         success: false,
         error: "Missing required shipping information",
       });
     }
 
-    // Update stock for each product
+    // Validate product availability and update stock
     for (const item of products) {
-      await Product.updateStock(item.productId, item.quantity);
+      if (!item.productId) {
+        console.error(
+          "❌ Order creation failed: Missing productId in item",
+          item,
+        );
+        return res.status(400).json({
+          success: false,
+          error: "Missing product ID in order items",
+        });
+      }
+
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        console.error(
+          "❌ Order creation failed: Product not found",
+          item.productId,
+        );
+        return res.status(400).json({
+          success: false,
+          error: `Product not found: ${item.productId}`,
+        });
+      }
+
+      if (product.stock < item.quantity) {
+        console.error("❌ Order creation failed: Insufficient stock", {
+          product: product.title,
+          available: product.stock,
+          requested: item.quantity,
+        });
+        return res.status(400).json({
+          success: false,
+          error: `Insufficient stock for ${product.title}. Available: ${product.stock}, Requested: ${item.quantity}`,
+        });
+      }
     }
 
-    const orderId = await Order.create({
+    // Create order with coupon support
+    const orderData = {
       userId: req.user.uid,
       products,
-      total: parseFloat(total),
+      subtotal: total, // This will be recalculated in the model
       shippingInfo,
       paymentMethod,
       specialInstructions,
-    });
+      couponCode,
+    };
 
+    console.log("📦 Creating order in database...");
+    const orderId = await Order.create(orderData);
     console.log("✅ Order created successfully:", orderId);
-    res.status(201).json({ success: true, data: { id: orderId } });
+
+    // Update product stock
+    console.log("📦 Updating product stock...");
+    for (const item of products) {
+      await Product.updateStock(item.productId, item.quantity);
+
+      // Check for low stock and send alert
+      const product = await Product.findById(item.productId);
+      if (product && product.stock <= 10) {
+        await emailService.sendLowStockAlert({
+          productTitle: product.title,
+          currentStock: product.stock,
+          productId: product._id,
+        });
+      }
+    }
+    console.log("✅ Product stock updated successfully");
+
+    // Send order confirmation email
+    try {
+      console.log("📧 Sending order confirmation email...");
+      await emailService.sendOrderConfirmation({
+        userEmail: shippingInfo.email,
+        userName: shippingInfo.name,
+        orderId: orderId.toString(),
+        products,
+        total,
+        shippingInfo,
+      });
+      console.log("✅ Order confirmation email sent");
+    } catch (emailError) {
+      console.error("⚠️ Failed to send order confirmation email:", emailError);
+      // Don't fail the order creation if email fails
+    }
+
+    console.log("🎉 Order creation completed successfully");
+    res.status(201).json({
+      success: true,
+      data: { orderId },
+      message: "Order created successfully",
+    });
   } catch (error) {
     console.error("❌ Error creating order:", error);
+    console.error("❌ Error stack:", error.stack);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -85,24 +173,68 @@ const createOrder = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   try {
     const Order = req.app.locals.models.Order;
-    const { status } = req.body;
+    const { id } = req.params;
+    const { status, trackingNumber } = req.body;
 
-    if (
-      !["pending", "processing", "shipped", "delivered", "cancelled"].includes(
-        status,
-      )
-    ) {
-      return res.status(400).json({ success: false, error: "Invalid status" });
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        error: "Status is required",
+      });
     }
 
-    const result = await Order.updateStatus(req.params.id, status);
+    const validStatuses = [
+      "pending",
+      "processing",
+      "shipped",
+      "delivered",
+      "cancelled",
+    ];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: `Status must be one of: ${validStatuses.join(", ")}`,
+      });
+    }
+
+    // Get order details for email notification
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        error: "Order not found",
+      });
+    }
+
+    const result = await Order.updateStatus(id, status);
 
     if (result.matchedCount === 0) {
-      return res.status(404).json({ success: false, error: "Order not found" });
+      return res.status(404).json({
+        success: false,
+        error: "Order not found",
+      });
     }
 
-    res.json({ success: true, message: "Order status updated" });
+    // Send status update email
+    try {
+      await emailService.sendOrderStatusUpdate({
+        userEmail: order.shippingInfo.email,
+        userName: order.shippingInfo.name,
+        orderId: id,
+        status,
+        trackingNumber,
+      });
+    } catch (emailError) {
+      console.error("Failed to send order status email:", emailError);
+      // Don't fail the status update if email fails
+    }
+
+    res.json({
+      success: true,
+      message: "Order status updated successfully",
+    });
   } catch (error) {
+    console.error("Error updating order status:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

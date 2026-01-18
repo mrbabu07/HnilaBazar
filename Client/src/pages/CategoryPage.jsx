@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
 import { getProducts, getCategories } from "../services/api";
 import ProductCard from "../components/ProductCard";
+import ProductFilters from "../components/ProductFilters";
 import Loading from "../components/Loading";
 
 export default function CategoryPage() {
@@ -12,6 +13,7 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("default");
   const [viewMode, setViewMode] = useState("grid");
+  const [filters, setFilters] = useState({});
 
   // Determine if this is "all categories" or "all products" page
   const isAllCategories = location.pathname === "/categories";
@@ -104,7 +106,7 @@ export default function CategoryPage() {
     } else {
       fetchProducts();
     }
-  }, [category, currentCategorySlug, isAllCategories]);
+  }, [category, currentCategorySlug, isAllCategories, filters]);
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -121,9 +123,11 @@ export default function CategoryPage() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await getProducts(
-        isAllProducts ? null : currentCategorySlug,
-      );
+      const queryParams = {
+        ...filters,
+        category: isAllProducts ? null : currentCategorySlug,
+      };
+      const response = await getProducts(queryParams);
       setProducts(response.data.data);
     } catch (error) {
       console.error("Failed to fetch products:", error);
@@ -144,6 +148,14 @@ export default function CategoryPage() {
         return 0;
     }
   });
+
+  const handleFiltersChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -262,110 +274,126 @@ export default function CategoryPage() {
           </div>
         </div>
 
-        {/* Products */}
-        {loading ? (
-          <Loading />
-        ) : isAllCategories ? (
-          // Show categories grid
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {categories.map((cat) => (
-              <Link
-                key={cat._id}
-                to={`/category/${cat.slug}`}
-                className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition group"
-              >
-                <div className="aspect-video bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center">
-                  <span className="text-4xl">📦</span>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 group-hover:text-primary-500 transition">
-                    {cat.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Browse {cat.name.toLowerCase()}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-              <svg
-                className="w-12 h-12 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                />
-              </svg>
+        {/* Main Content */}
+        <div className="flex gap-8">
+          {/* Filters Sidebar - Only show for products, not categories */}
+          {!isAllCategories && (
+            <div className="hidden lg:block w-80 flex-shrink-0">
+              <ProductFilters
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                onClearFilters={handleClearFilters}
+              />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No products found
-            </h3>
-            <p className="text-gray-600 mb-6">
-              We couldn't find any products in this category.
-            </p>
-            <Link to="/" className="btn-primary inline-block">
-              Continue Shopping
-            </Link>
-          </div>
-        ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {sortedProducts.map((product) => (
-              <ProductCard key={product._id} product={product} />
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {sortedProducts.map((product) => (
-              <Link
-                key={product._id}
-                to={`/product/${product._id}`}
-                className="flex bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition group"
-              >
-                <div className="w-48 h-48 flex-shrink-0 overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                  />
+          )}
+
+          {/* Products/Categories Content */}
+          <div className="flex-1">
+            {loading ? (
+              <Loading />
+            ) : isAllCategories ? (
+              // Show categories grid
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {categories.map((cat) => (
+                  <Link
+                    key={cat._id}
+                    to={`/category/${cat.slug}`}
+                    className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition group"
+                  >
+                    <div className="aspect-video bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center">
+                      <span className="text-4xl">📦</span>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-gray-900 group-hover:text-primary-500 transition">
+                        {cat.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Browse {cat.name.toLowerCase()}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-12 h-12 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
                 </div>
-                <div className="flex-1 p-6 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-500 transition mb-2">
-                      {product.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm line-clamp-2">
-                      {product.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="text-2xl font-bold text-primary-500">
-                      ${product.price}
-                    </span>
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        product.stock > 0
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {product.stock > 0
-                        ? `${product.stock} in stock`
-                        : "Out of stock"}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No products found
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  We couldn't find any products in this category.
+                </p>
+                <Link to="/" className="btn-primary inline-block">
+                  Continue Shopping
+                </Link>
+              </div>
+            ) : viewMode === "grid" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {sortedProducts.map((product) => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {sortedProducts.map((product) => (
+                  <Link
+                    key={product._id}
+                    to={`/product/${product._id}`}
+                    className="flex bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition group"
+                  >
+                    <div className="w-48 h-48 flex-shrink-0 overflow-hidden">
+                      <img
+                        src={product.image}
+                        alt={product.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      />
+                    </div>
+                    <div className="flex-1 p-6 flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-500 transition mb-2">
+                          {product.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm line-clamp-2">
+                          {product.description}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between mt-4">
+                        <span className="text-2xl font-bold text-primary-500">
+                          ${product.price}
+                        </span>
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            product.stock > 0
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {product.stock > 0
+                            ? `${product.stock} in stock`
+                            : "Out of stock"}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

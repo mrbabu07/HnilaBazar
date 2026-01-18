@@ -18,17 +18,23 @@ api.interceptors.request.use(async (config) => {
 });
 
 // Products
-export const getProducts = (category) => {
-  const params = category ? { category } : {};
-  return api.get("/products", { params });
+export const getProducts = (filters = {}) => {
+  return api.get("/products", { params: filters });
 };
 
 export const getProductById = (id) => api.get(`/products/${id}`);
 export const searchProducts = (query) =>
   api.get(`/products/search?q=${encodeURIComponent(query)}`);
+export const getFilterOptions = () => api.get("/products/filter-options");
 export const createProduct = (data) => api.post("/products", data);
 export const updateProduct = (id, data) => api.put(`/products/${id}`, data);
 export const deleteProduct = (id) => api.delete(`/products/${id}`);
+export const getLowStockProducts = (threshold = 10) =>
+  api.get(`/products/admin/low-stock?threshold=${threshold}`);
+export const getOutOfStockProducts = () =>
+  api.get("/products/admin/out-of-stock");
+export const updateStockBulk = (updates) =>
+  api.patch("/products/bulk-stock-update", { updates });
 
 // Categories
 export const getCategories = () => api.get("/categories");
@@ -40,8 +46,59 @@ export const deleteCategory = (id) => api.delete(`/categories/${id}`);
 export const getUserOrders = () => api.get("/orders/my-orders");
 export const getAllOrders = () => api.get("/orders");
 export const createOrder = (data) => api.post("/orders", data);
-export const updateOrderStatus = (id, status) =>
-  api.patch(`/orders/${id}/status`, { status });
+export const updateOrderStatus = (id, status, trackingNumber) =>
+  api.patch(`/orders/${id}/status`, { status, trackingNumber });
 
 // User
 export const getCurrentUser = () => api.get("/user/me");
+
+// Wishlist
+export const getWishlist = () => api.get("/wishlist");
+export const addToWishlist = (productId) =>
+  api.post("/wishlist", { productId });
+export const removeFromWishlist = (productId) =>
+  api.delete(`/wishlist/${productId}`);
+export const clearWishlist = () => api.delete("/wishlist");
+
+// Reviews
+export const getProductReviews = (productId) =>
+  api.get(`/reviews/product/${productId}`);
+export const createReview = (data) => api.post("/reviews", data);
+export const getUserReviews = () => api.get("/reviews/my-reviews");
+export const updateReview = (id, data) => api.put(`/reviews/${id}`, data);
+export const deleteReview = (id) => api.delete(`/reviews/${id}`);
+export const markReviewHelpful = (id) => api.post(`/reviews/${id}/helpful`);
+
+// Coupons
+export const getActiveCoupons = () => api.get("/coupons/active");
+export const validateCoupon = (code, orderTotal) =>
+  api.post("/coupons/validate", { code, orderTotal });
+export const getAllCoupons = () => api.get("/coupons");
+export const createCoupon = (data) => api.post("/coupons", data);
+export const updateCoupon = (id, data) => api.put(`/coupons/${id}`, data);
+export const deleteCoupon = (id) => api.delete(`/coupons/${id}`);
+
+// Addresses
+export const getUserAddresses = () => api.get("/addresses");
+export const getDefaultAddress = () => api.get("/addresses/default");
+export const createAddress = (data) => api.post("/addresses", data);
+export const updateAddress = (id, data) => api.put(`/addresses/${id}`, data);
+export const deleteAddress = (id) => api.delete(`/addresses/${id}`);
+export const setDefaultAddress = (id) => api.patch(`/addresses/${id}/default`);
+
+// Returns
+export const getUserReturns = () => api.get("/returns/my-returns");
+export const createReturnRequest = (data) => api.post("/returns", data);
+export const getAllReturns = () => api.get("/returns/admin");
+export const updateReturnStatus = (id, status, adminNotes) =>
+  api.patch(`/returns/${id}/status`, { status, adminNotes });
+export const processRefund = (id, refundAmount, refundMethod) =>
+  api.post(`/returns/${id}/refund`, { refundAmount, refundMethod });
+
+// Payments
+export const processPayment = (data) => api.post("/payments/process", data);
+export const getUserPayments = () => api.get("/payments/my-payments");
+export const getOrderPayment = (orderId) =>
+  api.get(`/payments/order/${orderId}`);
+export const getAllPayments = () => api.get("/payments");
+export const getPaymentStats = () => api.get("/payments/stats");

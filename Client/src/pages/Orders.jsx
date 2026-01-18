@@ -1,14 +1,26 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { getUserOrders } from "../services/api";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { getUserOrders, createReturnRequest } from "../services/api";
+import { uploadToImgBB } from "../services/imageUpload";
 import Loading from "../components/Loading";
+import Modal from "../components/Modal";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const location = useLocation();
+  const navigate = useNavigate();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [returnFormData, setReturnFormData] = useState({
+    reason: "",
+    description: "",
+  });
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   useEffect(() => {
     fetchOrders();
@@ -66,6 +78,88 @@ export default function Orders() {
     filter === "all"
       ? orders
       : orders.filter((order) => order.status === filter);
+
+  const handleReturnRequest = (order, product) => {
+    setSelectedOrder(order);
+    setSelectedProduct(product);
+    setShowReturnModal(true);
+  };
+
+  const submitReturnRequest = async (e) => {
+    e.preventDefault();
+    setUploadingImages(true);
+
+    try {
+      // Upload images to ImgBB if any are selected
+      let imageUrls = [];
+      if (selectedFiles.length > 0) {
+        console.log("Uploading images...");
+        const uploadPromises = selectedFiles.map((file) => uploadToImgBB(file));
+        imageUrls = await Promise.all(uploadPromises);
+        console.log("Images uploaded:", imageUrls);
+      }
+
+      await createReturnRequest({
+        orderId: selectedOrder._id,
+        productId: selectedProduct.productId || selectedProduct._id,
+        reason: returnFormData.reason,
+        description: returnFormData.description,
+        images: imageUrls,
+      });
+
+      setShowReturnModal(false);
+      setReturnFormData({ reason: "", description: "" });
+      setSelectedFiles([]);
+      alert(
+        "Return request submitted successfully! You can track it in the Returns section.",
+      );
+
+      // Navigate to returns page
+      navigate("/returns");
+    } catch (error) {
+      alert(error.response?.data?.error || "Failed to submit return request");
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  const closeReturnModal = () => {
+    setShowReturnModal(false);
+    setSelectedProduct(null);
+    setSelectedOrder(null);
+    setReturnFormData({ reason: "", description: "" });
+    setSelectedFiles([]);
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length + selectedFiles.length > 5) {
+      alert("Maximum 5 images allowed");
+      return;
+    }
+    setSelectedFiles((prev) => [...prev, ...files]);
+  };
+
+  const removeFile = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Check if order is eligible for returns (delivered within 7 days)
+  const isReturnEligible = (order) => {
+    if (order.status !== "delivered") return false;
+    const deliveryDate = new Date(order.updatedAt || order.createdAt);
+    const daysSinceDelivery =
+      (new Date() - deliveryDate) / (1000 * 60 * 60 * 24);
+    return daysSinceDelivery <= 7;
+  };
+
+  // Utility function to safely render color
+  const renderColor = (color) => {
+    if (!color) return null;
+    if (typeof color === "string") return color;
+    if (typeof color === "object" && color.name) return color.name;
+    return "Unknown Color";
+  };
 
   if (loading) return <Loading />;
   return (
@@ -130,22 +224,43 @@ export default function Orders() {
                 </p>
               </div>
             </div>
-            <Link to="/" className="btn-primary flex items-center gap-2">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="flex items-center gap-3">
+              <Link
+                to="/returns"
+                className="px-4 py-2 text-primary-600 border border-primary-200 rounded-lg hover:bg-primary-50 transition-colors flex items-center gap-2"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Continue Shopping
-            </Link>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                  />
+                </svg>
+                My Returns
+              </Link>
+              <Link to="/" className="btn-primary flex items-center gap-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Continue Shopping
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -304,16 +419,49 @@ export default function Orders() {
                             {item.selectedSize && (
                               <span>Size: {item.selectedSize}</span>
                             )}
+                            {item.selectedColor && (
+                              <span>
+                                Color: {renderColor(item.selectedColor)}
+                              </span>
+                            )}
                             <span>${item.price} each</span>
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex flex-col items-end gap-2">
                           <p className="font-bold text-gray-900">
                             $
                             {((item.price || 0) * (item.quantity || 0)).toFixed(
                               2,
                             )}
                           </p>
+                          {/* Return Button for Delivered Orders */}
+                          {isReturnEligible(order) && (
+                            <button
+                              onClick={() => handleReturnRequest(order, item)}
+                              className="px-3 py-1 text-xs font-medium text-orange-600 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors flex items-center gap-1"
+                            >
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                                />
+                              </svg>
+                              Return Item
+                            </button>
+                          )}
+                          {order.status === "delivered" &&
+                            !isReturnEligible(order) && (
+                              <span className="text-xs text-gray-400">
+                                Return period expired
+                              </span>
+                            )}
                         </div>
                       </div>
                     ))}
@@ -448,6 +596,249 @@ export default function Orders() {
           </div>
         )}
       </div>
+
+      {/* Return Request Modal */}
+      <Modal
+        isOpen={showReturnModal}
+        onClose={closeReturnModal}
+        title="Request Return"
+      >
+        {selectedProduct && (
+          <div className="space-y-4">
+            {/* Product Info */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-medium text-gray-900 mb-2">
+                Product Details
+              </h4>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                  {selectedProduct.image ? (
+                    <img
+                      src={selectedProduct.image}
+                      alt={selectedProduct.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <svg
+                      className="w-6 h-6 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">
+                    {selectedProduct.title}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Qty: {selectedProduct.quantity} • ${selectedProduct.price}
+                  </p>
+                  {selectedProduct.selectedSize && (
+                    <p className="text-sm text-gray-600">
+                      Size: {selectedProduct.selectedSize}
+                    </p>
+                  )}
+                  {selectedProduct.selectedColor && (
+                    <p className="text-sm text-gray-600">
+                      Color: {renderColor(selectedProduct.selectedColor)}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Return Form */}
+            <form onSubmit={submitReturnRequest} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Return Reason *
+                </label>
+                <select
+                  value={returnFormData.reason}
+                  onChange={(e) =>
+                    setReturnFormData({
+                      ...returnFormData,
+                      reason: e.target.value,
+                    })
+                  }
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                >
+                  <option value="">Select a reason</option>
+                  <option value="Defective Product">Defective Product</option>
+                  <option value="Wrong Item Received">
+                    Wrong Item Received
+                  </option>
+                  <option value="Size/Fit Issues">Size/Fit Issues</option>
+                  <option value="Not as Described">Not as Described</option>
+                  <option value="Damaged in Shipping">
+                    Damaged in Shipping
+                  </option>
+                  <option value="Changed Mind">Changed Mind</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description (Optional)
+                </label>
+                <textarea
+                  value={returnFormData.description}
+                  onChange={(e) =>
+                    setReturnFormData({
+                      ...returnFormData,
+                      description: e.target.value,
+                    })
+                  }
+                  rows="3"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                  placeholder="Please provide additional details about your return request..."
+                />
+              </div>
+
+              {/* Image Upload Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload Images (Optional)
+                </label>
+                <div className="space-y-3">
+                  {/* File Input */}
+                  <div className="flex items-center justify-center w-full">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg
+                          className="w-8 h-8 mb-4 text-gray-500"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 20 16"
+                        >
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                          />
+                        </svg>
+                        <p className="mb-2 text-sm text-gray-500">
+                          <span className="font-semibold">Click to upload</span>{" "}
+                          or drag and drop
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          PNG, JPG or JPEG (MAX. 5 images)
+                        </p>
+                      </div>
+                      <input
+                        type="file"
+                        className="hidden"
+                        multiple
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Selected Images Preview */}
+                  {selectedFiles.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="relative group">
+                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                          >
+                            ×
+                          </button>
+                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg truncate">
+                            {file.name}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedFiles.length > 0 && (
+                    <p className="text-sm text-gray-600">
+                      {selectedFiles.length} image
+                      {selectedFiles.length > 1 ? "s" : ""} selected
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-700">
+                  <strong>Return Policy:</strong> Items can be returned within 7
+                  days of delivery. Products must be in original condition with
+                  tags attached.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={uploadingImages}
+                  className="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {uploadingImages ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Uploading Images...
+                    </>
+                  ) : (
+                    "Submit Return Request"
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeReturnModal}
+                  disabled={uploadingImages}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

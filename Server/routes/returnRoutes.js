@@ -1,0 +1,45 @@
+const express = require("express");
+const router = express.Router();
+const { verifyToken, verifyAdmin } = require("../middleware/auth");
+const {
+  getAllReturns,
+  getUserReturns,
+  getReturnById,
+  createReturnRequest,
+  updateReturnStatus,
+  processRefund,
+  getReturnStats,
+  getOrderReturns,
+} = require("../controllers/returnController");
+
+// Test route without authentication (for debugging)
+router.get("/test", (req, res) => {
+  console.log("🔥 Returns test route hit!");
+  res.json({ message: "Returns routes are working!", timestamp: new Date() });
+});
+
+// Test POST route without authentication (for debugging)
+router.post("/test", (req, res) => {
+  res.json({
+    message: "Returns POST route working!",
+    data: req.body,
+    timestamp: new Date(),
+  });
+});
+
+// All other return routes require authentication
+router.use(verifyToken);
+
+// User routes
+router.get("/my-returns", getUserReturns);
+router.get("/order/:orderId", getOrderReturns);
+router.get("/:id", getReturnById);
+router.post("/", createReturnRequest);
+
+// Admin routes
+router.get("/", verifyAdmin, getAllReturns);
+router.get("/stats", verifyAdmin, getReturnStats);
+router.patch("/:id/status", verifyAdmin, updateReturnStatus);
+router.post("/:id/refund", verifyAdmin, processRefund);
+
+module.exports = router;

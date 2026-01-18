@@ -26,3 +26,6 @@ export const uploadImage = async (imageFile) => {
 
   return data.data.display_url;
 };
+
+// Export with both names for compatibility
+export const uploadToImgBB = uploadImage;

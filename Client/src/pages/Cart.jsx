@@ -16,7 +16,15 @@ export default function Cart() {
   };
 
   const getItemKey = (item) =>
-    `${item._id}_${item.selectedSize || "no-size"}_${item.selectedColor?.name || "no-color"}`;
+    `${item._id}_${item.selectedSize || "no-size"}_${item.selectedColor?.name || item.selectedColor || "no-color"}`;
+
+  // Utility function to safely render color
+  const renderColor = (color) => {
+    if (!color) return null;
+    if (typeof color === "string") return color;
+    if (typeof color === "object" && color.name) return color.name;
+    return "Unknown Color";
+  };
 
   if (cart.length === 0) {
     return (
@@ -165,14 +173,17 @@ export default function Cart() {
                               Color:
                             </span>
                             <div className="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-md">
-                              <div
-                                className="w-4 h-4 rounded-full border border-gray-300"
-                                style={{
-                                  backgroundColor: item.selectedColor.value,
-                                }}
-                              />
+                              {typeof item.selectedColor === "object" &&
+                                item.selectedColor.value && (
+                                  <div
+                                    className="w-4 h-4 rounded-full border border-gray-300"
+                                    style={{
+                                      backgroundColor: item.selectedColor.value,
+                                    }}
+                                  />
+                                )}
                               <span className="text-gray-700 text-sm font-medium">
-                                {item.selectedColor.name}
+                                {renderColor(item.selectedColor)}
                               </span>
                             </div>
                           </div>

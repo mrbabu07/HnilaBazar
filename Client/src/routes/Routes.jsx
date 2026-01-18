@@ -17,6 +17,10 @@ import AdminProducts from "../pages/admin/AdminProducts";
 import AdminCategories from "../pages/admin/AdminCategories";
 import AdminOrders from "../pages/admin/AdminOrders";
 import ProductForm from "../pages/admin/ProductForm";
+import AdminCoupons from "../pages/admin/AdminCoupons";
+import AdminReturns from "../pages/admin/AdminReturns";
+import Returns from "../pages/Returns";
+import Addresses from "../pages/Addresses";
 import PrivateRoute from "../components/PrivateRoute";
 import AdminRoute from "../components/AdminRoute";
 import SearchResults from "../pages/SearchResults";
@@ -121,6 +125,38 @@ const router = createBrowserRouter([
           <AdminRoute>
             <AdminOrders />
           </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/coupons",
+        element: (
+          <AdminRoute>
+            <AdminCoupons />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/returns",
+        element: (
+          <AdminRoute>
+            <AdminReturns />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/returns",
+        element: (
+          <PrivateRoute>
+            <Returns />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/addresses",
+        element: (
+          <PrivateRoute>
+            <Addresses />
+          </PrivateRoute>
         ),
       },
     ],

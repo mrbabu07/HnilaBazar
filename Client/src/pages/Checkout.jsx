@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import useCart from "../hooks/useCart";
 import { createOrder } from "../services/api";
+import { auth } from "../firebase/firebase.config";
+import CouponInput from "../components/CouponInput";
 
 export default function Checkout() {
   const { cart, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -20,12 +23,22 @@ export default function Checkout() {
     specialInstructions: "",
   });
 
-  // Calculate delivery charge
-  const deliveryCharge = cartTotal < 100 ? 100 : 0;
-  const finalTotal = cartTotal + deliveryCharge;
+  // Calculate totals with coupon
+  const subtotal = cartTotal;
+  const discountAmount = appliedCoupon?.discountAmount || 0;
+  const deliveryCharge = subtotal - discountAmount < 100 ? 100 : 0;
+  const finalTotal = subtotal - discountAmount + deliveryCharge;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleCouponApplied = (couponData) => {
+    setAppliedCoupon(couponData);
+  };
+
+  const handleCouponRemoved = () => {
+    setAppliedCoupon(null);
   };
 
   const handleSubmit = async (e) => {
@@ -33,28 +46,78 @@ export default function Checkout() {
     setLoading(true);
 
     try {
+      // Check if user is authenticated
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Please log in to place an order");
+        navigate("/login");
+        return;
+      }
+
+      // Validate required fields
+      if (
+        !formData.name ||
+        !formData.phone ||
+        !formData.address ||
+        !formData.city
+      ) {
+        alert("Please fill in all required fields");
+        setLoading(false);
+        return;
+      }
+
       const orderData = {
         products: cart.map((item) => ({
-          productId: item._id,
+          productId: item._id, // This is correct - _id is the product's MongoDB ObjectId
           title: item.title,
           price: item.price,
           quantity: item.quantity,
           selectedSize: item.selectedSize || null,
           selectedColor: item.selectedColor || null,
-          image: item.image,
+          image: item.selectedImage || item.image,
         })),
-        total: cartTotal, // This will be recalculated on server
-        shippingInfo: formData,
+        total: finalTotal, // Use finalTotal instead of subtotal to include discounts and delivery
+        subtotal: subtotal,
+        shippingInfo: {
+          name: formData.name,
+          email: formData.email || `${formData.phone}@temp.com`, // Provide default email if not given
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          area: formData.area,
+          zipCode: formData.zipCode,
+        },
         paymentMethod: formData.paymentMethod,
         specialInstructions: formData.specialInstructions,
+        couponCode: appliedCoupon?.code || null,
       };
 
-      await createOrder(orderData);
+      console.log("Cart items:", cart);
+      console.log("Form data:", formData);
+      console.log("Applied coupon:", appliedCoupon);
+      console.log("Submitting order:", orderData);
+
+      const response = await createOrder(orderData);
+      console.log("Order response:", response);
+
       clearCart();
       navigate("/orders", { state: { orderSuccess: true } });
     } catch (error) {
       console.error("Order failed:", error);
-      alert("Failed to place order. Please try again.");
+      console.error("Error details:", error.response?.data);
+
+      let errorMessage = "Failed to place order. Please try again.";
+
+      if (error.response?.status === 401) {
+        errorMessage = "Please log in to place an order";
+        navigate("/login");
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -651,7 +714,7 @@ export default function Checkout() {
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    Place Order - ${finalTotal.toFixed(2)}
+                    Place Order - ৳{finalTotal.toFixed(2)}
                   </>
                 )}
               </button>

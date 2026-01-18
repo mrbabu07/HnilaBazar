@@ -9,6 +9,14 @@ export default function AdminOrders() {
   const [filter, setFilter] = useState("all");
   const [expandedOrder, setExpandedOrder] = useState(null);
 
+  // Utility function to safely render color
+  const renderColor = (color) => {
+    if (!color) return null;
+    if (typeof color === "string") return color;
+    if (typeof color === "object" && color.name) return color.name;
+    return "Unknown Color";
+  };
+
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -397,14 +405,18 @@ export default function AdminOrders() {
                                           Color:
                                         </span>
                                         <div className="ml-2 inline-flex items-center gap-2 font-medium text-gray-700 bg-gray-50 px-2 py-1 rounded-md text-xs">
-                                          <div
-                                            className="w-3 h-3 rounded-full border border-gray-300"
-                                            style={{
-                                              backgroundColor:
-                                                item.selectedColor.value,
-                                            }}
-                                          />
-                                          {item.selectedColor.name}
+                                          {typeof item.selectedColor ===
+                                            "object" &&
+                                            item.selectedColor.value && (
+                                              <div
+                                                className="w-3 h-3 rounded-full border border-gray-300"
+                                                style={{
+                                                  backgroundColor:
+                                                    item.selectedColor.value,
+                                                }}
+                                              />
+                                            )}
+                                          {renderColor(item.selectedColor)}
                                         </div>
                                       </div>
                                     )}

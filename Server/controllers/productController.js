@@ -1,13 +1,131 @@
 const getAllProducts = async (req, res) => {
   try {
     const Product = req.app.locals.models.Product;
-    const { category } = req.query;
+    const {
+      category,
+      minPrice,
+      maxPrice,
+      minRating,
+      sizes,
+      colors,
+      inStock,
+      search,
+      sortBy,
+      sortOrder,
+      page = 1,
+      limit = 20,
+    } = req.query;
 
-    const filter = category ? { categoryId: category } : {};
-    const products = await Product.findAll(filter);
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
+    // Prepare filters
+    const filters = {
+      category,
+      minPrice,
+      maxPrice,
+      minRating,
+      sizes: sizes ? sizes.split(",") : undefined,
+      colors: colors ? colors.split(",") : undefined,
+      inStock: inStock === "true",
+      search,
+      sortBy,
+      sortOrder,
+      limit: parseInt(limit),
+      skip,
+    };
+
+    // Remove undefined values
+    Object.keys(filters).forEach((key) => {
+      if (filters[key] === undefined || filters[key] === "") {
+        delete filters[key];
+      }
+    });
+
+    const products = await Product.findWithFilters(filters);
+
+    // Get total count for pagination (simplified - in production, use separate count query)
+    const totalProducts = await Product.findAll(
+      category ? { categoryId: category } : {},
+    );
+    const totalCount = totalProducts.length;
+    const totalPages = Math.ceil(totalCount / parseInt(limit));
+
+    res.json({
+      success: true,
+      data: products,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages,
+        totalCount,
+        hasNext: parseInt(page) < totalPages,
+        hasPrev: parseInt(page) > 1,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const getFilterOptions = async (req, res) => {
+  try {
+    const Product = req.app.locals.models.Product;
+    const options = await Product.getFilterOptions();
+    res.json({ success: true, data: options });
+  } catch (error) {
+    console.error("Error fetching filter options:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const getLowStockProducts = async (req, res) => {
+  try {
+    const Product = req.app.locals.models.Product;
+    const { threshold = 10 } = req.query;
+    const products = await Product.getLowStockProducts(parseInt(threshold));
     res.json({ success: true, data: products });
   } catch (error) {
+    console.error("Error fetching low stock products:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const getOutOfStockProducts = async (req, res) => {
+  try {
+    const Product = req.app.locals.models.Product;
+    const products = await Product.getOutOfStockProducts();
+    res.json({ success: true, data: products });
+  } catch (error) {
+    console.error("Error fetching out of stock products:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const updateStockBulk = async (req, res) => {
+  try {
+    const Product = req.app.locals.models.Product;
+    const { updates } = req.body;
+
+    if (!updates || !Array.isArray(updates)) {
+      return res.status(400).json({
+        success: false,
+        error: "Updates array is required",
+      });
+    }
+
+    const result = await Product.updateStockBulk(updates);
+
+    res.json({
+      success: true,
+      data: {
+        modifiedCount: result.modifiedCount,
+        matchedCount: result.matchedCount,
+      },
+      message: "Stock updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating stock:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -201,4 +319,8 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
+  getFilterOptions,
+  getLowStockProducts,
+  getOutOfStockProducts,
+  updateStockBulk,
 };

@@ -395,6 +395,20 @@ export default function Navbar() {
                       >
                         My Orders
                       </Link>
+                      <Link
+                        to="/addresses"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
+                      >
+                        My Addresses
+                      </Link>
+                      <Link
+                        to="/returns"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
+                      >
+                        Returns & Refunds
+                      </Link>
                       {isAdmin && (
                         <Link
                           to="/admin"
