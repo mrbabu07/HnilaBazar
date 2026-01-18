@@ -24,6 +24,8 @@ export const getProducts = (category) => {
 };
 
 export const getProductById = (id) => api.get(`/products/${id}`);
+export const searchProducts = (query) =>
+  api.get(`/products/search?q=${encodeURIComponent(query)}`);
 export const createProduct = (data) => api.post("/products", data);
 export const updateProduct = (id, data) => api.put(`/products/${id}`, data);
 export const deleteProduct = (id) => api.delete(`/products/${id}`);

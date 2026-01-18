@@ -4,12 +4,14 @@ const { verifyToken, verifyAdmin } = require("../middleware/auth");
 const {
   getAllProducts,
   getProductById,
+  searchProducts,
   createProduct,
   updateProduct,
   deleteProduct,
 } = require("../controllers/productController");
 
 router.get("/", getAllProducts);
+router.get("/search", searchProducts);
 router.get("/:id", getProductById);
 router.post("/", verifyToken, verifyAdmin, createProduct);
 router.put("/:id", verifyToken, verifyAdmin, updateProduct);

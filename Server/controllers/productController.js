@@ -74,17 +74,82 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const Product = req.app.locals.models.Product;
-    const result = await Product.update(req.params.id, req.body);
+    const { id } = req.params;
 
-    if (result.matchedCount === 0) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Product not found" });
+    // Enhanced logging for debugging
+    console.log("🔄 Product Update Request:");
+    console.log("- Product ID:", id);
+    console.log("- Request Body:", JSON.stringify(req.body, null, 2));
+
+    // Validate ObjectId format
+    if (!id || typeof id !== "string" || id.length !== 24) {
+      console.log("❌ Invalid ID format:", id);
+      return res.status(400).json({
+        success: false,
+        error: "Invalid product ID format",
+      });
     }
 
-    res.json({ success: true, message: "Product updated" });
+    // Validate required fields
+    const { title, price, categoryId } = req.body;
+    if (!title || !price || !categoryId) {
+      console.log("❌ Missing required fields:", {
+        title: !!title,
+        price: !!price,
+        categoryId: !!categoryId,
+      });
+      return res.status(400).json({
+        success: false,
+        error: "Missing required fields: title, price, categoryId",
+      });
+    }
+
+    // Sanitize and validate data
+    const updateData = {
+      ...req.body,
+      price: parseFloat(req.body.price),
+      stock: parseInt(req.body.stock) || 0,
+      updatedAt: new Date(),
+    };
+
+    // Ensure arrays are properly formatted
+    if (req.body.images && Array.isArray(req.body.images)) {
+      updateData.images = req.body.images;
+    }
+    if (req.body.sizes && Array.isArray(req.body.sizes)) {
+      updateData.sizes = req.body.sizes;
+    }
+    if (req.body.colors && Array.isArray(req.body.colors)) {
+      updateData.colors = req.body.colors;
+    }
+
+    console.log(
+      "📝 Sanitized Update Data:",
+      JSON.stringify(updateData, null, 2),
+    );
+
+    const result = await Product.update(id, updateData);
+
+    console.log("📊 Update Result:", result);
+
+    if (result.matchedCount === 0) {
+      console.log("❌ Product not found for ID:", id);
+      return res.status(404).json({
+        success: false,
+        error: "Product not found",
+      });
+    }
+
+    console.log("✅ Product updated successfully");
+    res.json({ success: true, message: "Product updated successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error("💥 Product Update Error:", error);
+    console.error("Error Stack:", error.stack);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
   }
 };
 
@@ -105,9 +170,34 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+const searchProducts = async (req, res) => {
+  try {
+    const Product = req.app.locals.models.Product;
+    const { q } = req.query;
+
+    if (!q || q.trim().length < 2) {
+      return res.json({ success: true, data: [] });
+    }
+
+    // Simple text search - in production, you'd use MongoDB text search or Elasticsearch
+    const products = await Product.findAll();
+    const searchResults = products.filter(
+      (product) =>
+        product.title.toLowerCase().includes(q.toLowerCase()) ||
+        (product.description &&
+          product.description.toLowerCase().includes(q.toLowerCase())),
+    );
+
+    res.json({ success: true, data: searchResults });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   getAllProducts,
   getProductById,
+  searchProducts,
   createProduct,
   updateProduct,
   deleteProduct,

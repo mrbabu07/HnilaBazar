@@ -104,12 +104,20 @@ export default function Footer() {
             <h4 className="text-lg font-semibold mb-4">Customer Service</h4>
             <ul className="space-y-3">
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/contact"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   Contact Us
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/about"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  About Us
+                </Link>
               </li>
               <li>
                 <a
@@ -136,12 +144,12 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/orders"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   Track Order
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

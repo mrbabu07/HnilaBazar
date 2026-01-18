@@ -36,10 +36,40 @@ class Product {
   }
 
   async update(id, productData) {
-    return await this.collection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { ...productData, updatedAt: new Date() } },
-    );
+    try {
+      // Enhanced logging for debugging
+      console.log("🔧 Product Model Update:");
+      console.log("- ID:", id);
+      console.log("- Data Keys:", Object.keys(productData));
+
+      // Validate ObjectId
+      if (!id || typeof id !== "string" || id.length !== 24) {
+        throw new Error(`Invalid ObjectId format: ${id}`);
+      }
+
+      // Create ObjectId
+      const objectId = new ObjectId(id);
+      console.log("- ObjectId created:", objectId);
+
+      // Prepare update data
+      const updateData = {
+        ...productData,
+        updatedAt: new Date(),
+      };
+
+      console.log("- Update operation starting...");
+
+      const result = await this.collection.updateOne(
+        { _id: objectId },
+        { $set: updateData },
+      );
+
+      console.log("- Update result:", result);
+      return result;
+    } catch (error) {
+      console.error("💥 Product Model Update Error:", error);
+      throw error;
+    }
   }
 
   async delete(id) {
