@@ -51,10 +51,26 @@ class Coupon {
   }
 
   async validateCoupon(code, orderTotal, userId = null) {
+    console.log("Coupon.validateCoupon called with:", {
+      code,
+      orderTotal,
+      userId,
+    });
+
     const coupon = await this.findByCode(code);
+    console.log(
+      "Found coupon:",
+      coupon
+        ? {
+            code: coupon.code,
+            isActive: coupon.isActive,
+            expiresAt: coupon.expiresAt,
+          }
+        : null,
+    );
 
     if (!coupon) {
-      return { valid: false, error: "Coupon not found" };
+      return { valid: false, error: "Coupon not found or expired" };
     }
 
     // Check if coupon is active
@@ -101,6 +117,8 @@ class Coupon {
     } else {
       discountAmount = coupon.discountValue;
     }
+
+    console.log("Coupon validation successful:", { discountAmount });
 
     return {
       valid: true,

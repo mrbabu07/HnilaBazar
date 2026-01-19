@@ -45,7 +45,13 @@ const validateCoupon = async (req, res) => {
     const { code, orderTotal } = req.body;
     const userId = req.user?.uid;
 
+    console.log("Validating coupon:", { code, orderTotal, userId });
+
     if (!code || !orderTotal) {
+      console.log("Missing required fields:", {
+        code: !!code,
+        orderTotal: !!orderTotal,
+      });
       return res.status(400).json({
         success: false,
         error: "Coupon code and order total are required",
@@ -53,6 +59,7 @@ const validateCoupon = async (req, res) => {
     }
 
     const validation = await Coupon.validateCoupon(code, orderTotal, userId);
+    console.log("Validation result:", validation);
 
     if (!validation.valid) {
       return res.status(400).json({
