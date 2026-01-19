@@ -102,12 +102,29 @@ export default function ProductDetail() {
   const fetchReviews = async () => {
     setReviewsLoading(true);
     try {
+      console.log("Fetching reviews for product ID:", id);
       const response = await getProductReviews(id);
-      const reviewsData = response.data.data;
+      console.log("Full API response:", response);
+      console.log("Response data:", response.data);
+
+      // Handle different response structures
+      let reviewsData = [];
+      if (response.data.success && response.data.data) {
+        if (response.data.data.reviews) {
+          reviewsData = response.data.data.reviews;
+        } else if (Array.isArray(response.data.data)) {
+          reviewsData = response.data.data;
+        }
+      }
+
+      console.log("Extracted reviews:", reviewsData);
+      console.log("Number of reviews:", reviewsData.length);
+
       // Ensure reviews is always an array
       setReviews(Array.isArray(reviewsData) ? reviewsData : []);
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
+      console.error("Error response:", error.response);
       setReviews([]);
     } finally {
       setReviewsLoading(false);
@@ -651,6 +668,19 @@ export default function ProductDetail() {
 
       {/* Reviews Section - Collapsible */}
       <div className="mt-16 border-t pt-12">
+        {/* Debug Info - Remove after testing */}
+        {process.env.NODE_ENV === "development" && (
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
+            <p>
+              <strong>Debug Info:</strong>
+            </p>
+            <p>Reviews Loading: {reviewsLoading ? "Yes" : "No"}</p>
+            <p>Reviews Count: {reviews.length}</p>
+            <p>Reviews Array: {Array.isArray(reviews) ? "Yes" : "No"}</p>
+            <p>Show All Reviews: {showAllReviews ? "Yes" : "No"}</p>
+          </div>
+        )}
+
         {/* Reviews Header - Always Visible */}
         <button
           onClick={() => setShowAllReviews(!showAllReviews)}
@@ -768,6 +798,44 @@ export default function ProductDetail() {
                       <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                         {review.comment}
                       </p>
+
+                      {/* Admin Reply */}
+                      {review.adminReply && (
+                        <div className="mt-4 ml-8 p-4 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 rounded-r-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                              <svg
+                                className="w-4 h-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            </div>
+                            <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">
+                              Admin Response
+                            </span>
+                            <span className="text-xs text-blue-600 dark:text-blue-400">
+                              {new Date(
+                                review.adminRepliedAt,
+                              ).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-blue-900 dark:text-blue-200 leading-relaxed">
+                            {review.adminReply}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ))}
               </div>

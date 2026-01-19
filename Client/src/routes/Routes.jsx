@@ -21,6 +21,7 @@ import ProductForm from "../pages/admin/ProductForm";
 import AdminCoupons from "../pages/admin/AdminCoupons";
 import AdminReturns from "../pages/admin/AdminReturns";
 import AdminOffers from "../pages/admin/AdminOffers";
+import AdminReviews from "../pages/admin/AdminReviews";
 import OfferForm from "../pages/admin/OfferForm";
 import Returns from "../pages/Returns";
 import Addresses from "../pages/Addresses";
@@ -167,6 +168,14 @@ const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <OfferForm />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/reviews",
+        element: (
+          <AdminRoute>
+            <AdminReviews />
           </AdminRoute>
         ),
       },

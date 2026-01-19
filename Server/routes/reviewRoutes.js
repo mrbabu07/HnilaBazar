@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { verifyToken } = require("../middleware/auth");
+const { verifyToken, verifyAdmin } = require("../middleware/auth");
 const {
   createReview,
   getProductReviews,
@@ -8,6 +8,10 @@ const {
   updateReview,
   deleteReview,
   markReviewHelpful,
+  getAllReviews,
+  getUnrepliedReviews,
+  addAdminReply,
+  deleteReviewAdmin,
 } = require("../controllers/reviewController");
 
 // GET /api/reviews/product/:productId - Get reviews for a product (public)
@@ -30,5 +34,11 @@ router.put("/:reviewId", updateReview);
 
 // DELETE /api/reviews/:reviewId - Delete a review
 router.delete("/:reviewId", deleteReview);
+
+// Admin routes
+router.get("/admin/all", verifyAdmin, getAllReviews);
+router.get("/admin/unreplied", verifyAdmin, getUnrepliedReviews);
+router.post("/:reviewId/admin-reply", verifyAdmin, addAdminReply);
+router.delete("/:reviewId/admin", verifyAdmin, deleteReviewAdmin);
 
 module.exports = router;

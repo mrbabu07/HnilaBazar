@@ -15,10 +15,47 @@ class Review {
       updatedAt: new Date(),
       helpful: 0,
       verified: false, // Will be set to true if user purchased the product
+      adminReply: null, // Admin response to the review
+      adminRepliedAt: null,
+      adminRepliedBy: null,
     };
 
     const result = await this.collection.insertOne(review);
     return result.insertedId;
+  }
+
+  async addAdminReply(reviewId, adminReply, adminId, adminName) {
+    return await this.collection.updateOne(
+      { _id: new ObjectId(reviewId) },
+      {
+        $set: {
+          adminReply,
+          adminRepliedAt: new Date(),
+          adminRepliedBy: adminName || adminId,
+          updatedAt: new Date(),
+        },
+      },
+    );
+  }
+
+  async getAllReviews(limit = 50, skip = 0) {
+    return await this.collection
+      .find({})
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(skip)
+      .toArray();
+  }
+
+  async getReviewById(reviewId) {
+    return await this.collection.findOne({ _id: new ObjectId(reviewId) });
+  }
+
+  async getUnrepliedReviews() {
+    return await this.collection
+      .find({ adminReply: null })
+      .sort({ createdAt: -1 })
+      .toArray();
   }
 
   async findByProductId(productId, limit = 10, skip = 0) {

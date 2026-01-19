@@ -32,3 +32,12 @@ export const updateReview = (reviewId, reviewData) =>
 export const deleteReview = (reviewId) => reviewApi.delete(`/${reviewId}`);
 export const markReviewHelpful = (reviewId) =>
   reviewApi.post(`/${reviewId}/helpful`);
+
+// Admin functions
+export const getAllReviews = (page = 1, limit = 50) =>
+  reviewApi.get(`/admin/all?page=${page}&limit=${limit}`);
+export const getUnrepliedReviews = () => reviewApi.get("/admin/unreplied");
+export const addAdminReply = (reviewId, reply) =>
+  reviewApi.post(`/${reviewId}/admin-reply`, { reply });
+export const deleteReviewAdmin = (reviewId) =>
+  reviewApi.delete(`/${reviewId}/admin`);

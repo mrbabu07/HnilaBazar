@@ -180,29 +180,53 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 gap-6">
             <p className="text-gray-400 text-sm">
               © {currentYear} HnilaBazar. All rights reserved.
             </p>
+
+            {/* Payment Methods */}
+            <div className="flex items-center gap-3">
+              <span className="text-gray-500 text-sm mr-2">We Accept:</span>
+              <div className="flex items-center gap-2">
+                {/* Cash on Delivery */}
+                <div className="bg-gray-800 px-3 py-1.5 rounded text-xs font-semibold text-gray-300 border border-gray-700">
+                  COD
+                </div>
+                {/* bKash */}
+                <div className="bg-pink-600 px-3 py-1.5 rounded text-xs font-bold text-white">
+                  bKash
+                </div>
+                {/* Nagad */}
+                <div className="bg-orange-500 px-3 py-1.5 rounded text-xs font-bold text-white">
+                  Nagad
+                </div>
+                {/* Rocket */}
+                <div className="bg-purple-600 px-3 py-1.5 rounded text-xs font-bold text-white">
+                  Rocket
+                </div>
+              </div>
+            </div>
+
             <div className="flex items-center space-x-6">
-              <a
-                href="#"
+              <Link
+                to="/privacy"
                 className="text-gray-400 hover:text-white text-sm transition-colors"
               >
                 Privacy Policy
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                to="/terms"
                 className="text-gray-400 hover:text-white text-sm transition-colors"
               >
                 Terms of Service
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                to="/returns"
                 className="text-gray-400 hover:text-white text-sm transition-colors"
               >
-                Cookie Policy
-              </a>
+                Return Policy
+              </Link>
             </div>
           </div>
         </div>
