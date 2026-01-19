@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getUserOrders, createReturnRequest } from "../services/api";
+import { createReview } from "../services/reviewApi";
 import { uploadToImgBB } from "../services/imageUpload";
 import Loading from "../components/Loading";
 import Modal from "../components/Modal";
@@ -25,6 +26,14 @@ export default function Orders() {
   });
   const [uploadingImages, setUploadingImages] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+
+  // Review modal states
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewFormData, setReviewFormData] = useState({
+    rating: 5,
+    comment: "",
+  });
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -87,6 +96,40 @@ export default function Orders() {
     setSelectedOrder(order);
     setSelectedProduct(product);
     setShowReturnModal(true);
+  };
+
+  const handleReviewRequest = (order, product) => {
+    setSelectedOrder(order);
+    setSelectedProduct(product);
+    setShowReviewModal(true);
+  };
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    setSubmittingReview(true);
+
+    try {
+      await createReview({
+        productId: selectedProduct.productId || selectedProduct._id,
+        rating: reviewFormData.rating,
+        comment: reviewFormData.comment.trim(),
+      });
+
+      setShowReviewModal(false);
+      setReviewFormData({ rating: 5, comment: "" });
+      alert("Review submitted successfully! Thank you for your feedback.");
+    } catch (error) {
+      alert(error.response?.data?.error || "Failed to submit review");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const closeReviewModal = () => {
+    setShowReviewModal(false);
+    setSelectedProduct(null);
+    setSelectedOrder(null);
+    setReviewFormData({ rating: 5, comment: "" });
   };
 
   const submitReturnRequest = async (e) => {
@@ -460,30 +503,57 @@ export default function Orders() {
                               2,
                             )}
                           </p>
-                          {/* Return Button for Delivered Orders */}
-                          {isReturnEligible(order) && (
-                            <button
-                              onClick={() => handleReturnRequest(order, item)}
-                              className="px-3 py-1 text-xs font-medium text-orange-600 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors flex items-center gap-1"
-                            >
-                              <svg
-                                className="w-3 h-3"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                          {/* Action Buttons for Delivered Orders */}
+                          {order.status === "delivered" && (
+                            <div className="flex gap-2">
+                              {/* Return Button */}
+                              {isReturnEligible(order) && (
+                                <button
+                                  onClick={() =>
+                                    handleReturnRequest(order, item)
+                                  }
+                                  className="px-3 py-1 text-xs font-medium text-orange-600 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors flex items-center gap-1"
+                                >
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                                    />
+                                  </svg>
+                                  Return
+                                </button>
+                              )}
+                              {/* Review Button */}
+                              <button
+                                onClick={() => handleReviewRequest(order, item)}
+                                className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-1"
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                                />
-                              </svg>
-                              Return Item
-                            </button>
+                                <svg
+                                  className="w-3 h-3"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                  />
+                                </svg>
+                                Review
+                              </button>
+                            </div>
                           )}
-                          {order.status === "delivered" &&
-                            !isReturnEligible(order) && (
+                          {!isReturnEligible(order) &&
+                            order.status === "delivered" && (
                               <span className="text-xs text-gray-400">
                                 Return period expired
                               </span>
@@ -1051,6 +1121,146 @@ export default function Orders() {
                   type="button"
                   onClick={closeReturnModal}
                   disabled={uploadingImages}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </Modal>
+
+      {/* Review Modal */}
+      <Modal
+        isOpen={showReviewModal}
+        onClose={closeReviewModal}
+        title="Write a Review"
+      >
+        {selectedProduct && (
+          <div className="space-y-4">
+            {/* Product Info */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-medium text-gray-900 mb-2">
+                Product Details
+              </h4>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                  {selectedProduct.image ? (
+                    <img
+                      src={selectedProduct.image}
+                      alt={selectedProduct.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <svg
+                      className="w-6 h-6 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">
+                    {selectedProduct.title}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    ${selectedProduct.price}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Review Form */}
+            <form onSubmit={submitReview} className="space-y-4">
+              {/* Rating */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rating *
+                </label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() =>
+                        setReviewFormData({ ...reviewFormData, rating: star })
+                      }
+                      className="focus:outline-none transition-transform hover:scale-110"
+                    >
+                      <svg
+                        className={`w-10 h-10 ${
+                          star <= reviewFormData.rating
+                            ? "text-yellow-400 fill-current"
+                            : "text-gray-300"
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                        />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  {reviewFormData.rating} star
+                  {reviewFormData.rating !== 1 ? "s" : ""}
+                </p>
+              </div>
+
+              {/* Comment */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Your Review *
+                </label>
+                <textarea
+                  value={reviewFormData.comment}
+                  onChange={(e) =>
+                    setReviewFormData({
+                      ...reviewFormData,
+                      comment: e.target.value,
+                    })
+                  }
+                  rows="4"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-none"
+                  placeholder="Share your experience with this product..."
+                />
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-700">
+                  💡 Your review will help other customers make informed
+                  decisions. Please be honest and constructive.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submittingReview ? "Submitting..." : "Submit Review"}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeReviewModal}
+                  disabled={submittingReview}
                   className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel

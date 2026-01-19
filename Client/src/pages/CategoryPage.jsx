@@ -99,12 +99,17 @@ export default function CategoryPage() {
   const currentCategory = getCurrentPageInfo();
 
   useEffect(() => {
+    console.log("Category changed:", {
+      category,
+      currentCategorySlug,
+      isAllCategories,
+    });
     if (isAllCategories) {
       fetchCategories();
     } else {
       fetchProducts();
     }
-  }, [category, currentCategorySlug, isAllCategories]);
+  }, [category, currentCategorySlug, isAllCategories, location.pathname]);
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -124,10 +129,13 @@ export default function CategoryPage() {
       const queryParams = {
         category: isAllProducts ? null : currentCategorySlug,
       };
+      console.log("Fetching products with params:", queryParams);
       const response = await getProducts(queryParams);
-      setProducts(response.data.data);
+      console.log("Products fetched:", response.data.data?.length || 0);
+      setProducts(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch products:", error);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
