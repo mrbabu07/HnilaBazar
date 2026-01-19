@@ -5,6 +5,7 @@ import CartProvider from "./context/CartContext";
 import WishlistProvider from "./context/WishlistContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import TawkToChat from "./components/TawkToChat";
 import router from "./routes/Routes";
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <CartProvider>
             <WishlistProvider>
               <RouterProvider router={router} />
+              <TawkToChat />
               <Toaster
                 position="top-right"
                 toastOptions={{
