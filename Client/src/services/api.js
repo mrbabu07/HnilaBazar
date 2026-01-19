@@ -102,3 +102,18 @@ export const getOrderPayment = (orderId) =>
   api.get(`/payments/order/${orderId}`);
 export const getAllPayments = () => api.get("/payments");
 export const getPaymentStats = () => api.get("/payments/stats");
+
+// Offers
+export const getActivePopupOffer = () => api.get("/offers/active-popup");
+export const getAllOffers = () => api.get("/offers");
+export const getOfferById = (id) => api.get(`/offers/${id}`);
+export const createOffer = (formData) =>
+  api.post("/offers", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const updateOffer = (id, formData) =>
+  api.put(`/offers/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const deleteOffer = (id) => api.delete(`/offers/${id}`);
+export const toggleOfferStatus = (id) => api.patch(`/offers/${id}/toggle`);

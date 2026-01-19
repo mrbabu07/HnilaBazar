@@ -1,7 +1,17 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 const { MongoClient, ServerApiVersion } = require("mongodb");
+const fs = require("fs");
+const path = require("path");
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log("📁 Created uploads directory");
+}
 
 // Import models
 const User = require("./models/User");
@@ -26,6 +36,7 @@ const couponRoutes = require("./routes/couponRoutes");
 const addressRoutes = require("./routes/addressRoutes");
 const returnRoutes = require("./routes/returnRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const offerRoutes = require("./routes/offerRoutes");
 
 // Import middleware and controllers for direct routes
 const { verifyToken, verifyAdmin } = require("./middleware/auth");
@@ -42,6 +53,7 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static("uploads")); // Serve uploaded images
 
 // MongoDB client
 const uri = process.env.MONGO_URI;
@@ -55,9 +67,14 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    // Connect MongoDB client (for existing models)
     await client.connect();
     await client.db("HnilaBazar").command({ ping: 1 });
     console.log("✅ MongoDB connected successfully (HnilaBazar)");
+
+    // Connect Mongoose (for Offer model and future Mongoose models)
+    await mongoose.connect(uri);
+    console.log("✅ Mongoose connected successfully");
 
     const db = client.db("HnilaBazar");
 
@@ -128,6 +145,17 @@ async function run() {
     console.log("✅ Returns routes registered");
     app.use("/api/payments", paymentRoutes);
     console.log("✅ Payments routes registered");
+    app.use("/api/offers", offerRoutes);
+    console.log("✅ Offers routes registered");
+
+    // Test endpoint to verify server is running new code
+    app.get("/api/test-mongoose", (req, res) => {
+      res.json({
+        message: "Server is running NEW code with Mongoose!",
+        mongooseConnected: mongoose.connection.readyState === 1,
+        timestamp: new Date().toISOString(),
+      });
+    });
 
     // Test route to verify addresses are working
     app.get("/api/test-addresses", (req, res) => {

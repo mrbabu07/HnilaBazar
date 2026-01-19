@@ -41,6 +41,14 @@ const AuthProvider = ({ children }) => {
   const logOut = () => {
     setLoading(true);
     setIsAdmin(false);
+
+    // Clear all offer popup flags from sessionStorage
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith("offerPopupShown_")) {
+        sessionStorage.removeItem(key);
+      }
+    });
+
     return signOut(auth);
   };
 

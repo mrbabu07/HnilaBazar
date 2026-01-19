@@ -20,6 +20,8 @@ import AdminOrders from "../pages/admin/AdminOrders";
 import ProductForm from "../pages/admin/ProductForm";
 import AdminCoupons from "../pages/admin/AdminCoupons";
 import AdminReturns from "../pages/admin/AdminReturns";
+import AdminOffers from "../pages/admin/AdminOffers";
+import OfferForm from "../pages/admin/OfferForm";
 import Returns from "../pages/Returns";
 import Addresses from "../pages/Addresses";
 import PrivateRoute from "../components/PrivateRoute";
@@ -141,6 +143,30 @@ const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <AdminReturns />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/offers",
+        element: (
+          <AdminRoute>
+            <AdminOffers />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/offers/add",
+        element: (
+          <AdminRoute>
+            <OfferForm />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/offers/edit/:id",
+        element: (
+          <AdminRoute>
+            <OfferForm />
           </AdminRoute>
         ),
       },

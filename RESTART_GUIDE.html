@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🚨 RESTART YOUR SERVER</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .container {
+        background: white;
+        border-radius: 20px;
+        padding: 50px;
+        max-width: 900px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideIn 0.5s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      h1 {
+        color: #dc3545;
+        text-align: center;
+        font-size: 2.5em;
+        margin-bottom: 20px;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+      .warning {
+        background: #fff3cd;
+        border: 3px solid #ffc107;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 30px 0;
+        text-align: center;
+        font-size: 1.2em;
+        color: #856404;
+        font-weight: bold;
+      }
+      .steps {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 30px;
+        margin: 30px 0;
+      }
+      .step {
+        background: white;
+        border-left: 5px solid #667eea;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .step-number {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 40px;
+        font-weight: bold;
+        font-size: 1.2em;
+        margin-right: 15px;
+      }
+      .step-content {
+        display: inline-block;
+        vertical-align: top;
+        width: calc(100% - 60px);
+      }
+      .code {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 15px;
+        border-radius: 5px;
+        font-family: "Courier New", monospace;
+        margin: 10px 0;
+        overflow-x: auto;
+      }
+      .success {
+        color: #28a745;
+        font-weight: bold;
+      }
+      .button {
+        display: block;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        text-align: center;
+        padding: 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 1.3em;
+        font-weight: bold;
+        margin: 30px 0;
+        transition: transform 0.2s;
+        cursor: pointer;
+        border: none;
+        width: 100%;
+      }
+      .button:hover {
+        transform: scale(1.05);
+      }
+      .highlight {
+        background: yellow;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-weight: bold;
+      }
+      .check-list {
+        background: #d4edda;
+        border: 2px solid #28a745;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+      }
+      .check-list h3 {
+        color: #155724;
+        margin-bottom: 15px;
+      }
+      .check-item {
+        padding: 10px;
+        margin: 5px 0;
+        font-size: 1.1em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚨 YOUR SERVER MUST BE RESTARTED!</h1>
+
+      <div class="warning">
+        You're getting 404 errors because your server is running OLD CODE!<br />
+        The fix is complete. You just need to RESTART!
+      </div>
+
+      <div class="steps">
+        <h2 style="text-align: center; margin-bottom: 30px">
+          📋 Follow These Steps:
+        </h2>
+
+        <div class="step">
+          <span class="step-number">1</span>
+          <div class="step-content">
+            <h3>
+              Find the file: <span class="highlight">FORCE_RESTART.bat</span>
+            </h3>
+            <p>
+              It's in your project root folder (same folder as this HTML file)
+            </p>
+          </div>
+        </div>
+
+        <div class="step">
+          <span class="step-number">2</span>
+          <div class="step-content">
+            <h3>Double-click it to run</h3>
+            <p>A black terminal window will open</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <span class="step-number">3</span>
+          <div class="step-content">
+            <h3>Watch for these messages:</h3>
+            <div class="code">
+              ✅ MongoDB connected successfully (HnilaBazar)<br />
+              <span class="success">✅ Mongoose connected successfully</span> ←
+              MUST SEE THIS!<br />
+              🔧 Registering routes...<br />
+              <span class="success">✅ Offers routes registered</span> ← MUST
+              SEE THIS!<br />
+              🔥 Server running on port 5000
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <span class="step-number">4</span>
+          <div class="step-content">
+            <h3>Test it works</h3>
+            <p>Click the button below to test your server:</p>
+            <button class="button" onclick="testServer()">
+              🧪 Test Server Now
+            </button>
+            <div id="test-result"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="check-list">
+        <h3>✅ Success Checklist:</h3>
+        <div class="check-item">
+          ✓ Server shows "Mongoose connected successfully"
+        </div>
+        <div class="check-item">✓ Server shows "Offers routes registered"</div>
+        <div class="check-item">
+          ✓ Test button above shows "All tests passed!"
+        </div>
+        <div class="check-item">
+          ✓ Can access
+          <a href="http://localhost:5173/admin/offers" target="_blank"
+            >http://localhost:5173/admin/offers</a
+          >
+        </div>
+        <div class="check-item">✓ Can create offers without errors</div>
+      </div>
+
+      <div
+        style="
+          text-align: center;
+          margin-top: 40px;
+          padding: 20px;
+          background: #e7f3ff;
+          border-radius: 10px;
+        "
+      >
+        <h3 style="color: #1976d2">
+          Alternative Method (If double-click doesn't work):
+        </h3>
+        <p style="margin: 15px 0">Open Command Prompt and run:</p>
+        <div class="code">
+          cd Server<br />
+          taskkill /F /IM node.exe<br />
+          node index.js
+        </div>
+      </div>
+    </div>
+
+    <script>
+      async function testServer() {
+        const resultDiv = document.getElementById("test-result");
+        resultDiv.innerHTML =
+          '<div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 5px; margin-top: 10px;">⏳ Testing server...</div>';
+
+        let allPassed = true;
+        let html =
+          '<div style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px;">';
+
+        // Test 1: Server running
+        try {
+          const response = await fetch("http://localhost:5000");
+          html +=
+            '<div style="color: #28a745; padding: 5px;">✅ Server is running</div>';
+        } catch (e) {
+          html +=
+            '<div style="color: #dc3545; padding: 5px;">❌ Server is NOT running</div>';
+          allPassed = false;
+        }
+
+        // Test 2: Mongoose connected
+        try {
+          const response = await fetch(
+            "http://localhost:5000/api/test-mongoose",
+          );
+          const data = await response.json();
+          if (data.mongooseConnected) {
+            html +=
+              '<div style="color: #28a745; padding: 5px;">✅ Mongoose is connected</div>';
+          } else {
+            html +=
+              '<div style="color: #dc3545; padding: 5px;">❌ Mongoose is NOT connected</div>';
+            allPassed = false;
+          }
+        } catch (e) {
+          html +=
+            '<div style="color: #dc3545; padding: 5px;">❌ Cannot test Mongoose (server not restarted)</div>';
+          allPassed = false;
+        }
+
+        // Test 3: Offer routes
+        try {
+          const response = await fetch(
+            "http://localhost:5000/api/offers/active-popup",
+          );
+          if (response.ok) {
+            html +=
+              '<div style="color: #28a745; padding: 5px;">✅ Offer routes are working</div>';
+          } else {
+            html +=
+              '<div style="color: #dc3545; padding: 5px;">❌ Offer routes returned error</div>';
+            allPassed = false;
+          }
+        } catch (e) {
+          html +=
+            '<div style="color: #dc3545; padding: 5px;">❌ Offer routes NOT working (404)</div>';
+          allPassed = false;
+        }
+
+        html += "</div>";
+
+        if (allPassed) {
+          html +=
+            '<div style="background: #d4edda; color: #155724; padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; font-size: 1.3em; font-weight: bold;">🎉 ALL TESTS PASSED! Your server is ready!</div>';
+          html +=
+            '<div style="text-align: center; margin-top: 20px;"><a href="http://localhost:5173/admin/offers" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: bold;">Go to Admin Offers →</a></div>';
+        } else {
+          html +=
+            '<div style="background: #f8d7da; color: #721c24; padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; font-size: 1.2em; font-weight: bold;">⚠️ SERVER NEEDS TO BE RESTARTED!<br><br>Double-click FORCE_RESTART.bat and try again</div>';
+        }
+
+        resultDiv.innerHTML = html;
+      }
+    </script>
+  </body>
+</html>

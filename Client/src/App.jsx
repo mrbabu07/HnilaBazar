@@ -6,6 +6,7 @@ import WishlistProvider from "./context/WishlistContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import TawkToChat from "./components/TawkToChat";
+import OfferPopup from "./components/OfferPopup";
 import router from "./routes/Routes";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
             <WishlistProvider>
               <RouterProvider router={router} />
               <TawkToChat />
+              <OfferPopup />
               <Toaster
                 position="top-right"
                 toastOptions={{
