@@ -126,13 +126,44 @@ export default function CategoryPage() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const queryParams = {
-        category: isAllProducts ? null : currentCategorySlug,
-      };
+      console.log("Current category slug:", currentCategorySlug);
+
+      let categoryId = null;
+
+      // If we have a category slug, fetch the category to get its ID
+      if (currentCategorySlug && !isAllProducts) {
+        try {
+          const categoriesResponse = await getCategories();
+          const allCategories = categoriesResponse.data.data || [];
+          console.log("All categories:", allCategories);
+
+          // Find the category by slug
+          const matchedCategory = allCategories.find(
+            (cat) => cat.slug === currentCategorySlug,
+          );
+
+          console.log("Matched category:", matchedCategory);
+
+          if (matchedCategory) {
+            categoryId = matchedCategory._id;
+            console.log("Using category ID:", categoryId);
+          } else {
+            console.warn("No category found for slug:", currentCategorySlug);
+          }
+        } catch (catError) {
+          console.error("Failed to fetch categories:", catError);
+        }
+      }
+
+      // Fetch products with category filter
+      const queryParams = categoryId ? { category: categoryId } : {};
       console.log("Fetching products with params:", queryParams);
+
       const response = await getProducts(queryParams);
-      console.log("Products fetched:", response.data.data?.length || 0);
-      setProducts(response.data.data || []);
+      const fetchedProducts = response.data.data || [];
+      console.log("Products fetched:", fetchedProducts.length);
+
+      setProducts(fetchedProducts);
     } catch (error) {
       console.error("Failed to fetch products:", error);
       setProducts([]);
@@ -196,6 +227,17 @@ export default function CategoryPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Debug Info - Remove after testing */}
+        {process.env.NODE_ENV === "development" && !isAllCategories && (
+          <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-sm">
+            <p className="font-bold mb-2">Debug Info:</p>
+            <p>Category Slug: {currentCategorySlug || "None"}</p>
+            <p>Is All Products: {isAllProducts ? "Yes" : "No"}</p>
+            <p>Products Count: {products.length}</p>
+            <p>Loading: {loading ? "Yes" : "No"}</p>
+          </div>
+        )}
+
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
           <p className="text-gray-600 dark:text-gray-300">
