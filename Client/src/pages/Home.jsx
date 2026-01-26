@@ -4,6 +4,7 @@ import { getProducts } from "../services/api";
 import { getActiveCoupons } from "../services/api";
 import ProductCard from "../components/ProductCard";
 import CategoryScroller from "../components/CategoryScroller";
+import RecentlyViewed from "../components/RecentlyViewed";
 import Loading from "../components/Loading";
 
 export default function Home() {
@@ -520,6 +521,9 @@ export default function Home() {
             </div>
           </section>
         )}
+
+        {/* Recently Viewed Products */}
+        <RecentlyViewed />
 
         {/* Reviews / Trust Section */}
         <section className="py-16 bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-800 dark:to-gray-900">

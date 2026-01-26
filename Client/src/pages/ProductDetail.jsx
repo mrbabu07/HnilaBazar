@@ -3,14 +3,17 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { getProductById } from "../services/api";
 import { getProductReviews } from "../services/reviewApi";
 import useCart from "../hooks/useCart";
+import { useRecentlyViewed } from "../hooks/useRecentlyViewed";
 import Loading from "../components/Loading";
 import AutoSlideshow from "../components/AutoSlideshow";
 import StarRating from "../components/StarRating";
+import StockIndicator from "../components/StockIndicator";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { addToRecentlyViewed } = useRecentlyViewed();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -63,6 +66,9 @@ export default function ProductDetail() {
       const response = await getProductById(id);
       const data = response.data.data;
       setProduct(data);
+
+      // Add to recently viewed
+      addToRecentlyViewed(data);
 
       // Set initial selected image
       const initialImage = data.image || (data.images && data.images[0]) || "";
@@ -396,17 +402,7 @@ export default function ProductDetail() {
             <span className="text-4xl font-bold text-primary-500">
               ${product.price?.toFixed(2)}
             </span>
-            <span
-              className={`px-3 py-1 text-sm font-medium rounded-full ${
-                product.stock > 0
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              {product.stock > 0
-                ? `In Stock (${product.stock})`
-                : "Out of Stock"}
-            </span>
+            <StockIndicator stock={product.stock} />
           </div>
 
           {/* Description */}

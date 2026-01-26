@@ -3,10 +3,13 @@ import { Link } from "react-router-dom";
 import useCart from "../hooks/useCart";
 import AutoSlideshow from "./AutoSlideshow";
 import WishlistButton from "./WishlistButton";
+import ProductBadge from "./ProductBadge";
+import QuickViewModal from "./QuickViewModal";
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
+  const [showQuickView, setShowQuickView] = useState(false);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -34,6 +37,9 @@ export default function ProductCard({ product }) {
       <div className="card overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-lg transition-all">
         {/* Image Container with Auto Slideshow */}
         <div className="relative">
+          {/* Product Badges */}
+          <ProductBadge product={product} />
+
           <AutoSlideshow
             images={productImages}
             autoPlay={productImages.length > 1}
@@ -154,7 +160,26 @@ export default function ProductCard({ product }) {
               </span>
             )}
           </div>
+
+          {/* Quick View Button */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowQuickView(true);
+            }}
+            className="mt-3 w-full py-2 text-sm font-medium text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+          >
+            Quick View
+          </button>
         </div>
+
+        {/* Quick View Modal */}
+        <QuickViewModal
+          product={product}
+          isOpen={showQuickView}
+          onClose={() => setShowQuickView(false)}
+        />
       </div>
     </Link>
   );
