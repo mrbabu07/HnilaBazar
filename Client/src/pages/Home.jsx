@@ -5,7 +5,7 @@ import { getActiveCoupons } from "../services/api";
 import ProductCard from "../components/ProductCard";
 import CategoryScroller from "../components/CategoryScroller";
 import RecentlyViewed from "../components/RecentlyViewed";
-import Loading from "../components/Loading";
+import { ProductCardSkeleton } from "../components/Skeleton";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -463,7 +463,11 @@ export default function Home() {
             </div>
 
             {loading ? (
-              <Loading text="Loading products..." />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <ProductCardSkeleton key={i} />
+                ))}
+              </div>
             ) : products.length === 0 ? (
               <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-2xl">
                 <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -499,7 +503,7 @@ export default function Home() {
         </section>
 
         {/* New Arrivals - Lightweight */}
-        {newArrivals.length > 0 && (
+        {loading || newArrivals.length > 0 ? (
           <section className="py-16 bg-white dark:bg-gray-900">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between mb-12">
@@ -513,14 +517,22 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {newArrivals.map((product) => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
-              </div>
+              {loading ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <ProductCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                  {newArrivals.map((product) => (
+                    <ProductCard key={product._id} product={product} />
+                  ))}
+                </div>
+              )}
             </div>
           </section>
-        )}
+        ) : null}
 
         {/* Recently Viewed Products */}
         <RecentlyViewed />

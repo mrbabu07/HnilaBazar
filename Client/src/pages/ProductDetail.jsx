@@ -4,7 +4,7 @@ import { getProductById } from "../services/api";
 import { getProductReviews } from "../services/reviewApi";
 import useCart from "../hooks/useCart";
 import { useRecentlyViewed } from "../hooks/useRecentlyViewed";
-import Loading from "../components/Loading";
+import { ProductDetailSkeleton, ReviewSkeleton } from "../components/Skeleton";
 import AutoSlideshow from "../components/AutoSlideshow";
 import StarRating from "../components/StarRating";
 import StockIndicator from "../components/StockIndicator";
@@ -178,7 +178,7 @@ export default function ProductDetail() {
   // Use fallback if no images available
   const displayImages = allImages.length > 0 ? allImages : [fallbackImage];
 
-  if (loading) return <Loading text="Loading product..." />;
+  if (loading) return <ProductDetailSkeleton />;
 
   if (error) {
     return (
@@ -728,8 +728,10 @@ export default function ProductDetail() {
         {showAllReviews && (
           <div className="space-y-4 animate-fadeIn">
             {reviewsLoading ? (
-              <div className="text-center py-8">
-                <Loading text="Loading reviews..." />
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <ReviewSkeleton key={i} />
+                ))}
               </div>
             ) : !Array.isArray(reviews) || reviews.length === 0 ? (
               <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">

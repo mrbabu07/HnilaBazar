@@ -5,6 +5,7 @@ import {
   removeFromWishlist as removeFromWishlistApi,
 } from "../services/wishlistApi";
 import useAuth from "../hooks/useAuth";
+import { useToast } from "./ToastContext";
 
 export const WishlistContext = createContext();
 
@@ -12,6 +13,7 @@ export default function WishlistProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const { success, error } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -36,18 +38,29 @@ export default function WishlistProvider({ children }) {
 
   const addToWishlist = async (product) => {
     if (!user) {
-      alert("Please login to add items to wishlist");
+      error("Please login to add items to wishlist", {
+        title: "Login Required",
+      });
       return false;
     }
 
     try {
       await addToWishlistApi(product._id);
       setWishlist((prev) => [...prev, product]);
+      success(`${product.title} added to wishlist`, {
+        title: "Added to Wishlist",
+      });
       return true;
     } catch (error) {
       console.error("Failed to add to wishlist:", error);
       if (error.response?.data?.error) {
-        alert(error.response.data.error);
+        error(error.response.data.error, {
+          title: "Failed to Add",
+        });
+      } else {
+        error("Failed to add item to wishlist", {
+          title: "Error",
+        });
       }
       return false;
     }
@@ -55,11 +68,21 @@ export default function WishlistProvider({ children }) {
 
   const removeFromWishlist = async (productId) => {
     try {
+      const productToRemove = wishlist.find((item) => item._id === productId);
       await removeFromWishlistApi(productId);
       setWishlist((prev) => prev.filter((item) => item._id !== productId));
+
+      if (productToRemove) {
+        success(`${productToRemove.title} removed from wishlist`, {
+          title: "Removed from Wishlist",
+        });
+      }
       return true;
     } catch (error) {
       console.error("Failed to remove from wishlist:", error);
+      error("Failed to remove item from wishlist", {
+        title: "Error",
+      });
       return false;
     }
   };

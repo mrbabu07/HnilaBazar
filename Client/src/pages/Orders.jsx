@@ -6,6 +6,7 @@ import { uploadToImgBB } from "../services/imageUpload";
 import Loading from "../components/Loading";
 import Modal from "../components/Modal";
 import { useNotifications } from "../context/NotificationContext";
+import { useToast } from "../context/ToastContext";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -14,6 +15,7 @@ export default function Orders() {
   const location = useLocation();
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
+  const { success, error } = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -117,9 +119,13 @@ export default function Orders() {
 
       setShowReviewModal(false);
       setReviewFormData({ rating: 5, comment: "" });
-      alert("Review submitted successfully! Thank you for your feedback.");
+      success("Review submitted successfully! Thank you for your feedback.", {
+        title: "Review Submitted",
+      });
     } catch (error) {
-      alert(error.response?.data?.error || "Failed to submit review");
+      error(error.response?.data?.error || "Failed to submit review", {
+        title: "Review Failed",
+      });
     } finally {
       setSubmittingReview(false);
     }
@@ -174,14 +180,19 @@ export default function Orders() {
         link: "/returns",
       });
 
-      alert(
+      success(
         "Return request submitted successfully! You can track it in the Returns section.",
+        {
+          title: "Return Request Submitted",
+        },
       );
 
       // Navigate to returns page
       navigate("/returns");
     } catch (error) {
-      alert(error.response?.data?.error || "Failed to submit return request");
+      error(error.response?.data?.error || "Failed to submit return request", {
+        title: "Return Request Failed",
+      });
     } finally {
       setUploadingImages(false);
     }

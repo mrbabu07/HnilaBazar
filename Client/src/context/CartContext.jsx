@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from "react";
+import { useToast } from "./ToastContext";
 
 export const CartContext = createContext();
 
@@ -7,6 +8,7 @@ export default function CartProvider({ children }) {
     const saved = localStorage.getItem("cart");
     return saved ? JSON.parse(saved) : [];
   });
+  const { success, error } = useToast();
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
@@ -43,6 +45,9 @@ export default function CartProvider({ children }) {
       );
 
       if (existing) {
+        success(`Updated ${product.title} quantity in cart`, {
+          title: "Cart Updated",
+        });
         return prev.map((item) =>
           item._id === product._id &&
           (item.selectedSize || "no-size") === (selectedSize || "no-size") &&
@@ -52,6 +57,10 @@ export default function CartProvider({ children }) {
             : item,
         );
       }
+
+      success(`${product.title} added to cart`, {
+        title: "Added to Cart",
+      });
       return [...prev, cartItem];
     });
   };
@@ -61,8 +70,23 @@ export default function CartProvider({ children }) {
     selectedSize = null,
     selectedColor = null,
   ) => {
-    setCart((prev) =>
-      prev.filter(
+    setCart((prev) => {
+      const itemToRemove = prev.find(
+        (item) =>
+          item._id === productId &&
+          (item.selectedSize || "no-size") ===
+            (selectedSize || item.selectedSize || "no-size") &&
+          (item.selectedColor?.name || "no-color") ===
+            (selectedColor?.name || item.selectedColor?.name || "no-color"),
+      );
+
+      if (itemToRemove) {
+        success(`${itemToRemove.title} removed from cart`, {
+          title: "Removed from Cart",
+        });
+      }
+
+      return prev.filter(
         (item) =>
           !(
             item._id === productId &&
@@ -71,8 +95,8 @@ export default function CartProvider({ children }) {
             (item.selectedColor?.name || "no-color") ===
               (selectedColor?.name || item.selectedColor?.name || "no-color")
           ),
-      ),
-    );
+      );
+    });
   };
 
   const updateQuantity = (
@@ -100,6 +124,9 @@ export default function CartProvider({ children }) {
 
   const clearCart = () => {
     setCart([]);
+    success("Cart cleared successfully", {
+      title: "Cart Cleared",
+    });
   };
 
   const cartTotal = cart.reduce(

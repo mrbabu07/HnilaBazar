@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
 import { getProducts, getCategories } from "../services/api";
 import ProductCard from "../components/ProductCard";
-import Loading from "../components/Loading";
+import {
+  CategoryPageSkeleton,
+  ProductCardSkeleton,
+} from "../components/Skeleton";
+import SortDropdown from "../components/SortDropdown";
+import { useSorting } from "../hooks/useSorting";
 
 export default function CategoryPage() {
   const { category } = useParams();
@@ -10,8 +15,14 @@ export default function CategoryPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState("default");
   const [viewMode, setViewMode] = useState("grid");
+
+  // Use sorting hook
+  const {
+    sortedItems: sortedProducts,
+    sortBy,
+    setSortBy,
+  } = useSorting(products, "default");
 
   // Determine if this is "all categories" or "all products" page
   const isAllCategories = location.pathname === "/categories";
@@ -172,19 +183,6 @@ export default function CategoryPage() {
     }
   };
 
-  const sortedProducts = [...products].sort((a, b) => {
-    switch (sortBy) {
-      case "price-low":
-        return a.price - b.price;
-      case "price-high":
-        return b.price - a.price;
-      case "name":
-        return a.title.localeCompare(b.title);
-      default:
-        return 0;
-    }
-  });
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Category Hero Banner */}
@@ -249,21 +247,11 @@ export default function CategoryPage() {
 
           <div className="flex items-center gap-4">
             {/* Sort Dropdown */}
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600 dark:text-gray-300">
-                Sort by:
-              </label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                <option value="default">Default</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="name">Name: A to Z</option>
-              </select>
-            </div>
+            <SortDropdown
+              value={sortBy}
+              onChange={setSortBy}
+              className="min-w-[200px]"
+            />
 
             {/* View Mode Toggle */}
             <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
@@ -317,7 +305,7 @@ export default function CategoryPage() {
 
         {/* Products/Categories Content */}
         {loading ? (
-          <Loading />
+          <CategoryPageSkeleton />
         ) : isAllCategories ? (
           // Show categories grid
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
