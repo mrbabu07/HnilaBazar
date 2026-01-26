@@ -10,6 +10,7 @@ import Products from "../pages/Products";
 import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
 import Wishlist from "../pages/Wishlist";
+import Compare from "../pages/Compare";
 import Checkout from "../pages/Checkout";
 import Orders from "../pages/Orders";
 import Profile from "../pages/Profile";
@@ -51,6 +52,7 @@ const router = createBrowserRouter([
       { path: "/baby", element: <CategoryPage /> },
       { path: "/product/:id", element: <ProductDetail /> },
       { path: "/cart", element: <Cart /> },
+      { path: "/compare", element: <Compare /> },
       {
         path: "/wishlist",
         element: (

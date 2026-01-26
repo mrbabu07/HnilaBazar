@@ -6,9 +6,11 @@ import WishlistProvider from "./context/WishlistContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { ToastProvider } from "./context/ToastContext";
+import { ComparisonProvider } from "./context/ComparisonContext";
 import TawkToChat from "./components/TawkToChat";
 import OfferPopup from "./components/OfferPopup";
 import ToastContainer from "./components/Toast";
+import ComparisonFloatingButton from "./components/ComparisonFloatingButton";
 import router from "./routes/Routes";
 
 function App() {
@@ -17,30 +19,33 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           <ToastProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <RouterProvider router={router} />
-                <TawkToChat />
-                <OfferPopup />
-                <ToastContainer />
-                <Toaster
-                  position="top-right"
-                  toastOptions={{
-                    duration: 4000,
-                    style: {
-                      background: "white",
-                      color: "#374151",
-                      fontWeight: "600",
-                      borderRadius: "12px",
-                      padding: "16px 20px",
-                      boxShadow:
-                        "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                      border: "1px solid #E5E7EB",
-                    },
-                  }}
-                />
-              </WishlistProvider>
-            </CartProvider>
+            <ComparisonProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <RouterProvider router={router} />
+                  <TawkToChat />
+                  <OfferPopup />
+                  <ToastContainer />
+                  <ComparisonFloatingButton />
+                  <Toaster
+                    position="top-right"
+                    toastOptions={{
+                      duration: 4000,
+                      style: {
+                        background: "white",
+                        color: "#374151",
+                        fontWeight: "600",
+                        borderRadius: "12px",
+                        padding: "16px 20px",
+                        boxShadow:
+                          "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                        border: "1px solid #E5E7EB",
+                      },
+                    }}
+                  />
+                </WishlistProvider>
+              </CartProvider>
+            </ComparisonProvider>
           </ToastProvider>
         </NotificationProvider>
       </AuthProvider>

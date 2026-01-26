@@ -5,6 +5,8 @@ import AutoSlideshow from "./AutoSlideshow";
 import WishlistButton from "./WishlistButton";
 import ProductBadge from "./ProductBadge";
 import QuickViewModal from "./QuickViewModal";
+import CompareButton from "./CompareButton";
+import SocialProofIndicators from "./SocialProofIndicators";
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
@@ -50,9 +52,10 @@ export default function ProductCard({ product }) {
             aspectRatio="aspect-square"
           />
 
-          {/* Wishlist Button */}
-          <div className="absolute top-3 right-3 z-10">
+          {/* Action Buttons */}
+          <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
             <WishlistButton product={product} size="md" />
+            <CompareButton product={product} size="md" />
           </div>
 
           {/* Stock Badge */}
@@ -108,6 +111,9 @@ export default function ProductCard({ product }) {
 
         {/* Product Info */}
         <div className="p-4">
+          {/* Social Proof Indicators */}
+          <SocialProofIndicators product={product} className="mb-3" />
+
           <h3 className="font-medium text-gray-900 dark:text-white mb-1 line-clamp-2 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
             {product.title}
           </h3>
