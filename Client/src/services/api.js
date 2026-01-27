@@ -117,3 +117,36 @@ export const updateOffer = (id, formData) =>
   });
 export const deleteOffer = (id) => api.delete(`/offers/${id}`);
 export const toggleOfferStatus = (id) => api.patch(`/offers/${id}/toggle`);
+
+// Support & User Management
+export const createSupportTicket = (data) => api.post("/support/tickets", data);
+export const getUserTickets = () => api.get("/support/tickets/my-tickets");
+export const getAllTickets = (params) =>
+  api.get("/support/tickets", { params });
+export const updateTicketStatus = (id, status) =>
+  api.patch(`/support/tickets/${id}/status`, { status });
+export const assignTicket = (id, assignedTo) =>
+  api.patch(`/support/tickets/${id}/assign`, { assignedTo });
+export const addTicketMessage = (id, message) =>
+  api.post(`/support/tickets/${id}/messages`, { message });
+export const getTicketStats = () => api.get("/support/tickets/stats");
+
+// User Management
+export const getAllUsers = (params) => api.get("/admin/users", { params });
+export const getUserById = (id) => api.get(`/admin/users/${id}`);
+export const updateUserRole = (id, role) =>
+  api.patch(`/admin/users/${id}/role`, { role });
+export const updateUserStatus = (id, status) =>
+  api.patch(`/admin/users/${id}/status`, { status });
+export const getStaffUsers = () => api.get("/admin/users/staff");
+export const getUserStats = () => api.get("/admin/users/stats");
+
+// Customer Insights
+export const getAllCustomerInsights = (params) =>
+  api.get("/admin/insights", { params });
+export const getCustomerInsight = (userId) =>
+  api.get(`/admin/insights/${userId}`);
+export const generateCustomerInsight = (userId) =>
+  api.post(`/admin/insights/${userId}/generate`);
+export const getCustomerSegmentStats = () =>
+  api.get("/admin/insights/segments");

@@ -24,6 +24,9 @@ const Coupon = require("./models/Coupon");
 const Address = require("./models/Address");
 const Return = require("./models/Return");
 const Payment = require("./models/Payment");
+const SupportTicket = require("./models/SupportTicket");
+const LiveChat = require("./models/LiveChat");
+const CustomerInsight = require("./models/CustomerInsight");
 
 // Import routes
 const productRoutes = require("./routes/productRoutes");
@@ -37,6 +40,8 @@ const addressRoutes = require("./routes/addressRoutes");
 const returnRoutes = require("./routes/returnRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const offerRoutes = require("./routes/offerRoutes");
+const supportRoutes = require("./routes/supportRoutes");
+const userManagementRoutes = require("./routes/userManagementRoutes");
 
 // Import middleware and controllers for direct routes
 const { verifyToken, verifyAdmin } = require("./middleware/auth");
@@ -90,6 +95,9 @@ async function run() {
       Address: new Address(db),
       Return: new Return(db),
       Payment: new Payment(db),
+      SupportTicket: new SupportTicket(db),
+      LiveChat: new LiveChat(db),
+      CustomerInsight: new CustomerInsight(db),
     };
 
     // Store db reference for controllers that need it
@@ -110,6 +118,8 @@ async function run() {
           addresses: "/api/addresses",
           returns: "/api/returns",
           payments: "/api/payments",
+          support: "/api/support",
+          userManagement: "/api/admin",
         },
       });
     });
@@ -147,6 +157,12 @@ async function run() {
     console.log("✅ Payments routes registered");
     app.use("/api/offers", offerRoutes);
     console.log("✅ Offers routes registered");
+
+    app.use("/api/support", supportRoutes);
+    console.log("✅ Support routes registered");
+
+    app.use("/api/admin", userManagementRoutes);
+    console.log("✅ User Management routes registered");
 
     // Test endpoint to verify server is running new code
     app.get("/api/test-mongoose", (req, res) => {

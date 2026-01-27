@@ -16,11 +16,21 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await getCategories();
+        setCategories(response.data.data || []);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+
     fetchCategories();
 
     const handleScroll = () => {
@@ -30,15 +40,6 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await getCategories();
-      setCategories(response.data.data || []);
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-    }
-  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -50,44 +51,42 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "All Products", path: "/products" },
+    { name: "Products", path: "/products" },
+    { name: "Support", path: "/support" },
   ];
 
   return (
     <>
-      {/* Top Bar */}
-      <div className="bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-600 dark:from-primary-700 dark:to-secondary-700 text-white text-sm shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-2.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <span className="flex items-center gap-2 font-medium">
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                </svg>
-                +880 1XXX-XXXXXX
-              </span>
-              <span className="hidden sm:flex items-center gap-2 font-medium">
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                </svg>
-                support@hnilabazar.com
+      {/* Top Info Bar */}
+      <div className="bg-[#1e7098] text-white text-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-9">
+            <div className="flex items-center space-x-4 text-xs">
+              <span className="hidden sm:inline">
+                Welcome to Clicon online eCommerce store.
               </span>
             </div>
-            <div className="flex items-center gap-2 text-xs font-semibold">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
-              </svg>
-              Free Delivery on Orders Over $100
+            <div className="flex items-center space-x-4 text-xs">
+              <span className="hidden sm:inline">Follow us:</span>
+              <div className="flex items-center space-x-2">
+                <button className="hover:opacity-80 transition-opacity">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
+                  </svg>
+                </button>
+                <button className="hover:opacity-80 transition-opacity">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
+                  </svg>
+                </button>
+                <button className="hover:opacity-80 transition-opacity">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z" />
+                  </svg>
+                </button>
+              </div>
+              <span className="hidden md:inline border-l border-white/30 pl-4">ENG</span>
+              <span className="hidden md:inline">USD</span>
             </div>
           </div>
         </div>
@@ -95,78 +94,41 @@ export default function Navbar() {
 
       {/* Main Navbar */}
       <nav
-        className={`bg-white/95 dark:bg-gray-900/95 backdrop-blur-md sticky top-0 z-50 border-b dark:border-gray-800 transition-all duration-300 ${scrolled ? "shadow-lg" : "shadow-md"}`}
+        className={`bg-white dark:bg-gray-900 sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 transition-shadow duration-300 ${
+          scrolled ? "shadow-md" : ""
+        }`}
       >
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center h-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-3 group">
-              <div className="w-11 h-11 bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
+            <Link
+              to="/"
+              className="flex items-center space-x-2 group flex-shrink-0"
+            >
+              <div className="w-10 h-10 bg-[#1e7098] rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">H</span>
               </div>
-              <div className="hidden sm:block">
-                <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-600 bg-clip-text text-transparent">
-                  HnilaBazar
-                </span>
-                <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1 font-medium">
-                  Your Shopping Destination
-                </p>
-              </div>
+              <span className="text-2xl font-bold text-gray-900 dark:text-white hidden sm:block">
+                HnilaBazar
+              </span>
             </Link>
 
             {/* Search Bar - Desktop */}
-            <div className="hidden md:flex flex-1 max-w-lg mx-8">
-              <form onSubmit={handleSearch} className="w-full relative group">
+            <div className="hidden lg:flex flex-1 max-w-2xl mx-8">
+              <form onSubmit={handleSearch} className="w-full relative">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search products..."
-                  className="w-full px-4 py-2.5 pl-12 pr-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-200"
+                  placeholder="Search for anything..."
+                  className="w-full h-12 px-6 pr-12 border-2 border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#1e7098] transition-colors text-sm"
                 />
-                <svg
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 group-focus-within:text-primary-500 transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </form>
-            </div>
-
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  className={({ isActive }) =>
-                    `px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                      isActive
-                        ? "bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/30 dark:to-secondary-900/30 text-primary-600 dark:text-primary-400 shadow-sm"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
-                    }`
-                  }
-                >
-                  {link.name}
-                </NavLink>
-              ))}
-
-              {/* Categories Dropdown */}
-              <div className="relative">
                 <button
-                  onClick={() => setCategoriesOpen(!categoriesOpen)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                  type="submit"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 bg-[#1e7098] text-white rounded-md hover:bg-[#1a5f7f] transition-colors flex items-center justify-center"
                 >
-                  Categories
                   <svg
-                    className={`w-4 h-4 transition-transform duration-300 ${categoriesOpen ? "rotate-180" : ""}`}
+                    className="w-5 h-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -175,99 +137,31 @@ export default function Navbar() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
                   </svg>
                 </button>
-
-                {categoriesOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 py-2 z-50 animate-fade-in">
-                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                      <p className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <svg
-                          className="w-4 h-4 text-primary-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                        </svg>
-                        Shop by Category
-                      </p>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {categories.length > 0 ? (
-                        categories.map((category) => (
-                          <Link
-                            key={category._id}
-                            to={`/category/${category.slug}`}
-                            onClick={() => setCategoriesOpen(false)}
-                            className="flex items-center gap-3 px-4 py-3 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 dark:hover:from-primary-900/20 dark:hover:to-secondary-900/20 transition-all duration-200 group"
-                          >
-                            <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/30 dark:to-secondary-900/30 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                              <span className="text-lg">📦</span>
-                            </div>
-                            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                              {category.name}
-                            </span>
-                            <svg
-                              className="w-4 h-4 ml-auto text-gray-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 5l7 7-7 7"
-                              />
-                            </svg>
-                          </Link>
-                        ))
-                      ) : (
-                        <div className="px-4 py-6 text-center">
-                          <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <svg
-                              className="w-6 h-6 text-gray-400"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                              />
-                            </svg>
-                          </div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                            No categories available
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              </form>
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center gap-2">
-              {/* Theme Toggle */}
-              <ThemeToggle />
+            <div className="flex items-center space-x-4">
+              {/* Action Icons - Desktop */}
+              <div className="hidden lg:flex items-center space-x-2">
+                {/* Theme Toggle */}
+                <ThemeToggle />
 
-              {/* Notification Bell */}
-              {user && <NotificationBell />}
+                {/* Notifications */}
+                {user && <NotificationBell />}
 
-              {/* Wishlist */}
-              {user && (
+                {/* Cart */}
                 <Link
-                  to="/wishlist"
-                  className="relative p-2.5 rounded-xl hover:bg-gradient-to-br hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/20 dark:hover:to-pink-900/20 transition-all duration-200 group"
+                  to="/cart"
+                  className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  title="Shopping Cart"
                 >
                   <svg
-                    className="w-6 h-6 text-gray-700 dark:text-gray-300 group-hover:text-red-500 group-hover:scale-110 transition-all duration-200"
+                    className="w-6 h-6 text-gray-600 dark:text-gray-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -276,119 +170,207 @@ export default function Navbar() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                     />
                   </svg>
-                  {wishlistCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg ring-2 ring-white dark:ring-gray-900">
-                      {wishlistCount > 9 ? "9+" : wishlistCount}
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#1e7098] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {cartCount > 9 ? "9+" : cartCount}
                     </span>
                   )}
                 </Link>
-              )}
 
-              {/* Compare */}
-              <Link
-                to="/compare"
-                className="relative p-2.5 rounded-xl hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 transition-all duration-200 group"
-              >
-                <svg
-                  className="w-6 h-6 text-gray-700 dark:text-gray-300 group-hover:text-blue-600 group-hover:scale-110 transition-all duration-200"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-                {compareCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg ring-2 ring-white dark:ring-gray-900">
-                    {compareCount > 3 ? "3+" : compareCount}
-                  </span>
-                )}
-              </Link>
-
-              {/* Cart */}
-              <Link
-                to="/cart"
-                className="relative p-2.5 rounded-xl hover:bg-gradient-to-br hover:from-primary-50 hover:to-secondary-50 dark:hover:from-primary-900/20 dark:hover:to-secondary-900/20 transition-all duration-200 group"
-              >
-                <svg
-                  className="w-6 h-6 text-gray-700 dark:text-gray-300 group-hover:text-primary-600 group-hover:scale-110 transition-all duration-200"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gradient-to-r from-primary-500 to-secondary-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg ring-2 ring-white dark:ring-gray-900">
-                    {cartCount > 9 ? "9+" : cartCount}
-                  </span>
-                )}
-              </Link>
-
-              {/* User Menu */}
-              {user ? (
-                <div className="hidden md:flex items-center space-x-2">
-                  {isAdmin && (
-                    <Link
-                      to="/admin"
-                      className="px-4 py-2 bg-gradient-to-r from-secondary-500 to-secondary-600 text-white text-sm font-semibold rounded-xl hover:from-secondary-600 hover:to-secondary-700 hover:shadow-lg hover:scale-105 transition-all duration-200 shadow-md"
-                    >
-                      Admin
-                    </Link>
-                  )}
+                {/* Wishlist */}
+                {user && (
                   <Link
-                    to="/profile"
-                    className="flex items-center space-x-2 hover:opacity-80 transition-all duration-200 group"
+                    to="/wishlist"
+                    className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    title="Wishlist"
                   >
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-400 via-primary-500 to-secondary-500 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-200 ring-2 ring-white dark:ring-gray-900">
-                      <span className="text-white text-sm font-bold">
-                        {user.email?.charAt(0).toUpperCase()}
+                    <svg
+                      className="w-6 h-6 text-gray-600 dark:text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+                    {wishlistCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-[#1e7098] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                        {wishlistCount > 9 ? "9+" : wishlistCount}
                       </span>
-                    </div>
+                    )}
                   </Link>
-                  <button
-                    onClick={logout}
-                    className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all duration-200"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <div className="hidden md:flex items-center space-x-2">
+                )}
+
+                {/* User Menu */}
+                {user ? (
+                  <div className="relative">
+                    <button
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
+                      className="flex items-center space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    >
+                      <div className="w-8 h-8 bg-[#1e7098] rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-semibold">
+                          {user.email?.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    </button>
+
+                    {userMenuOpen && (
+                      <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                            {user.displayName || user.email?.split("@")[0]}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {user.email}
+                          </p>
+                        </div>
+
+                        <div className="py-2">
+                          <Link
+                            to="/profile"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <svg
+                              className="w-5 h-5 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                              />
+                            </svg>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                              My Profile
+                            </span>
+                          </Link>
+
+                          <Link
+                            to="/orders"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <svg
+                              className="w-5 h-5 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                              />
+                            </svg>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                              My Orders
+                            </span>
+                          </Link>
+
+                          {isAdmin && (
+                            <Link
+                              to="/admin"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              <svg
+                                className="w-5 h-5 text-[#1e7098]"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                              </svg>
+                              <span className="text-sm text-[#1e7098] font-medium">
+                                Admin Dashboard
+                              </span>
+                            </Link>
+                          )}
+                        </div>
+
+                        <div className="border-t border-gray-100 dark:border-gray-700 pt-2">
+                          <button
+                            onClick={() => {
+                              logout();
+                              setUserMenuOpen(false);
+                            }}
+                            className="flex items-center space-x-3 w-full px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          >
+                            <svg
+                              className="w-5 h-5 text-red-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                              />
+                            </svg>
+                            <span className="text-sm text-red-600 dark:text-red-400">
+                              Sign Out
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
                   <Link
                     to="/login"
-                    className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all duration-200"
+                    className="flex items-center space-x-2 px-4 py-2 bg-[#1e7098] text-white text-sm font-medium rounded-md hover:bg-[#1a5f7f] transition-colors"
                   >
-                    Login
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                    <span>Sign In</span>
                   </Link>
-                  <Link
-                    to="/register"
-                    className="px-4 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white text-sm font-semibold rounded-xl hover:from-primary-600 hover:to-secondary-600 hover:shadow-lg hover:scale-105 transition-all duration-200 shadow-md"
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <svg
-                  className="w-6 h-6 text-gray-700 dark:text-gray-300"
+                  className="w-6 h-6 text-gray-600 dark:text-gray-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -414,160 +396,346 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Search Bar */}
-          <div className="md:hidden pb-4">
-            <form onSubmit={handleSearch} className="relative group">
+          <div className="lg:hidden pb-4">
+            <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
-                className="w-full px-4 py-2.5 pl-12 pr-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-200"
+                placeholder="Search for anything..."
+                className="w-full h-12 px-4 pr-12 border-2 border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#1e7098] transition-colors"
               />
-              <svg
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 group-focus-within:text-primary-500 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <button
+                type="submit"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 bg-[#1e7098] text-white rounded-md hover:bg-[#1a5f7f] transition-colors flex items-center justify-center"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </button>
             </form>
           </div>
+        </div>
 
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-800 animate-fade-in">
-              <div className="space-y-1">
-                {navLinks.map((link) => (
-                  <NavLink
-                    key={link.path}
-                    to={link.path}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={({ isActive }) =>
-                      `block px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                        isActive
-                          ? "bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/30 dark:to-secondary-900/30 text-primary-600 dark:text-primary-400"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                      }`
-                    }
+        {/* Secondary Navigation Bar */}
+        <div className="border-t border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-12">
+              {/* Categories & Navigation Links */}
+              <div className="flex items-center space-x-6">
+                {/* Categories Dropdown */}
+                <div className="relative hidden lg:block">
+                  <button
+                    onClick={() => setCategoriesOpen(!categoriesOpen)}
+                    className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#1e7098] dark:hover:text-[#1e7098] transition-colors"
                   >
-                    {link.name}
-                  </NavLink>
-                ))}
-
-                {/* Mobile Categories */}
-                <div className="px-4 py-3 mt-2">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                     <svg
-                      className="w-4 h-4 text-primary-500"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
                     </svg>
-                    Categories
-                  </p>
-                  <div className="space-y-1 ml-2">
-                    {categories.map((category) => (
-                      <Link
-                        key={category._id}
-                        to={`/category/${category.slug}`}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 py-2 px-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
-                      >
-                        <span className="text-base">📦</span>
-                        {category.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
+                    <span>All Category</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform ${
+                        categoriesOpen ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
 
-                {/* Mobile User Menu */}
-                <div className="pt-4 border-t border-gray-100 dark:border-gray-800 mt-4 space-y-1">
-                  {user ? (
-                    <>
-                      <Link
-                        to="/profile"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all duration-200"
-                      >
-                        Profile
-                      </Link>
-                      <Link
-                        to="/orders"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all duration-200"
-                      >
-                        My Orders
-                      </Link>
-                      <Link
-                        to="/addresses"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all duration-200"
-                      >
-                        My Addresses
-                      </Link>
-                      <Link
-                        to="/returns"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all duration-200"
-                      >
-                        Returns & Refunds
-                      </Link>
-                      {isAdmin && (
-                        <Link
-                          to="/admin"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="block px-4 py-3 text-sm font-semibold text-secondary-600 dark:text-secondary-400 hover:bg-secondary-50 dark:hover:bg-secondary-900/20 rounded-xl transition-all duration-200"
-                        >
-                          Admin Dashboard
-                        </Link>
+                  {categoriesOpen && (
+                    <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                      {categories.length > 0 ? (
+                        categories.map((category) => (
+                          <Link
+                            key={category._id}
+                            to={`/category/${category.slug}`}
+                            onClick={() => setCategoriesOpen(false)}
+                            className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                              {category.name}
+                            </span>
+                          </Link>
+                        ))
+                      ) : (
+                        <div className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">
+                          No categories available
+                        </div>
                       )}
-                      <button
-                        onClick={() => {
-                          logout();
-                          setMobileMenuOpen(false);
-                        }}
-                        className="block w-full text-left px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200"
-                      >
-                        Logout
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        to="/login"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all duration-200"
-                      >
-                        Login
-                      </Link>
-                      <Link
-                        to="/register"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-sm font-semibold text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all duration-200"
-                      >
-                        Sign Up
-                      </Link>
-                    </>
+                    </div>
                   )}
                 </div>
+
+                {/* Navigation Links */}
+                <div className="hidden lg:flex items-center space-x-6">
+                  {navLinks.map((link) => (
+                    <NavLink
+                      key={link.path}
+                      to={link.path}
+                      className={({ isActive }) =>
+                        `text-sm font-medium transition-colors ${
+                          isActive
+                            ? "text-[#1e7098]"
+                            : "text-gray-700 dark:text-gray-300 hover:text-[#1e7098] dark:hover:text-[#1e7098]"
+                        }`
+                      }
+                    >
+                      {link.name}
+                    </NavLink>
+                  ))}
+
+                  {/* Compare Link */}
+                  <Link
+                    to="/compare"
+                    className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#1e7098] dark:hover:text-[#1e7098] transition-colors"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      />
+                    </svg>
+                    <span>Compare</span>
+                    {compareCount > 0 && (
+                      <span className="bg-[#1e7098] text-white text-xs px-1.5 py-0.5 rounded-full">
+                        {compareCount}
+                      </span>
+                    )}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div className="hidden lg:flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                  />
+                </svg>
+                <span className="font-medium text-gray-900 dark:text-white">+880 1XXX-XXXXXX</span>
               </div>
             </div>
-          )}
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-t border-gray-200 dark:border-gray-700 py-4">
+            <div className="space-y-1 px-4">
+              {/* Mobile Action Icons */}
+              <div className="flex items-center space-x-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                <Link
+                  to="/cart"
+                  className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <svg
+                    className="w-6 h-6 text-gray-600 dark:text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#1e7098] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
+
+                {user && (
+                  <Link
+                    to="/wishlist"
+                    className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    <svg
+                      className="w-6 h-6 text-gray-600 dark:text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+                    {wishlistCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-[#1e7098] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </Link>
+                )}
+
+                <Link
+                  to="/compare"
+                  className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <svg
+                    className="w-6 h-6 text-gray-600 dark:text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                  {compareCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#1e7098] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {compareCount}
+                    </span>
+                  )}
+                </Link>
+              </div>
+
+              {/* Navigation Links */}
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-[#1e7098]/10 text-[#1e7098]"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    }`
+                  }
+                >
+                  {link.name}
+                </NavLink>
+              ))}
+
+              {/* Mobile Categories */}
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <p className="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white">
+                  Categories
+                </p>
+                <div className="space-y-1">
+                  {categories.map((category) => (
+                    <Link
+                      key={category._id}
+                      to={`/category/${category.slug}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-[#1e7098] dark:hover:text-[#1e7098] hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    >
+                      {category.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mobile User Menu */}
+              {user && (
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-1">
+                  <Link
+                    to="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    My Profile
+                  </Link>
+                  <Link
+                    to="/orders"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    My Orders
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 text-sm font-medium text-[#1e7098] hover:bg-[#1e7098]/10 rounded-lg transition-colors"
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+
+              {!user && (
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full px-4 py-3 bg-[#1e7098] text-white text-center text-sm font-medium rounded-lg hover:bg-[#1a5f7f] transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* Close dropdown when clicking outside */}
-      {categoriesOpen && (
+      {/* Close dropdowns when clicking outside */}
+      {(categoriesOpen || userMenuOpen) && (
         <div
           className="fixed inset-0 z-40"
-          onClick={() => setCategoriesOpen(false)}
+          onClick={() => {
+            setCategoriesOpen(false);
+            setUserMenuOpen(false);
+          }}
         />
       )}
     </>

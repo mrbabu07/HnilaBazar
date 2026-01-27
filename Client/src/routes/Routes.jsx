@@ -18,13 +18,18 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminProducts from "../pages/admin/AdminProducts";
 import AdminCategories from "../pages/admin/AdminCategories";
 import AdminOrders from "../pages/admin/AdminOrders";
+import AdminInventory from "../pages/admin/AdminInventory";
 import ProductForm from "../pages/admin/ProductForm";
 import AdminCoupons from "../pages/admin/AdminCoupons";
 import AdminReturns from "../pages/admin/AdminReturns";
 import AdminOffers from "../pages/admin/AdminOffers";
 import AdminReviews from "../pages/admin/AdminReviews";
+import AdminUserManagement from "../pages/admin/AdminUserManagement";
+import AdminCustomerInsights from "../pages/admin/AdminCustomerInsights";
+import AdminSupport from "../pages/admin/AdminSupport";
 import OfferForm from "../pages/admin/OfferForm";
 import Returns from "../pages/Returns";
+import Support from "../pages/Support";
 import Addresses from "../pages/Addresses";
 import PrivateRoute from "../components/PrivateRoute";
 import AdminRoute from "../components/AdminRoute";
@@ -98,6 +103,14 @@ const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <AdminProducts />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/inventory",
+        element: (
+          <AdminRoute>
+            <AdminInventory />
           </AdminRoute>
         ),
       },
@@ -182,10 +195,42 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/admin/users",
+        element: (
+          <AdminRoute>
+            <AdminUserManagement />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/insights",
+        element: (
+          <AdminRoute>
+            <AdminCustomerInsights />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/support",
+        element: (
+          <AdminRoute>
+            <AdminSupport />
+          </AdminRoute>
+        ),
+      },
+      {
         path: "/returns",
         element: (
           <PrivateRoute>
             <Returns />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/support",
+        element: (
+          <PrivateRoute>
+            <Support />
           </PrivateRoute>
         ),
       },
