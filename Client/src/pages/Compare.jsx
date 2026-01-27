@@ -142,6 +142,26 @@ export default function Compare() {
                               </span>
                             </div>
                           )}
+                        {/* Price comparison indicator */}
+                        {compareList.length > 1 && (
+                          <div className="text-xs">
+                            {Math.min(...compareList.map((p) => p.price)) ===
+                              product.price && (
+                              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                                💰 Best Price
+                              </span>
+                            )}
+                            {Math.max(...compareList.map((p) => p.price)) ===
+                              product.price &&
+                              compareList.length > 1 &&
+                              Math.min(...compareList.map((p) => p.price)) !==
+                                product.price && (
+                                <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
+                                  Most Expensive
+                                </span>
+                              )}
+                          </div>
+                        )}
                       </div>
                     </td>
                   ))}
@@ -162,8 +182,84 @@ export default function Compare() {
                           ({product.totalReviews || 0})
                         </span>
                       </div>
+                      {/* Best rated indicator */}
+                      {compareList.length > 1 && (
+                        <div className="text-xs mt-1">
+                          {Math.max(
+                            ...compareList.map(
+                              (p) => p.averageRating || p.rating || 0,
+                            ),
+                          ) ===
+                            (product.averageRating || product.rating || 0) &&
+                            (product.averageRating || product.rating || 0) >
+                              0 && (
+                              <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">
+                                ⭐ Highest Rated
+                              </span>
+                            )}
+                        </div>
+                      )}
                     </td>
                   ))}
+                </tr>
+
+                {/* Value Score */}
+                <tr className="border-b border-gray-100 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20">
+                  <td className="p-4 font-medium text-gray-900 dark:text-white">
+                    <div className="flex items-center gap-2">
+                      <span>Value Score</span>
+                      <div className="group relative">
+                        <svg
+                          className="w-4 h-4 text-gray-400 cursor-help"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                          Rating ÷ Price × 100
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  {compareList.map((product) => {
+                    const rating = product.averageRating || product.rating || 0;
+                    const valueScore =
+                      rating > 0
+                        ? Math.round((rating / product.price) * 100)
+                        : 0;
+                    const maxValueScore = Math.max(
+                      ...compareList.map((p) => {
+                        const r = p.averageRating || p.rating || 0;
+                        return r > 0 ? Math.round((r / p.price) * 100) : 0;
+                      }),
+                    );
+
+                    return (
+                      <td key={product._id} className="p-4 text-center">
+                        <div className="space-y-1">
+                          <span className="text-xl font-bold text-blue-600">
+                            {valueScore}
+                          </span>
+                          {valueScore === maxValueScore &&
+                            valueScore > 0 &&
+                            compareList.length > 1 && (
+                              <div className="text-xs">
+                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                                  🏆 Best Value
+                                </span>
+                              </div>
+                            )}
+                        </div>
+                      </td>
+                    );
+                  })}
                 </tr>
 
                 {/* Stock */}

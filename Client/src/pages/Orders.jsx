@@ -7,6 +7,7 @@ import Loading from "../components/Loading";
 import Modal from "../components/Modal";
 import { useNotifications } from "../context/NotificationContext";
 import { useToast } from "../context/ToastContext";
+import useCart from "../hooks/useCart";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -16,6 +17,7 @@ export default function Orders() {
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
   const { success, error } = useToast();
+  const { addToCart } = useCart();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -28,6 +30,7 @@ export default function Orders() {
   });
   const [uploadingImages, setUploadingImages] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [reorderingItems, setReorderingItems] = useState({});
 
   // Review modal states
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -239,6 +242,91 @@ export default function Orders() {
     if (typeof color === "string") return color;
     if (typeof color === "object" && color.name) return color.name;
     return "Unknown Color";
+  };
+
+  // Quick Reorder functionality
+  const handleQuickReorder = async (item, orderId) => {
+    const itemKey = `${orderId}-${item.productId || item._id}`;
+    setReorderingItems((prev) => ({ ...prev, [itemKey]: true }));
+
+    try {
+      // Add item to cart with same specifications
+      await addToCart(
+        {
+          _id: item.productId || item._id,
+          title: item.title,
+          price: item.price,
+          image: item.image,
+          stock: 999, // Assume in stock for reorder
+        },
+        item.quantity,
+        item.image,
+        item.selectedSize,
+        item.selectedColor,
+      );
+
+      success(`${item.title} added to cart!`, {
+        title: "Quick Reorder Successful",
+      });
+    } catch (err) {
+      error("Failed to add item to cart. Please try again.", {
+        title: "Reorder Failed",
+      });
+    } finally {
+      setReorderingItems((prev) => ({ ...prev, [itemKey]: false }));
+    }
+  };
+
+  // Reorder entire order
+  const handleReorderEntireOrder = async (order) => {
+    setReorderingItems((prev) => ({ ...prev, [order._id]: true }));
+
+    try {
+      let successCount = 0;
+      for (const item of order.products) {
+        try {
+          await addToCart(
+            {
+              _id: item.productId || item._id,
+              title: item.title,
+              price: item.price,
+              image: item.image,
+              stock: 999, // Assume in stock for reorder
+            },
+            item.quantity,
+            item.image,
+            item.selectedSize,
+            item.selectedColor,
+          );
+          successCount++;
+        } catch (itemError) {
+          console.error(`Failed to add ${item.title} to cart:`, itemError);
+        }
+      }
+
+      if (successCount === order.products.length) {
+        success(`All ${successCount} items added to cart!`, {
+          title: "Order Reordered Successfully",
+        });
+      } else if (successCount > 0) {
+        success(
+          `${successCount} of ${order.products.length} items added to cart`,
+          {
+            title: "Partial Reorder Successful",
+          },
+        );
+      } else {
+        error("Failed to add any items to cart", {
+          title: "Reorder Failed",
+        });
+      }
+    } catch (err) {
+      error("Failed to reorder items. Please try again.", {
+        title: "Reorder Failed",
+      });
+    } finally {
+      setReorderingItems((prev) => ({ ...prev, [order._id]: false }));
+    }
   };
 
   if (loading) return <Loading />;
@@ -514,6 +602,56 @@ export default function Orders() {
                               2,
                             )}
                           </p>
+
+                          {/* Quick Reorder Button */}
+                          <button
+                            onClick={() => handleQuickReorder(item, order._id)}
+                            disabled={
+                              reorderingItems[
+                                `${order._id}-${item.productId || item._id}`
+                              ]
+                            }
+                            className="px-3 py-1 text-xs font-medium text-primary-600 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {reorderingItems[
+                              `${order._id}-${item.productId || item._id}`
+                            ] ? (
+                              <>
+                                <svg
+                                  className="w-3 h-3 animate-spin"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357 2m15.357-2H15"
+                                  />
+                                </svg>
+                                Adding...
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  className="w-3 h-3"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357 2m15.357-2H15"
+                                  />
+                                </svg>
+                                Reorder
+                              </>
+                            )}
+                          </button>
+
                           {/* Action Buttons for Delivered Orders */}
                           {order.status === "delivered" && (
                             <div className="flex gap-2">
@@ -694,6 +832,51 @@ export default function Orders() {
                         <span className="text-primary-600">
                           ${(order.total || 0).toFixed(2)}
                         </span>
+                      </div>
+
+                      {/* Reorder Entire Order Button */}
+                      <div className="border-t pt-3">
+                        <button
+                          onClick={() => handleReorderEntireOrder(order)}
+                          disabled={reorderingItems[order._id]}
+                          className="w-full py-3 px-4 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold rounded-lg hover:from-primary-600 hover:to-secondary-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {reorderingItems[order._id] ? (
+                            <>
+                              <svg
+                                className="w-5 h-5 animate-spin"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357 2m15.357-2H15"
+                                />
+                              </svg>
+                              Adding to Cart...
+                            </>
+                          ) : (
+                            <>
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357 2m15.357-2H15"
+                                />
+                              </svg>
+                              Reorder Entire Order
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   </div>

@@ -8,6 +8,7 @@ import AutoSlideshow from "../components/AutoSlideshow";
 import StockIndicator from "../components/StockIndicator";
 import ReviewsSection from "../components/reviews/ReviewsSection";
 import ProductRecommendations from "../components/ProductRecommendations";
+import SizeGuide from "../components/SizeGuide";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -23,6 +24,7 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [showSizeChart, setShowSizeChart] = useState(false);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState(null);
 
   useEffect(() => {
@@ -418,14 +420,35 @@ export default function ProductDetail() {
                 <h3 className="text-lg font-semibold text-gray-900">
                   Select Size
                 </h3>
-                {product.sizeChart && (
+                <div className="flex items-center gap-3">
+                  {product.sizeChart && (
+                    <button
+                      onClick={() => setShowSizeChart(true)}
+                      className="text-primary-500 text-sm font-medium hover:underline"
+                    >
+                      Size Chart
+                    </button>
+                  )}
                   <button
-                    onClick={() => setShowSizeChart(true)}
-                    className="text-primary-500 text-sm font-medium hover:underline"
+                    onClick={() => setShowSizeGuide(true)}
+                    className="flex items-center gap-1 text-blue-500 text-sm font-medium hover:underline"
                   >
-                    Size Chart
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                    Size Guide
                   </button>
-                )}
+                </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 {product.sizes.map((size) => (
@@ -670,6 +693,13 @@ export default function ProductDetail() {
           limit={4}
         />
       </div>
+
+      {/* Size Guide Modal */}
+      <SizeGuide
+        product={product}
+        isOpen={showSizeGuide}
+        onClose={() => setShowSizeGuide(false)}
+      />
     </div>
   );
 }

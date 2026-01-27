@@ -17,12 +17,7 @@ const ProductRating = ({
 
   const fetchRating = async () => {
     try {
-      const url = `/api/reviews/product/${productId}/stats`;
-      console.log(`🔍 Fetching rating stats from: ${url}`);
-
-      const response = await fetch(url);
-      console.log(`📡 Response status: ${response.status}`);
-      console.log(`📡 Response headers:`, response.headers);
+      const response = await fetch(`/api/reviews/product/${productId}/stats`);
 
       // Check if response is ok
       if (!response.ok) {
@@ -32,18 +27,12 @@ const ProductRating = ({
 
       // Check if response is JSON
       const contentType = response.headers.get("content-type");
-      console.log(`📡 Content-Type: ${contentType}`);
-
       if (!contentType || !contentType.includes("application/json")) {
         console.warn("Rating stats endpoint returned non-JSON response");
-        // Let's see what we actually got
-        const text = await response.text();
-        console.log(`📡 Actual response text:`, text.substring(0, 200));
         return;
       }
 
       const data = await response.json();
-      console.log(`📊 Rating stats data:`, data);
 
       if (data.success) {
         setRating(data.data.averageRating || 0);

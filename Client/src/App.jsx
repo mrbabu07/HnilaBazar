@@ -11,6 +11,7 @@ import TawkToChat from "./components/TawkToChat";
 import OfferPopup from "./components/OfferPopup";
 import ToastContainer from "./components/Toast";
 import ComparisonFloatingButton from "./components/ComparisonFloatingButton";
+import PWAStatus from "./components/PWAStatus";
 import router from "./routes/Routes";
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
                   <OfferPopup />
                   <ToastContainer />
                   <ComparisonFloatingButton />
+                  <PWAStatus />
                   <Toaster
                     position="top-right"
                     toastOptions={{

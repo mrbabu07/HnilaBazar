@@ -230,9 +230,10 @@ class Product {
       const objectId = new ObjectId(id);
       console.log("- ObjectId created:", objectId);
 
-      // Prepare update data
+      // Prepare update data - exclude immutable fields
+      const { _id, __v, createdAt, ...safeData } = productData;
       const updateData = {
-        ...productData,
+        ...safeData,
         updatedAt: new Date(),
       };
 

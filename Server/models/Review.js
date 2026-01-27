@@ -114,11 +114,13 @@ class Review {
   }
 
   async update(reviewId, updateData) {
+    // Exclude immutable fields
+    const { _id, __v, createdAt, ...safeData } = updateData;
     return await this.collection.updateOne(
       { _id: new ObjectId(reviewId) },
       {
         $set: {
-          ...updateData,
+          ...safeData,
           updatedAt: new Date(),
         },
       },

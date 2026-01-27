@@ -35,11 +35,13 @@ class Coupon {
   }
 
   async update(id, couponData) {
+    // Exclude immutable fields
+    const { _id, __v, createdAt, ...safeData } = couponData;
     return await this.collection.updateOne(
       { _id: new ObjectId(id) },
       {
         $set: {
-          ...couponData,
+          ...safeData,
           updatedAt: new Date(),
         },
       },

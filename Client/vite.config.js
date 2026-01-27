@@ -13,4 +13,17 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    // Generate service worker and manifest
+    rollupOptions: {
+      input: {
+        main: "./index.html",
+      },
+    },
+  },
+  // PWA Configuration
+  define: {
+    __PWA_VERSION__: JSON.stringify(process.env.npm_package_version || "1.0.0"),
+    __PWA_BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+  },
 });

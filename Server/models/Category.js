@@ -26,9 +26,11 @@ class Category {
   }
 
   async update(id, categoryData) {
+    // Exclude immutable fields
+    const { _id, __v, createdAt, ...safeData } = categoryData;
     return await this.collection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: { ...categoryData, updatedAt: new Date() } }
+      { $set: { ...safeData, updatedAt: new Date() } },
     );
   }
 

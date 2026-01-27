@@ -1,10 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
 import useCart from "../hooks/useCart";
 import useAuth from "../hooks/useAuth";
+import { useContext } from "react";
+import { WishlistContext } from "../context/WishlistContext";
+import { useToast } from "../context/ToastContext";
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity, cartTotal } = useCart();
   const { user } = useAuth();
+  const { addToWishlist } = useContext(WishlistContext);
+  const { success, error } = useToast();
   const navigate = useNavigate();
 
   const handleCheckout = () => {
@@ -13,6 +18,32 @@ export default function Cart() {
       return;
     }
     navigate("/checkout");
+  };
+
+  // Save for Later functionality
+  const handleSaveForLater = async (item) => {
+    if (!user) {
+      error("Please login to save items for later", {
+        title: "Login Required",
+      });
+      return;
+    }
+
+    try {
+      // Add to wishlist
+      await addToWishlist(item);
+
+      // Remove from cart
+      removeFromCart(item._id, item.selectedSize, item.selectedColor);
+
+      success(`${item.title} moved to wishlist!`, {
+        title: "Saved for Later",
+      });
+    } catch (err) {
+      error("Failed to save item for later", {
+        title: "Save Failed",
+      });
+    }
   };
 
   const getItemKey = (item) =>
@@ -256,31 +287,56 @@ export default function Cart() {
                         </button>
                       </div>
 
-                      <button
-                        onClick={() =>
-                          removeFromCart(
-                            item._id,
-                            item.selectedSize,
-                            item.selectedColor,
-                          )
-                        }
-                        className="flex items-center space-x-1 text-red-500 hover:text-red-600 transition-colors"
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      <div className="flex items-center gap-2">
+                        {/* Save for Later Button */}
+                        <button
+                          onClick={() => handleSaveForLater(item)}
+                          className="flex items-center space-x-1 text-blue-500 hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-blue-50"
+                          title="Save for Later"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                        <span className="text-sm font-medium">Remove</span>
-                      </button>
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                            />
+                          </svg>
+                          <span className="text-sm font-medium">Save</span>
+                        </button>
+
+                        {/* Remove Button */}
+                        <button
+                          onClick={() =>
+                            removeFromCart(
+                              item._id,
+                              item.selectedSize,
+                              item.selectedColor,
+                            )
+                          }
+                          className="flex items-center space-x-1 text-red-500 hover:text-red-600 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                          <span className="text-sm font-medium">Remove</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
