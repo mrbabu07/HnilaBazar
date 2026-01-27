@@ -7,6 +7,7 @@ import ProductBadge from "./ProductBadge";
 import QuickViewModal from "./QuickViewModal";
 import CompareButton from "./CompareButton";
 import SocialProofIndicators from "./SocialProofIndicators";
+import ProductRating from "./reviews/ProductRating";
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
@@ -117,6 +118,14 @@ export default function ProductCard({ product }) {
           <h3 className="font-medium text-gray-900 dark:text-white mb-1 line-clamp-2 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
             {product.title}
           </h3>
+
+          {/* Product Rating */}
+          <ProductRating
+            productId={product._id}
+            size="sm"
+            showCount={true}
+            className="mb-2"
+          />
 
           {/* Size and Color Indicators */}
           {(product.sizes?.length > 0 || product.colors?.length > 0) && (

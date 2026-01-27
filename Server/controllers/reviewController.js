@@ -97,6 +97,27 @@ const getProductReviews = async (req, res) => {
   }
 };
 
+const getProductRatingStats = async (req, res) => {
+  try {
+    const Review = req.app.locals.models.Review;
+    const { productId } = req.params;
+
+    console.log(`📊 Getting rating stats for product: ${productId}`);
+
+    const stats = await Review.getProductRatingStats(productId);
+
+    console.log(`📊 Rating stats result:`, stats);
+
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching product rating stats:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 const getUserReviews = async (req, res) => {
   try {
     const Review = req.app.locals.models.Review;
@@ -347,6 +368,7 @@ const deleteReviewAdmin = async (req, res) => {
 module.exports = {
   createReview,
   getProductReviews,
+  getProductRatingStats,
   getUserReviews,
   updateReview,
   deleteReview,

@@ -4,6 +4,7 @@ const { verifyToken, verifyAdmin } = require("../middleware/auth");
 const {
   createReview,
   getProductReviews,
+  getProductRatingStats,
   getUserReviews,
   updateReview,
   deleteReview,
@@ -13,6 +14,9 @@ const {
   addAdminReply,
   deleteReviewAdmin,
 } = require("../controllers/reviewController");
+
+// GET /api/reviews/product/:productId/stats - Get rating stats for a product (public)
+router.get("/product/:productId/stats", getProductRatingStats);
 
 // GET /api/reviews/product/:productId - Get reviews for a product (public)
 router.get("/product/:productId", getProductReviews);
