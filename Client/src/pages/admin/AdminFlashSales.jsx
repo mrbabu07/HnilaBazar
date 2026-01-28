@@ -7,7 +7,7 @@ import Loading from "../../components/Loading";
 
 const AdminFlashSales = () => {
   const { t } = useTranslation();
-  const toast = useToast();
+  const { success, error } = useToast();
   const [flashSales, setFlashSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +33,7 @@ const AdminFlashSales = () => {
     try {
       const user = auth.currentUser;
       if (!user) {
-        toast.error("Please login to access admin panel");
+        error("Please login to access admin panel");
         setLoading(false);
         return;
       }
@@ -48,7 +48,7 @@ const AdminFlashSales = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error("Unauthorized. Please login again.");
+          error("Unauthorized. Please login again.");
           setFlashSales([]);
           setLoading(false);
           return;
@@ -58,9 +58,9 @@ const AdminFlashSales = () => {
 
       const data = await response.json();
       setFlashSales(Array.isArray(data) ? data : data.flashSales || []);
-    } catch (error) {
-      console.error("Error fetching flash sales:", error);
-      toast.error("Failed to fetch flash sales");
+    } catch (err) {
+      console.error("Error fetching flash sales:", err);
+      error("Failed to fetch flash sales");
       setFlashSales([]);
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ const AdminFlashSales = () => {
     try {
       const user = auth.currentUser;
       if (!user) {
-        toast.error("Please login to continue");
+        error("Please login to continue");
         return;
       }
 
@@ -109,9 +109,7 @@ const AdminFlashSales = () => {
       });
 
       if (response.ok) {
-        toast.success(
-          editingSale ? "Flash sale updated!" : "Flash sale created!",
-        );
+        success(editingSale ? "Flash sale updated!" : "Flash sale created!");
         setShowModal(false);
         resetForm();
         fetchFlashSales();
@@ -120,9 +118,9 @@ const AdminFlashSales = () => {
         console.error("Server error:", errorData);
         throw new Error(errorData.message || "Failed to save flash sale");
       }
-    } catch (error) {
-      console.error("Error saving flash sale:", error);
-      toast.error(error.message || "Failed to save flash sale");
+    } catch (err) {
+      console.error("Error saving flash sale:", err);
+      error(err.message || "Failed to save flash sale");
     }
   };
 
@@ -147,7 +145,7 @@ const AdminFlashSales = () => {
     try {
       const user = auth.currentUser;
       if (!user) {
-        toast.error("Please login to continue");
+        error("Please login to continue");
         return;
       }
 
@@ -161,11 +159,12 @@ const AdminFlashSales = () => {
       );
 
       if (response.ok) {
-        toast.success("Flash sale deleted!");
+        success("Flash sale deleted!");
         fetchFlashSales();
       }
-    } catch (error) {
-      toast.error("Failed to delete flash sale");
+    } catch (err) {
+      console.error("Error deleting flash sale:", err);
+      error("Failed to delete flash sale");
     }
   };
 
@@ -206,7 +205,7 @@ const AdminFlashSales = () => {
             resetForm();
             setShowModal(true);
           }}
-          className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition"
+          className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
         >
           + Create Flash Sale
         </button>
@@ -266,7 +265,7 @@ const AdminFlashSales = () => {
                         resetForm();
                         setShowModal(true);
                       }}
-                      className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition"
+                      className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
                     >
                       + Create Flash Sale
                     </button>
@@ -295,13 +294,13 @@ const AdminFlashSales = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm">
-                      <div className="font-bold text-red-600">
-                        ₹{sale.flashPrice}
+                      <div className="font-bold text-primary-600 dark:text-primary-400">
+                        ${sale.flashPrice}
                       </div>
                       <div className="text-gray-500 line-through">
-                        ₹{sale.originalPrice}
+                        ${sale.originalPrice}
                       </div>
-                      <div className="text-green-600">
+                      <div className="text-success-600 dark:text-success-400 font-semibold">
                         -{sale.discountPercentage}%
                       </div>
                     </div>
@@ -330,13 +329,13 @@ const AdminFlashSales = () => {
                   <td className="px-6 py-4 text-sm">
                     <button
                       onClick={() => handleEdit(sale)}
-                      className="text-blue-600 hover:text-blue-800 mr-3"
+                      className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium mr-3 transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(sale._id)}
-                      className="text-red-600 hover:text-red-800"
+                      className="text-error-600 dark:text-error-400 hover:text-error-700 dark:hover:text-error-300 font-medium transition-colors"
                     >
                       Delete
                     </button>
@@ -398,7 +397,7 @@ const AdminFlashSales = () => {
               {Array.isArray(products) && products.length > 0 ? (
                 products.map((product) => (
                   <option key={product._id} value={product._id}>
-                    {product.name} - ₹{product.price}
+                    {product.name} - ${product.price}
                   </option>
                 ))
               ) : (
@@ -491,7 +490,7 @@ const AdminFlashSales = () => {
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
+              className="flex-1 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
             >
               {editingSale ? "Update" : "Create"} Flash Sale
             </button>

@@ -8,7 +8,7 @@ export default function CartProvider({ children }) {
     const saved = localStorage.getItem("cart");
     return saved ? JSON.parse(saved) : [];
   });
-  const { success, error } = useToast();
+  const { success } = useToast();
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
@@ -21,6 +21,8 @@ export default function CartProvider({ children }) {
     selectedSize = null,
     selectedColor = null,
   ) => {
+    let isUpdate = false;
+
     setCart((prev) => {
       const cartItem = {
         ...product,
@@ -34,8 +36,6 @@ export default function CartProvider({ children }) {
         addedAt: Date.now(), // For unique identification if same product with different options
       };
 
-      // Create unique key for cart item (product + size + color combination)
-      const itemKey = `${product._id}_${selectedSize || "no-size"}_${selectedColor?.name || "no-color"}`;
       const existing = prev.find(
         (item) =>
           item._id === product._id &&
@@ -45,9 +45,7 @@ export default function CartProvider({ children }) {
       );
 
       if (existing) {
-        success(`Updated ${product.title} quantity in cart`, {
-          title: "Cart Updated",
-        });
+        isUpdate = true;
         return prev.map((item) =>
           item._id === product._id &&
           (item.selectedSize || "no-size") === (selectedSize || "no-size") &&
@@ -58,11 +56,17 @@ export default function CartProvider({ children }) {
         );
       }
 
-      success(`${product.title} added to cart`, {
-        title: "Added to Cart",
-      });
       return [...prev, cartItem];
     });
+
+    // Show toast after state update
+    setTimeout(() => {
+      if (isUpdate) {
+        success(`Updated ${product.title} quantity in cart`);
+      } else {
+        success(`${product.title} added to cart`);
+      }
+    }, 0);
   };
 
   const removeFromCart = (
@@ -70,8 +74,10 @@ export default function CartProvider({ children }) {
     selectedSize = null,
     selectedColor = null,
   ) => {
+    let removedItem = null;
+
     setCart((prev) => {
-      const itemToRemove = prev.find(
+      removedItem = prev.find(
         (item) =>
           item._id === productId &&
           (item.selectedSize || "no-size") ===
@@ -79,12 +85,6 @@ export default function CartProvider({ children }) {
           (item.selectedColor?.name || "no-color") ===
             (selectedColor?.name || item.selectedColor?.name || "no-color"),
       );
-
-      if (itemToRemove) {
-        success(`${itemToRemove.title} removed from cart`, {
-          title: "Removed from Cart",
-        });
-      }
 
       return prev.filter(
         (item) =>
@@ -97,6 +97,13 @@ export default function CartProvider({ children }) {
           ),
       );
     });
+
+    // Show toast after state update
+    if (removedItem) {
+      setTimeout(() => {
+        success(`${removedItem.title} removed from cart`);
+      }, 0);
+    }
   };
 
   const updateQuantity = (
@@ -124,9 +131,9 @@ export default function CartProvider({ children }) {
 
   const clearCart = () => {
     setCart([]);
-    success("Cart cleared successfully", {
-      title: "Cart Cleared",
-    });
+    setTimeout(() => {
+      success("Cart cleared successfully");
+    }, 0);
   };
 
   const cartTotal = cart.reduce(

@@ -43,6 +43,9 @@ const offerRoutes = require("./routes/offerRoutes");
 const supportRoutes = require("./routes/supportRoutes");
 const userManagementRoutes = require("./routes/userManagementRoutes");
 const flashSaleRoutes = require("./routes/flashSaleRoutes");
+const recommendationRoutes = require("./routes/recommendationRoutes");
+const stockAlertRoutes = require("./routes/stockAlertRoutes");
+const loyaltyRoutes = require("./routes/loyaltyRoutes");
 
 // Import middleware and controllers for direct routes
 const { verifyToken, verifyAdmin } = require("./middleware/auth");
@@ -167,6 +170,15 @@ async function run() {
 
     app.use("/api/flash-sales", flashSaleRoutes);
     console.log("✅ Flash Sales routes registered");
+
+    app.use("/api/recommendations", recommendationRoutes);
+    console.log("✅ Recommendations routes registered");
+
+    app.use("/api/stock-alerts", stockAlertRoutes);
+    console.log("✅ Stock Alerts routes registered");
+
+    app.use("/api/loyalty", loyaltyRoutes);
+    console.log("✅ Loyalty routes registered");
 
     // Test endpoint to verify server is running new code
     app.get("/api/test-mongoose", (req, res) => {

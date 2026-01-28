@@ -2,30 +2,46 @@ const addToWishlist = async (req, res) => {
   try {
     const Wishlist = req.app.locals.models.Wishlist;
     const { productId } = req.body;
+
+    // Check if user is authenticated
+    if (!req.user || !req.user.uid) {
+      console.error("❌ No user found in request");
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
     const userId = req.user.uid;
 
     if (!productId) {
+      console.error("❌ No productId in request body");
       return res.status(400).json({
         success: false,
         error: "Product ID is required",
       });
     }
 
+    console.log(
+      `✅ Adding product ${productId} to wishlist for user ${userId}`,
+    );
     const result = await Wishlist.addProduct(userId, productId);
 
     if (!result.success) {
+      console.error(`❌ Failed to add to wishlist: ${result.message}`);
       return res.status(400).json({
         success: false,
         error: result.message,
       });
     }
 
+    console.log(`✅ Successfully added to wishlist`);
     res.json({
       success: true,
       message: result.message,
     });
   } catch (error) {
-    console.error("Error adding to wishlist:", error);
+    console.error("❌ Error adding to wishlist:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

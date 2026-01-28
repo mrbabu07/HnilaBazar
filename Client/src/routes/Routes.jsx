@@ -33,6 +33,8 @@ import Support from "../pages/Support";
 import Addresses from "../pages/Addresses";
 import FlashSales from "../pages/FlashSales";
 import AdminFlashSales from "../pages/admin/AdminFlashSales";
+import MyAlerts from "../pages/MyAlerts";
+import LoyaltyDashboard from "../pages/LoyaltyDashboard";
 import PrivateRoute from "../components/PrivateRoute";
 import AdminRoute from "../components/AdminRoute";
 import SearchResults from "../pages/SearchResults";
@@ -250,6 +252,22 @@ const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Addresses />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/my-alerts",
+        element: (
+          <PrivateRoute>
+            <MyAlerts />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/loyalty",
+        element: (
+          <PrivateRoute>
+            <LoyaltyDashboard />
           </PrivateRoute>
         ),
       },

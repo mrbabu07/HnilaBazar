@@ -9,6 +9,7 @@ import {
 import { auth } from "../firebase/firebase.config";
 import CouponInput from "../components/CouponInput";
 import { useNotifications } from "../context/NotificationContext";
+import BackButton from "../components/BackButton";
 
 export default function Checkout() {
   const { cart, cartTotal, clearCart } = useCart();
@@ -32,6 +33,17 @@ export default function Checkout() {
     paymentMethod: "cod",
     specialInstructions: "",
   });
+
+  // Validate cart items have product IDs
+  useEffect(() => {
+    const invalidItems = cart.filter((item) => !item._id);
+    if (invalidItems.length > 0) {
+      console.error("Cart has items without product IDs:", invalidItems);
+      alert(
+        "Some items in your cart are invalid. Please remove them and try again.",
+      );
+    }
+  }, [cart]);
 
   // Calculate totals with coupon
   const subtotal = cartTotal;
@@ -140,15 +152,24 @@ export default function Checkout() {
       }
 
       const orderData = {
-        products: cart.map((item) => ({
-          productId: item._id, // This is correct - _id is the product's MongoDB ObjectId
-          title: item.title,
-          price: item.price,
-          quantity: item.quantity,
-          selectedSize: item.selectedSize || null,
-          selectedColor: item.selectedColor || null,
-          image: item.selectedImage || item.image,
-        })),
+        products: cart.map((item) => {
+          // Ensure we have a valid product ID
+          if (!item._id) {
+            console.error("Cart item missing _id:", item);
+            throw new Error(
+              `Cart item "${item.title || "Unknown"}" is missing product ID`,
+            );
+          }
+          return {
+            productId: item._id,
+            title: item.title,
+            price: item.price,
+            quantity: item.quantity,
+            selectedSize: item.selectedSize || null,
+            selectedColor: item.selectedColor || null,
+            image: item.selectedImage || item.image,
+          };
+        }),
         total: finalTotal, // Use finalTotal instead of subtotal to include discounts and delivery
         subtotal: subtotal,
         shippingInfo: {

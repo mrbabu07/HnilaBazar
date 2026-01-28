@@ -38,30 +38,36 @@ export default function WishlistProvider({ children }) {
 
   const addToWishlist = async (product) => {
     if (!user) {
-      error("Please login to add items to wishlist", {
-        title: "Login Required",
-      });
+      error("Please login to add items to wishlist");
       return false;
     }
 
     try {
+      console.log("Adding to wishlist:", product._id);
       await addToWishlistApi(product._id);
       setWishlist((prev) => [...prev, product]);
-      success(`${product.title} added to wishlist`, {
-        title: "Added to Wishlist",
-      });
+
+      // Show toast after state update
+      setTimeout(() => {
+        success(`${product.title} added to wishlist`);
+      }, 0);
+
       return true;
-    } catch (error) {
-      console.error("Failed to add to wishlist:", error);
-      if (error.response?.data?.error) {
-        error(error.response.data.error, {
-          title: "Failed to Add",
-        });
-      } else {
-        error("Failed to add item to wishlist", {
-          title: "Error",
-        });
-      }
+    } catch (err) {
+      console.error("Failed to add to wishlist:", err);
+      console.error("Error response:", err.response?.data);
+
+      // Show error toast after state update
+      setTimeout(() => {
+        if (err.response?.status === 401) {
+          error("Please login to add items to wishlist");
+        } else if (err.response?.data?.error) {
+          error(err.response.data.error);
+        } else {
+          error("Failed to add item to wishlist");
+        }
+      }, 0);
+
       return false;
     }
   };
@@ -72,17 +78,22 @@ export default function WishlistProvider({ children }) {
       await removeFromWishlistApi(productId);
       setWishlist((prev) => prev.filter((item) => item._id !== productId));
 
+      // Show toast after state update
       if (productToRemove) {
-        success(`${productToRemove.title} removed from wishlist`, {
-          title: "Removed from Wishlist",
-        });
+        setTimeout(() => {
+          success(`${productToRemove.title} removed from wishlist`);
+        }, 0);
       }
+
       return true;
-    } catch (error) {
-      console.error("Failed to remove from wishlist:", error);
-      error("Failed to remove item from wishlist", {
-        title: "Error",
-      });
+    } catch (err) {
+      console.error("Failed to remove from wishlist:", err);
+
+      // Show error toast after state update
+      setTimeout(() => {
+        error("Failed to remove item from wishlist");
+      }, 0);
+
       return false;
     }
   };

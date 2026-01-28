@@ -4,6 +4,7 @@ import useAuth from "../hooks/useAuth";
 import { useContext } from "react";
 import { WishlistContext } from "../context/WishlistContext";
 import { useToast } from "../context/ToastContext";
+import BackButton from "../components/BackButton";
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity, cartTotal } = useCart();
@@ -92,6 +93,11 @@ export default function Cart() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Back Button */}
+      <div className="mb-6">
+        <BackButton />
+      </div>
+
       <div className="flex items-center gap-4 mb-8">
         <Link
           to="/"

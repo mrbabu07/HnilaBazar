@@ -1,13 +1,13 @@
-# 🛍️ HnilaBazar - E-Commerce Platform
+# 🛍️ HnilaBazar - Modern E-Commerce Platform
 
-A full-stack e-commerce platform built with React, Node.js, Express, and MongoDB.
+A full-featured e-commerce platform built with React, Node.js, Express, and MongoDB. Features include flash sales, loyalty rewards, product recommendations, stock alerts, and comprehensive admin dashboard.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js (v16 or higher)
-- MongoDB
+- MongoDB (local or Atlas)
 - Firebase account (for authentication)
 
 ### Installation
@@ -25,9 +25,10 @@ A full-stack e-commerce platform built with React, Node.js, Express, and MongoDB
    cd Server
    npm install
    cp .env.example .env
-   # Edit .env with your credentials
-   npm run seed  # Seed database with sample data
-   npm run dev   # Start server
+   # Edit .env with your MongoDB URI and Firebase credentials
+   npm run seed        # Seed database with sample products
+   node seedAll.js     # Seed flash sales, alerts, loyalty data
+   npm run dev         # Start server on port 5000
    ```
 
 3. **Setup Client**
@@ -36,329 +37,836 @@ A full-stack e-commerce platform built with React, Node.js, Express, and MongoDB
    cd Client
    npm install
    cp .env.example .env.local
-   # Edit .env.local with API URL
-   npm run dev   # Start client
+   # Edit .env.local with API URL and Firebase config
+   npm run dev         # Start client on port 5173
    ```
 
 4. **Access the application**
    - Frontend: http://localhost:5173
    - Backend: http://localhost:5000
+   - Admin Panel: http://localhost:5173/admin
+
+### Create Admin User
+
+```bash
+cd Server
+node makeAdmin.js
+# Follow prompts to create admin account
+```
+
+---
 
 ## 📁 Project Structure
 
 ```
 HnilaBazar/
-├── Client/                 # React frontend
+├── Client/                    # React frontend
 │   ├── src/
-│   │   ├── components/    # Reusable components
-│   │   ├── pages/         # Page components
-│   │   ├── context/       # React context providers
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── services/      # API services
-│   │   └── utils/         # Utility functions
-│   └── public/            # Static assets
+│   │   ├── components/       # Reusable UI components
+│   │   │   ├── admin/       # Admin-specific components
+│   │   │   └── reviews/     # Review components
+│   │   ├── pages/           # Page components
+│   │   │   ├── admin/       # Admin pages
+│   │   │   └── ...          # Customer pages
+│   │   ├── context/         # React context (Auth, Cart, Wishlist, etc.)
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── services/        # API service layer
+│   │   ├── i18n/            # Internationalization
+│   │   └── utils/           # Utility functions
+│   └── public/              # Static assets & PWA files
 │
-├── Server/                # Node.js backend
-│   ├── controllers/       # Request handlers
-│   ├── models/           # Database models
-│   ├── routes/           # API routes
-│   ├── middleware/       # Custom middleware
-│   └── services/         # Business logic
+├── Server/                   # Node.js backend
+│   ├── controllers/         # Request handlers
+│   ├── models/              # Mongoose models
+│   ├── routes/              # Express routes
+│   ├── middleware/          # Auth & validation middleware
+│   ├── services/            # Business logic services
+│   ├── uploads/             # File upload directory
+│   ├── seed.js              # Product seeder
+│   └── seedAll.js           # Complete data seeder
 │
-└── README.md             # This file
+└── README.md                # This file
 ```
+
+---
 
 ## ✨ Features
 
-### Customer Features
+### 🛒 Customer Features
 
-- 🛒 **Shopping Cart** - Add, update, remove items
-- ❤️ **Wishlist** - Save favorite products
-- 🔍 **Product Search** - Advanced search and filters
-- 📊 **Product Comparison** - Compare up to 4 products
-- ⚡ **Flash Sales** - Limited time deals with countdown timers
-- 🎯 **Product Reviews** - Rate and review products
-- 📦 **Order Tracking** - Track order status
-- 💳 **Multiple Payment Methods** - Card, UPI, COD
-- 🎫 **Coupons** - Apply discount codes
-- 🔔 **Notifications** - Real-time updates
-- 💬 **Live Chat** - Tawk.to integration
-- 🌐 **Multi-language** - English, Bengali, Hindi
-- 🌙 **Dark Mode** - Theme toggle
-- 📱 **PWA** - Install as mobile app
+#### Shopping Experience
 
-### Admin Features
+- **Product Catalog** - Browse products with advanced filters and sorting
+- **Product Search** - Real-time search with suggestions
+- **Product Details** - Image gallery, reviews, recommendations
+- **Shopping Cart** - Add, update, remove items with size/color selection
+- **Wishlist** - Save favorite products for later
+- **Product Comparison** - Compare up to 4 products side-by-side
+- **Recently Viewed** - Track browsing history
 
-- 📊 **Analytics Dashboard** - Sales, revenue, customer insights
-- 📦 **Product Management** - CRUD operations
-- 🏷️ **Category Management** - Organize products
-- 📋 **Order Management** - Process and track orders
-- 👥 **User Management** - Manage customers and staff
-- 🎫 **Coupon Management** - Create discount codes
-- ⚡ **Flash Sales Management** - Create time-limited deals
-- 🎁 **Offer Management** - Promotional banners
-- 📈 **Customer Insights** - Behavior analytics
-- 💬 **Support Tickets** - Customer support
-- 🔄 **Returns Management** - Handle returns/refunds
-- ⭐ **Review Management** - Moderate reviews
-- 📊 **Inventory Tracking** - Stock management
+#### Deals & Rewards
+
+- **⚡ Flash Sales** - Limited-time deals with countdown timers and stock tracking
+- **🎁 Loyalty Program** - 4-tier system (Bronze, Silver, Gold, Platinum)
+  - Earn points on purchases (1 point = $1)
+  - Tier multipliers (1x to 3x)
+  - Referral bonuses (500 points for referrer, 100 for new user)
+  - Points redemption (100 points = $1)
+  - Birthday bonuses
+  - Leaderboard
+- **🔔 Stock Alerts** - Get notified when products are back in stock or prices drop
+- **🎯 Product Recommendations** - AI-powered suggestions (trending, similar, bought together)
+- **🎫 Coupons** - Apply discount codes at checkout
+
+#### Social & Communication
+
+- **📱 Social Sharing** - Share products on Facebook, Twitter, WhatsApp, Pinterest, LinkedIn
+- **⭐ Reviews & Ratings** - Rate and review products with images
+- **💬 Live Chat** - Tawk.to integration for instant support
+- **🎫 Support Tickets** - Create and track support requests
+
+#### Account & Orders
+
+- **📦 Order Management** - Place orders, track status, view history
+- **🔄 Returns** - Request returns/refunds with tracking
+- **📍 Address Book** - Save multiple shipping addresses
+- **👤 Profile Management** - Update personal information
+- **💳 Multiple Payment Methods** - Card, UPI, Cash on Delivery
+
+#### User Experience
+
+- **🌐 Multi-language** - English, Bengali, Hindi support
+- **🌙 Dark Mode** - Toggle between light and dark themes
+- **📱 PWA Support** - Install as mobile app, offline support
+- **🔙 Navigation** - Back button on all pages, scroll to top
+- **🎨 Modern UI** - Gradient backgrounds, smooth animations, responsive design
+
+### 👨‍💼 Admin Features
+
+#### Dashboard & Analytics
+
+- **📊 Analytics Dashboard** - Real-time stats (sales, revenue, orders, customers)
+- **📈 Customer Insights** - Behavior analytics, segmentation (New, Regular, VIP)
+- **📉 Sales Charts** - Revenue trends, top products
+- **🔔 Low Stock Alerts** - Automatic inventory warnings
+- **📊 Stock Movement Tracker** - Track inventory changes
+
+#### Product Management
+
+- **📦 Product CRUD** - Create, read, update, delete products
+- **🏷️ Category Management** - Organize products into categories
+- **📸 Image Upload** - Multiple product images with ImgBB integration
+- **📊 Inventory Management** - Track stock levels, import/export
+- **⚡ Flash Sales** - Create time-limited deals with countdown timers
+
+#### Order & Customer Management
+
+- **📋 Order Management** - View, process, update order status
+- **👥 User Management** - Manage customers, assign roles
+- **🔄 Returns Management** - Handle return requests, approve/reject
+- **💬 Support Tickets** - Respond to customer inquiries
+- **⭐ Review Moderation** - Approve, reject, or delete reviews
+
+#### Marketing & Promotions
+
+- **🎫 Coupon Management** - Create discount codes with conditions
+- **🎁 Offer Management** - Create promotional banners
+- **⚡ Flash Sales** - Manage limited-time deals
+- **🔔 Alert Management** - Monitor stock alerts, send notifications
+- **🏆 Loyalty Statistics** - Track loyalty program performance
+
+---
 
 ## 🔧 Environment Variables
 
 ### Server (.env)
 
 ```env
+# Server Configuration
 PORT=5000
-MONGO_URI=your_mongodb_connection_string
-FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_CLIENT_EMAIL=your_client_email
-FIREBASE_PRIVATE_KEY=your_private_key
+
+# MongoDB
+MONGO_URI=mongodb://localhost:27017/HnilaBazar
+# Or MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/HnilaBazar
+
+# Firebase Admin SDK
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour-Private-Key\n-----END PRIVATE KEY-----\n"
+
+# Email Service (Optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+
+# ImgBB API (for image uploads)
+IMGBB_API_KEY=your-imgbb-api-key
 ```
 
 ### Client (.env.local)
 
 ```env
+# API Configuration
 VITE_API_URL=http://localhost:5000/api
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
+
+# Firebase Configuration
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=1:123456789:web:abcdef
+
+# ImgBB API (for image uploads)
+VITE_IMGBB_API_KEY=your-imgbb-api-key
 ```
+
+---
 
 ## 📚 API Documentation
 
 ### Public Endpoints
 
-- `GET /api/products` - Get all products
-- `GET /api/products/:id` - Get product by ID
-- `GET /api/categories` - Get all categories
-- `GET /api/flash-sales/active` - Get active flash sales
-- `GET /api/flash-sales/upcoming` - Get upcoming flash sales
+```
+GET    /api/products                    # Get all products
+GET    /api/products/:id                # Get product by ID
+GET    /api/categories                  # Get all categories
+GET    /api/flash-sales/active          # Get active flash sales
+GET    /api/flash-sales/upcoming        # Get upcoming flash sales
+GET    /api/recommendations/trending    # Get trending products
+GET    /api/loyalty/leaderboard         # Get loyalty leaderboard
+GET    /api/coupons                     # Get active coupons
+GET    /api/offers                      # Get active offers
+```
 
 ### Protected Endpoints (Require Authentication)
 
-- `POST /api/orders` - Create order
-- `GET /api/orders/my-orders` - Get user orders
-- `POST /api/wishlist` - Add to wishlist
-- `POST /api/reviews` - Create review
-- `GET /api/addresses` - Get user addresses
+```
+# Orders
+POST   /api/orders                      # Create order
+GET    /api/orders/my-orders            # Get user orders
+
+# Wishlist
+GET    /api/wishlist                    # Get user wishlist
+POST   /api/wishlist                    # Add to wishlist
+DELETE /api/wishlist/:productId         # Remove from wishlist
+
+# Reviews
+POST   /api/reviews                     # Create review
+GET    /api/reviews/product/:productId  # Get product reviews
+
+# Addresses
+GET    /api/addresses                   # Get user addresses
+POST   /api/addresses                   # Create address
+PUT    /api/addresses/:id               # Update address
+DELETE /api/addresses/:id               # Delete address
+
+# Stock Alerts
+POST   /api/stock-alerts/subscribe      # Subscribe to alert
+GET    /api/stock-alerts/my-alerts      # Get user alerts
+DELETE /api/stock-alerts/:id            # Delete alert
+
+# Loyalty
+GET    /api/loyalty/my-points           # Get user points
+POST   /api/loyalty/redeem              # Redeem points
+GET    /api/loyalty/history             # Get transaction history
+POST   /api/loyalty/apply-referral      # Apply referral code
+
+# Support
+POST   /api/support/tickets             # Create support ticket
+GET    /api/support/tickets/my-tickets  # Get user tickets
+POST   /api/support/tickets/:id/messages # Add message to ticket
+
+# Returns
+POST   /api/returns                     # Create return request
+GET    /api/returns/my-returns          # Get user returns
+```
 
 ### Admin Endpoints (Require Admin Role)
 
-- `POST /api/products` - Create product
-- `PUT /api/products/:id` - Update product
-- `DELETE /api/products/:id` - Delete product
-- `GET /api/admin/insights` - Get customer insights
-- `POST /api/flash-sales` - Create flash sale
-- `GET /api/admin/users` - Get all users
+```
+# Products
+POST   /api/products                    # Create product
+PUT    /api/products/:id                # Update product
+DELETE /api/products/:id                # Delete product
+
+# Categories
+POST   /api/categories                  # Create category
+PUT    /api/categories/:id              # Update category
+DELETE /api/categories/:id              # Delete category
+
+# Orders
+GET    /api/orders                      # Get all orders
+PUT    /api/orders/:id/status           # Update order status
+
+# Users
+GET    /api/admin/users                 # Get all users
+PUT    /api/admin/users/:id/role        # Update user role
+DELETE /api/admin/users/:id             # Delete user
+
+# Flash Sales
+POST   /api/flash-sales                 # Create flash sale
+PUT    /api/flash-sales/:id             # Update flash sale
+DELETE /api/flash-sales/:id             # Delete flash sale
+
+# Coupons
+POST   /api/coupons                     # Create coupon
+PUT    /api/coupons/:id                 # Update coupon
+DELETE /api/coupons/:id                 # Delete coupon
+
+# Analytics
+GET    /api/admin/insights              # Get customer insights
+GET    /api/admin/stats                 # Get dashboard stats
+
+# Stock Alerts
+GET    /api/stock-alerts/stats          # Get alert statistics
+POST   /api/stock-alerts/check-and-send # Send pending alerts
+
+# Loyalty
+GET    /api/loyalty/stats               # Get loyalty statistics
+POST   /api/loyalty/birthday-bonus      # Award birthday bonus
+
+# Support
+GET    /api/support/tickets             # Get all tickets
+PUT    /api/support/tickets/:id/status  # Update ticket status
+
+# Returns
+GET    /api/returns/admin               # Get all returns
+PUT    /api/returns/:id/status          # Update return status
+```
+
+---
 
 ## 🛠️ Available Scripts
 
-### Server
+### Server Scripts
 
 ```bash
-npm start          # Start production server
-npm run dev        # Start development server with nodemon
-npm run seed       # Seed database with sample data
-npm run seed:flash # Add sample flash sales
-npm run check:flash # Check flash sales status
-npm run test:flash # Test flash sales API
+npm start              # Start production server
+npm run dev            # Start development server with nodemon
+npm run seed           # Seed database with sample products
+node seedAll.js        # Seed all data (flash sales, alerts, loyalty)
+node makeAdmin.js      # Create admin user
+node checkFlashSales.js # Check flash sales status
+node testAllAPIs.js    # Test all API endpoints
 ```
 
-### Client
+### Client Scripts
 
 ```bash
-npm run dev        # Start development server
-npm run build      # Build for production
-npm run preview    # Preview production build
-npm run lint       # Run ESLint
+npm run dev            # Start development server (Vite)
+npm run build          # Build for production
+npm run preview        # Preview production build
+npm run lint           # Run ESLint
 ```
+
+### Database Seeding
+
+```bash
+# Windows
+seed-database.bat      # One-click seeding (products + all features)
+
+# Manual
+cd Server
+npm run seed           # Seed products
+node seedAll.js        # Seed flash sales, alerts, loyalty data
+```
+
+---
 
 ## 🎨 Tech Stack
 
 ### Frontend
 
-- **React 18** - UI library
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **React Router** - Routing
-- **Axios** - HTTP client
-- **i18next** - Internationalization
-- **Firebase** - Authentication
-- **Lucide React** - Icons
+| Technology          | Purpose                     |
+| ------------------- | --------------------------- |
+| **React 18**        | UI library                  |
+| **Vite**            | Build tool & dev server     |
+| **Tailwind CSS**    | Utility-first CSS framework |
+| **React Router v6** | Client-side routing         |
+| **Axios**           | HTTP client                 |
+| **i18next**         | Internationalization        |
+| **Firebase Auth**   | User authentication         |
+| **React Context**   | State management            |
+| **Lucide React**    | Icon library                |
 
 ### Backend
 
-- **Node.js** - Runtime
-- **Express** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM
-- **Firebase Admin** - Authentication
-- **Multer** - File uploads
-- **Nodemailer** - Email service
+| Technology         | Purpose              |
+| ------------------ | -------------------- |
+| **Node.js**        | JavaScript runtime   |
+| **Express**        | Web framework        |
+| **MongoDB**        | NoSQL database       |
+| **Mongoose**       | MongoDB ODM          |
+| **Firebase Admin** | Token verification   |
+| **Multer**         | File upload handling |
+| **Nodemailer**     | Email service        |
+| **ImgBB API**      | Image hosting        |
 
-## 🔐 Authentication
+---
 
-The app uses **Firebase Authentication** for user management:
+## 🔐 Authentication & Authorization
 
-- Email/Password login
-- Google OAuth
-- JWT tokens for API authentication
-- Role-based access control (User/Admin)
+### Authentication Flow
+
+1. **User Registration/Login** - Firebase Authentication (Email/Password or Google OAuth)
+2. **Token Generation** - Firebase generates JWT token
+3. **API Requests** - Client sends token in `Authorization: Bearer <token>` header
+4. **Token Verification** - Server verifies token using Firebase Admin SDK
+5. **User Identification** - Extract user ID from verified token
+
+### Role-Based Access Control
+
+- **Customer** - Default role, access to shopping features
+- **Admin** - Full access to admin panel and management features
+
+### Protected Routes
+
+**Frontend:**
+
+- `/checkout` - Requires authentication
+- `/orders` - Requires authentication
+- `/profile` - Requires authentication
+- `/admin/*` - Requires admin role
+
+**Backend:**
+
+- All `/api/admin/*` endpoints require admin role
+- User-specific endpoints require authentication
+
+---
 
 ## 📦 Database Models
 
-- **User** - Customer and admin accounts
-- **Product** - Product catalog
-- **Category** - Product categories
-- **Order** - Customer orders
-- **Review** - Product reviews
-- **Wishlist** - User wishlists
-- **Cart** - Shopping carts
-- **Coupon** - Discount codes
-- **FlashSale** - Time-limited deals
-- **Offer** - Promotional banners
-- **Address** - Shipping addresses
-- **Return** - Return requests
-- **SupportTicket** - Customer support
-- **CustomerInsight** - Analytics data
+| Model               | Description               | Key Fields                                       |
+| ------------------- | ------------------------- | ------------------------------------------------ |
+| **User**            | Customer & admin accounts | email, role, firebaseUid                         |
+| **Product**         | Product catalog           | title, price, stock, images, category            |
+| **Category**        | Product categories        | name, slug, description                          |
+| **Order**           | Customer orders           | products, total, status, shipping                |
+| **Review**          | Product reviews           | rating, comment, images, verified                |
+| **Wishlist**        | User wishlists            | userId, products                                 |
+| **Coupon**          | Discount codes            | code, discountType, value, conditions            |
+| **FlashSale**       | Time-limited deals        | product, flashPrice, startTime, endTime, stock   |
+| **StockAlert**      | Inventory alerts          | userId, productId, alertType, priceThreshold     |
+| **Loyalty**         | Loyalty program           | userId, points, tier, transactions, referralCode |
+| **Recommendation**  | Product recommendations   | userId, productId, type, score                   |
+| **Address**         | Shipping addresses        | userId, name, phone, address, city, isDefault    |
+| **Return**          | Return requests           | orderId, reason, status, refundAmount            |
+| **SupportTicket**   | Customer support          | userId, subject, status, messages                |
+| **Offer**           | Promotional banners       | title, image, link, startDate, endDate           |
+| **CustomerInsight** | Analytics data            | userId, segment, preferences, behavior           |
+
+---
 
 ## 🚀 Deployment
 
-### Server Deployment
+### Server Deployment (Railway/Render/Heroku)
 
-1. Set environment variables
-2. Build: `npm install --production`
-3. Start: `npm start`
-4. Use PM2 for process management
+1. **Prepare Environment**
 
-### Client Deployment
+   ```bash
+   # Set environment variables in hosting dashboard
+   PORT=5000
+   MONGO_URI=<your-mongodb-atlas-uri>
+   FIREBASE_PROJECT_ID=<your-project-id>
+   FIREBASE_CLIENT_EMAIL=<your-client-email>
+   FIREBASE_PRIVATE_KEY=<your-private-key>
+   ```
 
-1. Update API URL in .env
-2. Build: `npm run build`
-3. Deploy `dist` folder to hosting service
-4. Configure routing for SPA
+2. **Deploy**
 
-### Recommended Hosting
+   ```bash
+   # Push to Git repository
+   git push origin main
 
-- **Frontend**: Vercel, Netlify, Cloudflare Pages
-- **Backend**: Railway, Render, Heroku
-- **Database**: MongoDB Atlas
+   # Or use CLI
+   railway up  # For Railway
+   render deploy  # For Render
+   ```
+
+3. **Post-Deployment**
+
+   ```bash
+   # Seed database (run once)
+   npm run seed
+   node seedAll.js
+
+   # Create admin user
+   node makeAdmin.js
+   ```
+
+### Client Deployment (Vercel/Netlify)
+
+1. **Update Environment Variables**
+
+   ```env
+   VITE_API_URL=https://your-backend-url.com/api
+   VITE_FIREBASE_API_KEY=<your-api-key>
+   # ... other Firebase config
+   ```
+
+2. **Build**
+
+   ```bash
+   npm run build
+   # Creates 'dist' folder
+   ```
+
+3. **Deploy**
+
+   ```bash
+   # Vercel
+   vercel --prod
+
+   # Netlify
+   netlify deploy --prod --dir=dist
+   ```
+
+4. **Configure Routing**
+   - Add `_redirects` file for Netlify: `/* /index.html 200`
+   - Vercel handles SPA routing automatically
+
+### Database (MongoDB Atlas)
+
+1. Create cluster at https://cloud.mongodb.com
+2. Create database user
+3. Whitelist IP addresses (0.0.0.0/0 for all)
+4. Get connection string
+5. Update `MONGO_URI` in server environment
+
+---
 
 ## 🧪 Testing
+
+### Test Backend APIs
+
+```bash
+cd Server
+node testAllAPIs.js
+```
+
+**Tests:**
+
+- ✅ Public endpoints (products, categories, flash sales)
+- ✅ Protected endpoints return 401 without auth
+- ✅ All routes are registered
 
 ### Test Flash Sales
 
 ```bash
 cd Server
-npm run test:flash
+node checkFlashSales.js
 ```
 
-### Test Customer Insights
+**Checks:**
 
-```bash
-# Navigate to admin panel
-http://localhost:5173/admin/insights
-```
+- Active flash sales
+- Upcoming flash sales
+- Expired flash sales
+- Stock levels
 
-### Test Live Chat
+### Manual Testing Checklist
 
-```bash
-# Open any page and look for chat widget
-http://localhost:5173
-```
+**Customer Features:**
 
-## 📖 Feature Documentation
+- [ ] Register/Login with email
+- [ ] Browse products and categories
+- [ ] Add products to cart
+- [ ] Apply coupon code
+- [ ] Place order
+- [ ] View order history
+- [ ] Add product to wishlist
+- [ ] Write product review
+- [ ] Subscribe to stock alert
+- [ ] Check loyalty points
+- [ ] Redeem loyalty points
+- [ ] Create support ticket
 
-### Flash Sales
+**Admin Features:**
 
-- **Location**: `/flash-sales`
-- **Admin Panel**: `/admin/flash-sales`
-- **Features**: Countdown timers, stock tracking, auto-expiration
-- **API**: `/api/flash-sales/*`
+- [ ] Login as admin
+- [ ] View dashboard analytics
+- [ ] Create/edit product
+- [ ] Create flash sale
+- [ ] Manage orders
+- [ ] Manage users
+- [ ] View customer insights
+- [ ] Respond to support tickets
 
-### Customer Insights
-
-- **Location**: `/admin/insights`
-- **Features**: Segmentation, analytics, preferences tracking
-- **Segments**: New, Regular, VIP customers
-- **API**: `/api/admin/insights/*`
-
-### Live Chat
-
-- **Provider**: Tawk.to
-- **Location**: All pages (bottom-right widget)
-- **Features**: User identification, theme support
-- **Dashboard**: https://dashboard.tawk.to
-
-### Product Comparison
-
-- **Location**: `/compare`
-- **Features**: Compare up to 4 products side-by-side
-- **Floating Button**: Shows comparison count
-
-### Reviews & Ratings
-
-- **Location**: Product detail pages
-- **Features**: Star ratings, verified purchases, helpful votes
-- **Moderation**: Admin review management
+---
 
 ## 🐛 Troubleshooting
 
-### Server won't start
+### Server Issues
 
-- Check MongoDB connection
-- Verify environment variables
-- Check port 5000 is available
+**Server won't start**
 
-### Client won't start
+```bash
+# Check MongoDB connection
+mongosh <your-connection-string>
 
-- Clear node_modules and reinstall
-- Check Vite config
-- Verify API URL in .env.local
+# Check port availability
+netstat -ano | findstr :5000
 
-### Authentication errors
+# Verify environment variables
+cat .env
+```
 
-- Verify Firebase credentials
-- Check token expiration
-- Ensure user has correct role
+**Authentication errors**
 
-### Database errors
+```bash
+# Verify Firebase credentials
+# Check FIREBASE_PRIVATE_KEY has proper line breaks
+# Ensure Firebase Admin SDK is initialized
+```
 
-- Check MongoDB connection string
-- Verify database exists
-- Run seed script if empty
+**Database errors**
+
+```bash
+# Check MongoDB connection
+# Verify database name in connection string
+# Run seed scripts if database is empty
+npm run seed
+node seedAll.js
+```
+
+### Client Issues
+
+**Client won't start**
+
+```bash
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm install
+
+# Check Vite config
+cat vite.config.js
+
+# Verify API URL
+cat .env.local
+```
+
+**API calls failing**
+
+```bash
+# Check VITE_API_URL in .env.local
+# Ensure server is running
+# Check browser console for CORS errors
+# Verify Firebase token is being sent
+```
+
+**Build errors**
+
+```bash
+# Clear Vite cache
+rm -rf node_modules/.vite
+
+# Check for TypeScript errors
+npm run lint
+
+# Rebuild
+npm run build
+```
+
+### Common Issues
+
+**"Cannot read property 'success' of undefined"**
+
+- Fixed: Using correct toast API (`success()` and `error()` directly)
+
+**"Missing product ID in order items"**
+
+- Fixed: Added cart validation in Checkout page
+
+**Flash sales not showing**
+
+- Run: `node seedAll.js` to seed flash sales data
+- Check: Flash sales have valid start/end times
+
+**Admin panel not accessible**
+
+- Run: `node makeAdmin.js` to create admin user
+- Verify: User has `role: "admin"` in database
+
+---
+
+## 📖 Feature Guides
+
+### Flash Sales
+
+**Customer View:** `/flash-sales`
+
+- View active and upcoming flash sales
+- Real-time countdown timers
+- Stock progress bars
+- Add to cart directly
+
+**Admin Panel:** `/admin/flash-sales`
+
+- Create new flash sales
+- Set discount percentage
+- Configure start/end times
+- Set stock limits
+- Track sales performance
+
+### Loyalty Program
+
+**Customer View:** `/loyalty`
+
+- View points balance and tier
+- See transaction history
+- Access referral code
+- View leaderboard
+- Redeem points
+
+**Tiers:**
+
+- Bronze: 1x multiplier (0-999 points)
+- Silver: 1.5x multiplier (1000-4999 points)
+- Gold: 2x multiplier (5000-9999 points)
+- Platinum: 3x multiplier (10000+ points)
+
+**Earning Points:**
+
+- $1 spent = 1 point (× tier multiplier)
+- Referral: 500 points (referrer), 100 points (new user)
+- Birthday: 1000 bonus points
+
+**Redeeming:**
+
+- 100 points = $1 discount
+- Apply at checkout
+
+### Stock Alerts
+
+**Customer View:** `/my-alerts`
+
+- Subscribe to back-in-stock alerts
+- Set price drop thresholds
+- Manage active alerts
+- Receive email notifications
+
+**Alert Types:**
+
+- Back in stock
+- Price drop (custom threshold)
+- Low stock warning
+
+### Product Recommendations
+
+**Algorithms:**
+
+1. **Trending** - Most viewed products
+2. **Similar** - Same category products
+3. **Also Viewed** - Frequently viewed together
+4. **Bought Together** - Frequently purchased together
+5. **Personalized** - Based on user history
+
+**Display Locations:**
+
+- Product detail pages
+- Home page
+- Cart page
+
+---
+
+## 🎨 Customization
+
+### Theme Colors
+
+Edit `Client/tailwind.config.js`:
+
+```javascript
+colors: {
+  primary: {
+    500: "#10B981",  // Main green
+    600: "#059669",
+    // ...
+  },
+  secondary: {
+    500: "#3B82F6",  // Blue
+    // ...
+  },
+  accent: {
+    500: "#F59E0B",  // Orange/Yellow
+    // ...
+  }
+}
+```
+
+### Languages
+
+Add new language in `Client/src/i18n/locales/`:
+
+1. Create `{language}.json` file
+2. Add translations
+3. Import in `Client/src/i18n/i18n.js`
+4. Add to language switcher
+
+### Email Templates
+
+Edit `Server/services/emailService.js`:
+
+```javascript
+const emailTemplates = {
+  orderConfirmation: (order) => `...`,
+  stockAlert: (product) => `...`,
+  // Add custom templates
+};
+```
+
+---
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
+2. Create feature branch: `git checkout -b feature/AmazingFeature`
+3. Commit changes: `git commit -m 'Add AmazingFeature'`
+4. Push to branch: `git push origin feature/AmazingFeature`
 5. Open Pull Request
+
+### Code Style
+
+- Use ESLint configuration
+- Follow React best practices
+- Write meaningful commit messages
+- Add comments for complex logic
+- Update documentation
+
+---
 
 ## 📝 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 👥 Authors
+---
 
-- Your Name - Initial work
+## 👥 Support
+
+- **Email:** support@hnilabazar.com
+- **Documentation:** This README
+- **Issues:** GitHub Issues
+- **Live Chat:** Tawk.to widget on website
+
+---
 
 ## 🙏 Acknowledgments
 
-- Firebase for authentication
-- MongoDB for database
-- Tawk.to for live chat
-- Tailwind CSS for styling
-- React community for amazing tools
-
-## 📞 Support
-
-For support, email support@hnilabazar.com or join our Slack channel.
+- **Firebase** - Authentication & hosting
+- **MongoDB** - Database
+- **Tawk.to** - Live chat widget
+- **ImgBB** - Image hosting
+- **Tailwind CSS** - Styling framework
+- **React** - UI library
+- **Vite** - Build tool
+- **Express** - Backend framework
 
 ---
 
 **Made with ❤️ by HnilaBazar Team**
+
+**Version:** 2.0.0  
+**Last Updated:** January 2026  
+**Status:** Production Ready ✅

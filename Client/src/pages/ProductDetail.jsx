@@ -9,6 +9,9 @@ import StockIndicator from "../components/StockIndicator";
 import ReviewsSection from "../components/reviews/ReviewsSection";
 import ProductRecommendations from "../components/ProductRecommendations";
 import SizeGuide from "../components/SizeGuide";
+import StockAlertButton from "../components/StockAlertButton";
+import SocialShare from "../components/SocialShare";
+import BackButton from "../components/BackButton";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -286,6 +289,11 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Back Button */}
+      <div className="mb-6">
+        <BackButton />
+      </div>
+
       {/* Breadcrumb */}
       <div className="flex items-center gap-4 mb-8">
         <Link
@@ -384,6 +392,7 @@ export default function ProductDetail() {
                 </svg>
                 View Full Size
               </button>
+              <SocialShare product={product} />
             </div>
           )}
         </div>
@@ -526,6 +535,27 @@ export default function ProductDetail() {
               )}
             </div>
           )}
+
+          {/* Stock Alerts */}
+          {product.stock === 0 && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 mb-3">
+                This product is currently out of stock. Get notified when it's
+                back!
+              </p>
+              <StockAlertButton product={product} alertType="back_in_stock" />
+            </div>
+          )}
+
+          {product.stock > 0 && product.stock < 10 && (
+            <div className="mb-6">
+              <StockAlertButton product={product} alertType="low_stock" />
+            </div>
+          )}
+
+          <div className="mb-6">
+            <StockAlertButton product={product} alertType="price_drop" />
+          </div>
 
           {/* Quantity & Actions */}
           <div className="border-t border-gray-200 pt-6 mt-auto">

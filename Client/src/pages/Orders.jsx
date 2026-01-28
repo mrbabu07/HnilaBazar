@@ -8,6 +8,7 @@ import Modal from "../components/Modal";
 import { useNotifications } from "../context/NotificationContext";
 import { useToast } from "../context/ToastContext";
 import useCart from "../hooks/useCart";
+import BackButton from "../components/BackButton";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -332,6 +333,11 @@ export default function Orders() {
   if (loading) return <Loading />;
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      {/* Back Button */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <BackButton />
+      </div>
+
       {/* Success Message */}
       {showSuccess && (
         <div className="fixed top-4 right-4 z-50 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-4 rounded-xl shadow-lg animate-slide-up">
