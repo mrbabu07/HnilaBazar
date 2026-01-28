@@ -55,6 +55,7 @@ export default function Navbar() {
   const navLinks = [
     { name: t("navbar.home"), path: "/" },
     { name: t("navbar.products"), path: "/products" },
+    { name: "⚡ Flash Sales", path: "/flash-sales" },
     { name: t("navbar.support"), path: "/support" },
   ];
 

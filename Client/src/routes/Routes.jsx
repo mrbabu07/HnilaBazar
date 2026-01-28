@@ -31,6 +31,8 @@ import OfferForm from "../pages/admin/OfferForm";
 import Returns from "../pages/Returns";
 import Support from "../pages/Support";
 import Addresses from "../pages/Addresses";
+import FlashSales from "../pages/FlashSales";
+import AdminFlashSales from "../pages/admin/AdminFlashSales";
 import PrivateRoute from "../components/PrivateRoute";
 import AdminRoute from "../components/AdminRoute";
 import SearchResults from "../pages/SearchResults";
@@ -49,6 +51,7 @@ const router = createBrowserRouter([
       { path: "/categories", element: <CategoryPage /> },
       { path: "/products", element: <Products /> },
       { path: "/search", element: <SearchResults /> },
+      { path: "/flash-sales", element: <FlashSales /> },
 
       // Legacy routes for backward compatibility
       { path: "/mens", element: <CategoryPage /> },
@@ -215,6 +218,14 @@ const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <AdminSupport />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/flash-sales",
+        element: (
+          <AdminRoute>
+            <AdminFlashSales />
           </AdminRoute>
         ),
       },

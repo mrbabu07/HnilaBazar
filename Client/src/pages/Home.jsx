@@ -5,6 +5,7 @@ import { getActiveCoupons } from "../services/api";
 import ProductCard from "../components/ProductCard";
 import CategoryScroller from "../components/CategoryScroller";
 import RecentlyViewed from "../components/RecentlyViewed";
+import FlashSaleBanner from "../components/FlashSaleBanner";
 import { ProductCardSkeleton } from "../components/Skeleton";
 
 export default function Home() {
@@ -366,6 +367,11 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* Flash Sale Banner */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+          <FlashSaleBanner />
+        </div>
 
         {/* Category Scroller */}
         <CategoryScroller />

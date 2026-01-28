@@ -12,7 +12,10 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "seed:flash": "node seedFlashSales.js",
+    "check:flash": "node checkFlashSales.js",
+    "test:flash": "node testFlashSalesAPI.js"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

@@ -487,6 +487,34 @@ export default function AdminDashboard() {
                   </div>
                 </Link>
                 <Link
+                  to="/admin/flash-sales"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
+                >
+                  <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center text-red-600 dark:text-red-400">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      Flash Sales
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Limited time deals
+                    </p>
+                  </div>
+                </Link>
+                <Link
                   to="/admin/reviews"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
                 >
