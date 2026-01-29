@@ -12,10 +12,15 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "seed": "node seed.js",
-    "seed:flash": "node seedFlashSales.js",
-    "check:flash": "node checkFlashSales.js",
-    "test:flash": "node testFlashSalesAPI.js"
+    "seed": "node scripts/seed.js",
+    "seed:all": "node scripts/seedAll.js",
+    "seed:flash": "node scripts/seedFlashSales.js",
+    "seed:flash:now": "node scripts/seedActiveFlashSales.js",
+    "check:flash": "node scripts/checkFlashSales.js",
+    "test:flash": "node scripts/testFlashSalesAPI.js",
+    "test:all": "node scripts/testAllAPIs.js",
+    "test:server": "node scripts/test-server.js",
+    "make:admin": "node scripts/makeAdmin.js"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

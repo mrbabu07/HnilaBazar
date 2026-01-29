@@ -2,6 +2,37 @@
 
 A full-featured e-commerce platform built with React, Node.js, Express, and MongoDB. Features include flash sales, loyalty rewards, product recommendations, stock alerts, and comprehensive admin dashboard.
 
+## 📁 Project Structure
+
+```
+HnilaBazar/
+├── Client/                 # React frontend application
+│   ├── src/
+│   │   ├── components/    # Reusable UI components
+│   │   ├── pages/        # Page components
+│   │   ├── context/      # React Context providers
+│   │   ├── hooks/        # Custom React hooks
+│   │   ├── services/     # API services
+│   │   └── utils/        # Utility functions
+│   └── public/           # Static assets
+│
+├── Server/                # Node.js/Express backend
+│   ├── controllers/      # Request handlers
+│   ├── models/          # Database models
+│   ├── routes/          # API routes
+│   ├── services/        # Business logic
+│   ├── middleware/      # Express middleware
+│   ├── scripts/         # Utility scripts (seed, test)
+│   └── uploads/         # Uploaded files
+│
+├── FOLDER_STRUCTURE.md   # Detailed folder structure
+└── README.md            # This file
+```
+
+For detailed folder structure documentation, see [FOLDER_STRUCTURE.md](./FOLDER_STRUCTURE.md)
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -27,7 +58,7 @@ A full-featured e-commerce platform built with React, Node.js, Express, and Mong
    cp .env.example .env
    # Edit .env with your MongoDB URI and Firebase credentials
    npm run seed        # Seed database with sample products
-   node seedAll.js     # Seed flash sales, alerts, loyalty data
+   npm run seed:all    # Seed flash sales, alerts, loyalty data
    npm run dev         # Start server on port 5000
    ```
 
@@ -50,42 +81,8 @@ A full-featured e-commerce platform built with React, Node.js, Express, and Mong
 
 ```bash
 cd Server
-node makeAdmin.js
-# Follow prompts to create admin account
-```
-
----
-
-## 📁 Project Structure
-
-```
-HnilaBazar/
-├── Client/                    # React frontend
-│   ├── src/
-│   │   ├── components/       # Reusable UI components
-│   │   │   ├── admin/       # Admin-specific components
-│   │   │   └── reviews/     # Review components
-│   │   ├── pages/           # Page components
-│   │   │   ├── admin/       # Admin pages
-│   │   │   └── ...          # Customer pages
-│   │   ├── context/         # React context (Auth, Cart, Wishlist, etc.)
-│   │   ├── hooks/           # Custom React hooks
-│   │   ├── services/        # API service layer
-│   │   ├── i18n/            # Internationalization
-│   │   └── utils/           # Utility functions
-│   └── public/              # Static assets & PWA files
-│
-├── Server/                   # Node.js backend
-│   ├── controllers/         # Request handlers
-│   ├── models/              # Mongoose models
-│   ├── routes/              # Express routes
-│   ├── middleware/          # Auth & validation middleware
-│   ├── services/            # Business logic services
-│   ├── uploads/             # File upload directory
-│   ├── seed.js              # Product seeder
-│   └── seedAll.js           # Complete data seeder
-│
-└── README.md                # This file
+npm run make:admin your-email@example.com
+# User must have registered/logged in at least once
 ```
 
 ---

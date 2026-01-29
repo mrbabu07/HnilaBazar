@@ -16,7 +16,7 @@ echo.
 
 echo Step 2: Seeding new features (flash sales, alerts, loyalty)...
 echo.
-call node seedAll.js
+call npm run seed:all
 
 echo.
 echo ========================================

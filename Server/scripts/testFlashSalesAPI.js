@@ -1,6 +1,6 @@
-require("dotenv").config();
+require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 const mongoose = require("mongoose");
-const FlashSale = require("./models/FlashSale");
+const FlashSale = require("../models/FlashSale");
 
 const uri = process.env.MONGO_URI;
 

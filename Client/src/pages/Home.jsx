@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { getProducts } from "../services/api";
 import { getActiveCoupons } from "../services/api";
 import ProductCard from "../components/ProductCard";
-import CategoryScroller from "../components/CategoryScroller";
+import CategoryCarousel from "../components/CategoryCarousel";
+import ProductsByCategory from "../components/ProductsByCategory";
 import RecentlyViewed from "../components/RecentlyViewed";
-import FlashSaleBanner from "../components/FlashSaleBanner";
+import FlashSaleFinal from "../components/FlashSaleFinal";
 import { ProductCardSkeleton } from "../components/Skeleton";
 
 export default function Home() {
@@ -102,37 +103,6 @@ export default function Home() {
       bgGradient: "from-pink-500 via-rose-600 to-red-600",
       image:
         "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&h=600&fit=crop",
-    },
-  ];
-
-  const categories = [
-    {
-      name: "Men's Fashion",
-      slug: "mens",
-      image:
-        "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=600&h=400&fit=crop",
-      description: "Stylish clothing for men",
-    },
-    {
-      name: "Women's Fashion",
-      slug: "womens",
-      image:
-        "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&h=400&fit=crop",
-      description: "Trendy fashion for women",
-    },
-    {
-      name: "Electronics",
-      slug: "electronics",
-      image:
-        "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&h=400&fit=crop",
-      description: "Latest gadgets & tech",
-    },
-    {
-      name: "Baby & Kids",
-      slug: "baby",
-      image:
-        "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&h=400&fit=crop",
-      description: "Everything for little ones",
     },
   ];
 
@@ -368,69 +338,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Flash Sale Banner */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-          <FlashSaleBanner />
-        </div>
+        {/* Flash Sale Scroller - Interactive Product Carousel */}
+        <FlashSaleFinal />
 
-        {/* Category Scroller */}
-        <CategoryScroller />
-
-        {/* Categories Grid - Improved */}
-        <section className="py-16 bg-white dark:bg-gray-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Shop by Category
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                Explore our wide range of categories and find exactly what
-                you're looking for
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {categories.map((category) => (
-                <Link
-                  key={category.slug}
-                  to={`/category/${category.slug}`}
-                  className="group relative overflow-hidden rounded-2xl aspect-square shadow-lg hover:shadow-2xl transition-all duration-300"
-                >
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
-                    <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
-                      {category.name}
-                    </h3>
-                    <p className="text-white/80 text-sm mb-3 hidden md:block">
-                      {category.description}
-                    </p>
-                    <span className="inline-flex items-center text-white text-sm font-medium bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full group-hover:bg-white/30 transition-colors">
-                      Shop Now
-                      <svg
-                        className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* Category Carousel - Shop by Category */}
+        <CategoryCarousel />
 
         {/* Trending / Popular Products - Improved */}
         <section className="py-16 bg-gray-50 dark:bg-gray-800">
@@ -539,6 +451,9 @@ export default function Home() {
             </div>
           </section>
         ) : null}
+
+        {/* Products by Category */}
+        <ProductsByCategory />
 
         {/* Recently Viewed Products */}
         <RecentlyViewed />

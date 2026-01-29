@@ -71,11 +71,11 @@ async function runTests() {
     // Loyalty endpoints (public)
     { name: "Get Loyalty Leaderboard", url: `${BASE_URL}/loyalty/leaderboard` },
 
-    // Coupon endpoints
-    { name: "Get Coupons", url: `${BASE_URL}/coupons` },
+    // Coupon endpoints (public)
+    { name: "Get Active Coupons", url: `${BASE_URL}/coupons/active` },
 
-    // Offer endpoints
-    { name: "Get Offers", url: `${BASE_URL}/offers` },
+    // Offer endpoints (public)
+    { name: "Get Active Popup Offer", url: `${BASE_URL}/offers/active-popup` },
   ];
 
   log("\n📡 Testing Public Endpoints:\n", "yellow");
