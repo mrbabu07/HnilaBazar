@@ -27,6 +27,7 @@ const Payment = require("./models/Payment");
 const SupportTicket = require("./models/SupportTicket");
 const LiveChat = require("./models/LiveChat");
 const CustomerInsight = require("./models/CustomerInsight");
+const Offer = require("./models/Offer");
 
 // Import routes
 const productRoutes = require("./routes/productRoutes");
@@ -102,6 +103,7 @@ async function run() {
       SupportTicket: new SupportTicket(db),
       LiveChat: new LiveChat(db),
       CustomerInsight: new CustomerInsight(db),
+      Offer: new Offer(db),
     };
 
     // Store db reference for controllers that need it

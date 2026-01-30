@@ -12,11 +12,14 @@ export default function LoyaltyDashboard() {
   const [showReferralInput, setShowReferralInput] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
+  const [pointsHistory, setPointsHistory] = useState([]);
+  const [showFullHistory, setShowFullHistory] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchLoyaltyData();
       fetchLeaderboard();
+      fetchPointsHistory();
     }
   }, [user]);
 
@@ -61,6 +64,27 @@ export default function LoyaltyDashboard() {
     }
   };
 
+  const fetchPointsHistory = async () => {
+    try {
+      const token = await getCurrentUserToken();
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/loyalty/history`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setPointsHistory(data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching points history:", error);
+    }
+  };
+
   const handleApplyReferral = async () => {
     if (!referralCode.trim()) {
       error("Please enter a referral code");
@@ -97,6 +121,49 @@ export default function LoyaltyDashboard() {
     }
   };
 
+  const handleRedeemPoints = async (pointsToRedeem) => {
+    if (!pointsToRedeem || pointsToRedeem < 100) {
+      error("Minimum 100 points required to redeem");
+      return;
+    }
+
+    if (pointsToRedeem > (loyalty?.points || 0)) {
+      error("Insufficient points");
+      return;
+    }
+
+    try {
+      const token = await getCurrentUserToken();
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/loyalty/redeem`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ points: pointsToRedeem }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const discountValue = (pointsToRedeem / 100).toFixed(2);
+        success(
+          `Successfully redeemed ${pointsToRedeem} points for $${discountValue} store credit!`,
+        );
+        fetchLoyaltyData(); // Refresh loyalty data
+        fetchPointsHistory(); // Refresh transaction history
+      } else {
+        error(data.message || "Failed to redeem points");
+      }
+    } catch (err) {
+      console.error("Error redeeming points:", err);
+      error("Failed to redeem points");
+    }
+  };
+
   const copyReferralCode = () => {
     navigator.clipboard.writeText(loyalty.referralCode);
     success("Referral code copied to clipboard!");
@@ -128,6 +195,37 @@ export default function LoyaltyDashboard() {
       default:
         return "🥉";
     }
+  };
+
+  const getNextTierInfo = (currentTier, totalEarned) => {
+    const tierThresholds = {
+      bronze: { min: 0, max: 999, next: "silver", nextThreshold: 1000 },
+      silver: { min: 1000, max: 4999, next: "gold", nextThreshold: 5000 },
+      gold: { min: 5000, max: 9999, next: "platinum", nextThreshold: 10000 },
+      platinum: { min: 10000, max: Infinity, next: null, nextThreshold: null },
+    };
+
+    const current = tierThresholds[currentTier] || tierThresholds.bronze;
+
+    if (!current.next) {
+      return {
+        progress: 100,
+        message: "You've reached the highest tier! 🎉",
+      };
+    }
+
+    const progress = Math.min(
+      ((totalEarned - current.min) / (current.nextThreshold - current.min)) *
+        100,
+      100,
+    );
+
+    const pointsNeeded = current.nextThreshold - totalEarned;
+
+    return {
+      progress: Math.round(progress),
+      message: `${pointsNeeded} more points to reach ${current.next} tier`,
+    };
   };
 
   if (loading) return <Loading />;
@@ -191,6 +289,31 @@ export default function LoyaltyDashboard() {
               {loyalty?.benefits?.birthdayBonus || 0}
             </div>
             <div className="text-sm text-white/80">Birthday Bonus</div>
+          </div>
+        </div>
+
+        {/* Tier Progress */}
+        <div className="mt-6 bg-white/20 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-white/80">Progress to Next Tier</span>
+            <span className="text-sm text-white/80">
+              {
+                getNextTierInfo(loyalty?.tier, loyalty?.totalEarned || 0)
+                  .progress
+              }
+              %
+            </span>
+          </div>
+          <div className="w-full bg-white/20 rounded-full h-2">
+            <div
+              className="bg-white rounded-full h-2 transition-all duration-300"
+              style={{
+                width: `${getNextTierInfo(loyalty?.tier, loyalty?.totalEarned || 0).progress}%`,
+              }}
+            ></div>
+          </div>
+          <div className="text-xs text-white/80 mt-2">
+            {getNextTierInfo(loyalty?.tier, loyalty?.totalEarned || 0).message}
           </div>
         </div>
       </div>
@@ -271,12 +394,25 @@ export default function LoyaltyDashboard() {
 
           {/* Recent Transactions */}
           <div className="bg-white rounded-xl shadow-md p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-              Recent Activity
-            </h3>
-            {loyalty?.transactions && loyalty.transactions.length > 0 ? (
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">
+                Recent Activity
+              </h3>
+              {pointsHistory.length > 5 && (
+                <button
+                  onClick={() => setShowFullHistory(!showFullHistory)}
+                  className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                >
+                  {showFullHistory ? "Show Less" : "View All"}
+                </button>
+              )}
+            </div>
+            {pointsHistory && pointsHistory.length > 0 ? (
               <div className="space-y-3">
-                {loyalty.transactions.map((transaction, index) => (
+                {(showFullHistory
+                  ? pointsHistory
+                  : pointsHistory.slice(0, 5)
+                ).map((transaction, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -397,6 +533,72 @@ export default function LoyaltyDashboard() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Redeem Points Card */}
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              Redeem Points
+            </h3>
+            <p className="text-gray-600 text-sm mb-4">
+              Convert your points to discount credits. 100 points = $1 discount
+            </p>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-green-700">Available Points</span>
+                <span className="text-2xl font-bold text-green-800">
+                  {loyalty?.points || 0}
+                </span>
+              </div>
+              <div className="text-sm text-green-600">
+                Worth ${((loyalty?.points || 0) / 100).toFixed(2)} in discounts
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {/* Quick Redeem Options */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => handleRedeemPoints(100)}
+                  disabled={!loyalty?.points || loyalty.points < 100}
+                  className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="font-semibold">100 pts</div>
+                  <div className="text-sm text-gray-600">$1.00</div>
+                </button>
+                <button
+                  onClick={() => handleRedeemPoints(500)}
+                  disabled={!loyalty?.points || loyalty.points < 500}
+                  className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="font-semibold">500 pts</div>
+                  <div className="text-sm text-gray-600">$5.00</div>
+                </button>
+                <button
+                  onClick={() => handleRedeemPoints(1000)}
+                  disabled={!loyalty?.points || loyalty.points < 1000}
+                  className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="font-semibold">1000 pts</div>
+                  <div className="text-sm text-gray-600">$10.00</div>
+                </button>
+                <button
+                  onClick={() => handleRedeemPoints(loyalty?.points || 0)}
+                  disabled={!loyalty?.points || loyalty.points < 100}
+                  className="p-3 border border-primary-500 text-primary-600 rounded-lg hover:bg-primary-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="font-semibold">All</div>
+                  <div className="text-sm">
+                    ${((loyalty?.points || 0) / 100).toFixed(2)}
+                  </div>
+                </button>
+              </div>
+
+              <div className="text-xs text-gray-500 text-center">
+                💡 Redeemed points will be added as store credit to your account
+              </div>
+            </div>
           </div>
 
           {/* Leaderboard */}

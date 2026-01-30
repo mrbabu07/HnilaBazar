@@ -42,10 +42,11 @@ const getActiveCoupons = async (req, res) => {
 const validateCoupon = async (req, res) => {
   try {
     const Coupon = req.app.locals.models.Coupon;
+    const Offer = require("../models/Offer"); // Import Mongoose model directly
     const { code, orderTotal } = req.body;
     const userId = req.user?.uid;
 
-    console.log("Validating coupon:", { code, orderTotal, userId });
+    console.log("Validating coupon/offer code:", { code, orderTotal, userId });
 
     if (!code || !orderTotal) {
       console.log("Missing required fields:", {
@@ -58,26 +59,90 @@ const validateCoupon = async (req, res) => {
       });
     }
 
-    const validation = await Coupon.validateCoupon(code, orderTotal, userId);
-    console.log("Validation result:", validation);
+    // First, try to validate as a regular coupon
+    try {
+      const couponValidation = await Coupon.validateCoupon(
+        code,
+        orderTotal,
+        userId,
+      );
+      console.log("Coupon validation result:", couponValidation);
 
-    if (!validation.valid) {
-      return res.status(400).json({
-        success: false,
-        error: validation.error,
-      });
+      if (couponValidation.valid) {
+        return res.json({
+          success: true,
+          data: {
+            coupon: couponValidation.coupon,
+            discountAmount: couponValidation.discountAmount,
+            finalTotal: orderTotal - couponValidation.discountAmount,
+          },
+        });
+      }
+    } catch (couponError) {
+      console.log(
+        "Coupon validation failed, trying offer code:",
+        couponError.message,
+      );
     }
 
-    res.json({
-      success: true,
-      data: {
-        coupon: validation.coupon,
-        discountAmount: validation.discountAmount,
-        finalTotal: orderTotal - validation.discountAmount,
-      },
+    // If coupon validation fails, try to validate as an offer code
+    try {
+      const offer = await Offer.findOne({
+        couponCode: code.toUpperCase(),
+        isActive: true,
+        startDate: { $lte: new Date() },
+        endDate: { $gte: new Date() },
+      });
+
+      if (!offer) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid or expired coupon code",
+        });
+      }
+
+      // Calculate discount amount
+      let discountAmount = 0;
+      if (offer.discountType === "percentage") {
+        discountAmount = (orderTotal * offer.discountValue) / 100;
+      } else if (offer.discountType === "fixed") {
+        discountAmount = Math.min(offer.discountValue, orderTotal);
+      }
+
+      // Ensure discount doesn't exceed order total
+      discountAmount = Math.min(discountAmount, orderTotal);
+
+      console.log("Offer validation successful:", {
+        offer: offer.title,
+        discountAmount,
+      });
+
+      return res.json({
+        success: true,
+        data: {
+          coupon: {
+            code: offer.couponCode,
+            name: offer.title,
+            description: offer.description,
+            discountType: offer.discountType,
+            discountValue: offer.discountValue,
+            type: "offer", // Indicate this is from an offer
+          },
+          discountAmount,
+          finalTotal: orderTotal - discountAmount,
+        },
+      });
+    } catch (offerError) {
+      console.log("Offer validation failed:", offerError.message);
+    }
+
+    // If both coupon and offer validation fail
+    return res.status(400).json({
+      success: false,
+      error: "Invalid or expired coupon code",
     });
   } catch (error) {
-    console.error("Error validating coupon:", error);
+    console.error("Error validating coupon/offer:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

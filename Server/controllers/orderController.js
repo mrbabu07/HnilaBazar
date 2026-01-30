@@ -173,6 +173,7 @@ const createOrder = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   try {
     const Order = req.app.locals.models.Order;
+    const loyaltyService = require("../services/loyaltyService");
     const { id } = req.params;
     const { status, trackingNumber } = req.body;
 
@@ -197,7 +198,7 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
-    // Get order details for email notification
+    // Get order details for email notification and loyalty points
     const order = await Order.findById(id);
     if (!order) {
       return res.status(404).json({
@@ -213,6 +214,29 @@ const updateOrderStatus = async (req, res) => {
         success: false,
         error: "Order not found",
       });
+    }
+
+    // Award loyalty points when order is delivered
+    if (status === "delivered" && order.userId) {
+      try {
+        console.log("🎁 Awarding loyalty points for delivered order:", {
+          orderId: id,
+          userId: order.userId,
+          orderTotal: order.total,
+        });
+
+        await loyaltyService.awardPointsForOrder(
+          order.userId,
+          order.shippingInfo?.email || "unknown@email.com",
+          order.total,
+          id,
+        );
+
+        console.log("✅ Loyalty points awarded successfully");
+      } catch (loyaltyError) {
+        console.error("⚠️ Failed to award loyalty points:", loyaltyError);
+        // Don't fail the status update if loyalty points fail
+      }
     }
 
     // Send status update email
