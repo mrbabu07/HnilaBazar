@@ -58,6 +58,11 @@ export default function SearchBar({
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleSearch();
+  };
+
   const handleKeyDown = (e) => {
     if (!isOpen) return;
 
@@ -109,9 +114,9 @@ export default function SearchBar({
   }, []);
 
   return (
-    <div ref={searchRef} className={`relative ${className}`}>
-      {/* Search Input */}
-      <div className="relative">
+    <div ref={searchRef} className="relative w-full">
+      {/* Search Form */}
+      <form onSubmit={handleSubmit} className="relative w-full">
         <input
           type="text"
           value={query}
@@ -121,75 +126,33 @@ export default function SearchBar({
             if (suggestions.length > 0) setIsOpen(true);
           }}
           placeholder={placeholder}
-          className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-full focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors bg-white"
+          className={className}
         />
 
-        {/* Search Icon */}
-        <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-          <svg
-            className="w-5 h-5 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
-
-        {/* Loading/Clear Button */}
-        <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+        {/* Search Button */}
+        <button
+          type="submit"
+          className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 bg-[#1e7098] text-white rounded-md hover:bg-[#1a5f7f] transition-colors flex items-center justify-center"
+        >
           {loading ? (
-            <div className="w-5 h-5 border-2 border-gray-300 border-t-primary rounded-full animate-spin" />
-          ) : query ? (
-            <button
-              onClick={() => {
-                setQuery("");
-                setIsOpen(false);
-                setSelectedIndex(-1);
-              }}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
-            <button
-              onClick={() => handleSearch()}
-              className="text-gray-400 hover:text-primary transition-colors"
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                />
-              </svg>
-            </button>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
           )}
-        </div>
-      </div>
+        </button>
+      </form>
 
       {/* Search Suggestions */}
       <AnimatePresence>
@@ -199,7 +162,7 @@ export default function SearchBar({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 overflow-hidden"
+            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden"
           >
             <div className="p-2">
               {suggestions.map((product, index) => (
@@ -208,20 +171,23 @@ export default function SearchBar({
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
+                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
                     selectedIndex === index
-                      ? "bg-primary text-white"
-                      : "hover:bg-gray-50"
+                      ? "bg-[#1e7098] text-white"
+                      : "hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                   onClick={() => handleSuggestionClick(product)}
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
                   {/* Product Image */}
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-600 rounded-lg overflow-hidden flex-shrink-0">
                     <img
                       src={product.image || product.images?.[0]}
                       alt={product.title}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
                     />
                   </div>
 
@@ -229,7 +195,9 @@ export default function SearchBar({
                   <div className="flex-1 min-w-0">
                     <h4
                       className={`font-medium truncate ${
-                        selectedIndex === index ? "text-white" : "text-gray-900"
+                        selectedIndex === index
+                          ? "text-white"
+                          : "text-gray-900 dark:text-white"
                       }`}
                     >
                       {product.title}
@@ -238,7 +206,7 @@ export default function SearchBar({
                       className={`text-sm truncate ${
                         selectedIndex === index
                           ? "text-white/80"
-                          : "text-gray-500"
+                          : "text-gray-500 dark:text-gray-400"
                       }`}
                     >
                       ৳{product.price?.toFixed(2)}
@@ -270,10 +238,10 @@ export default function SearchBar({
             </div>
 
             {/* View All Results */}
-            <div className="border-t border-gray-100 p-2">
+            <div className="border-t border-gray-100 dark:border-gray-600 p-2">
               <button
                 onClick={() => handleSearch()}
-                className="w-full p-3 text-center text-primary hover:bg-primary hover:text-white rounded-xl transition-colors font-medium"
+                className="w-full p-3 text-center text-[#1e7098] hover:bg-[#1e7098] hover:text-white rounded-lg transition-colors font-medium"
               >
                 View all results for "{query}"
               </button>
@@ -289,10 +257,10 @@ export default function SearchBar({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 overflow-hidden"
+            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden"
           >
             <div className="p-4">
-              <h4 className="font-semibold text-gray-900 mb-3">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
                 Popular Searches
               </h4>
               <div className="space-y-2">
@@ -301,7 +269,7 @@ export default function SearchBar({
                     <button
                       key={term}
                       onClick={() => handleSearch(term)}
-                      className="block w-full text-left p-2 hover:bg-gray-50 rounded-lg transition-colors text-gray-600 hover:text-gray-900"
+                      className="block w-full text-left p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                     >
                       <svg
                         className="w-4 h-4 inline mr-2 text-gray-400"

@@ -9,6 +9,7 @@ import { getCategories } from "../services/api";
 import ThemeToggle from "./ThemeToggle";
 import NotificationBell from "./NotificationBell";
 import TopBarLanguageSwitcher from "./SimpleLanguageSwitcher";
+import SearchBar from "./SearchBar";
 
 export default function Navbar() {
   const { t } = useTranslation();
@@ -21,7 +22,6 @@ export default function Navbar() {
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -44,11 +44,9 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery("");
+  const handleSearch = (query) => {
+    if (query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query.trim())}`);
     }
   };
 
@@ -133,33 +131,12 @@ export default function Navbar() {
 
             {/* Search Bar - Desktop */}
             <div className="hidden lg:flex flex-1 max-w-2xl mx-8">
-              <form onSubmit={handleSearch} className="w-full relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t("navbar.search_placeholder")}
-                  className="w-full h-12 px-6 pr-12 border-2 border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#1e7098] transition-colors text-sm"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 bg-[#1e7098] text-white rounded-md hover:bg-[#1a5f7f] transition-colors flex items-center justify-center"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </button>
-              </form>
+              <SearchBar
+                placeholder={t("navbar.search_placeholder")}
+                onSearch={handleSearch}
+                className="w-full h-12 px-6 pr-12 border-2 border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#1e7098] transition-colors text-sm"
+                showSuggestions={true}
+              />
             </div>
 
             {/* Right Side Actions */}
@@ -461,33 +438,12 @@ export default function Navbar() {
 
           {/* Mobile Search Bar */}
           <div className="lg:hidden pb-4">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("navbar.search_mobile_placeholder")}
-                className="w-full h-12 px-4 pr-12 border-2 border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#1e7098] transition-colors"
-              />
-              <button
-                type="submit"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 bg-[#1e7098] text-white rounded-md hover:bg-[#1a5f7f] transition-colors flex items-center justify-center"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
-            </form>
+            <SearchBar
+              placeholder={t("navbar.search_mobile_placeholder")}
+              onSearch={handleSearch}
+              className="w-full h-12 px-4 pr-12 border-2 border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-[#1e7098] transition-colors"
+              showSuggestions={true}
+            />
           </div>
         </div>
 
