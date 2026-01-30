@@ -361,14 +361,17 @@ npm run lint           # Run ESLint
 ### Database Seeding
 
 ```bash
-# Windows
-seed-database.bat      # One-click seeding (products + all features)
-
-# Manual
+# Manual seeding
 cd Server
-npm run seed           # Seed products
-node seedAll.js        # Seed flash sales, alerts, loyalty data
+npm run seed           # Basic data (products, categories, users)
+npm run seed:all       # All features (flash sales, loyalty, etc.)
 ```
+
+cd Server
+npm run seed # Seed products
+node seedAll.js # Seed flash sales, alerts, loyalty data
+
+````
 
 ---
 
@@ -470,7 +473,7 @@ node seedAll.js        # Seed flash sales, alerts, loyalty data
    FIREBASE_PROJECT_ID=<your-project-id>
    FIREBASE_CLIENT_EMAIL=<your-client-email>
    FIREBASE_PRIVATE_KEY=<your-private-key>
-   ```
+````
 
 2. **Deploy**
 

@@ -14,9 +14,9 @@ cd ../Client && npm install
 # 2. Setup environment files
 # Copy .env.example to .env in both folders and fill in your credentials
 
-# 3. Seed database (one command!)
-cd ..
-seed-database.bat
+# 3. Seed database
+cd Server
+npm run seed
 
 # 4. Start servers (open 2 terminals)
 # Terminal 1 - Backend
@@ -87,7 +87,8 @@ VITE_FIREBASE_APP_ID=1:123456789012:web:abc123
 **Option A: Windows Batch File** (Easiest)
 
 ```bash
-seed-database.bat
+cd Server
+npm run seed
 ```
 
 **Option B: Manual Commands**

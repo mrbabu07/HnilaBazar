@@ -8,8 +8,7 @@ This document describes the complete folder structure of the HnilaBazar e-commer
 HnilaBazar/
 ├── Client/                 # Frontend React application
 ├── Server/                 # Backend Node.js/Express API
-├── README.md              # Main project documentation
-└── seed-database.bat      # Database seeding script (Windows)
+└── README.md              # Main project documentation
 ```
 
 ---
