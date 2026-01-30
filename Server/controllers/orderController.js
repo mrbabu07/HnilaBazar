@@ -140,6 +140,30 @@ const createOrder = async (req, res) => {
     }
     console.log("✅ Product stock updated successfully");
 
+    // Redeem loyalty points if used
+    if (req.body.redeemedPoints && req.body.redeemedPoints > 0) {
+      try {
+        console.log("🎁 Redeeming loyalty points for order:", {
+          orderId: orderId.toString(),
+          userId: req.user.uid,
+          points: req.body.redeemedPoints,
+        });
+
+        const loyaltyService = require("../services/loyaltyService");
+        await loyaltyService.redeemPoints(
+          req.user.uid,
+          req.body.redeemedPoints,
+          orderId.toString(),
+        );
+
+        console.log("✅ Loyalty points redeemed successfully");
+      } catch (loyaltyError) {
+        console.error("⚠️ Failed to redeem loyalty points:", loyaltyError);
+        // Don't fail the order creation if loyalty redemption fails
+        // The order is already created, so we continue
+      }
+    }
+
     // Send order confirmation email
     try {
       console.log("📧 Sending order confirmation email...");

@@ -8,6 +8,7 @@ import {
 } from "../services/api";
 import { auth } from "../firebase/firebase.config";
 import CouponInput from "../components/CouponInput";
+import PointsRedemption from "../components/PointsRedemption";
 import { useNotifications } from "../context/NotificationContext";
 import BackButton from "../components/BackButton";
 
@@ -18,6 +19,8 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [appliedPoints, setAppliedPoints] = useState(null);
+  const [userLoyalty, setUserLoyalty] = useState(null);
   const [defaultAddress, setDefaultAddress] = useState(null);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [showAddressSelector, setShowAddressSelector] = useState(false);
@@ -45,11 +48,13 @@ export default function Checkout() {
     }
   }, [cart]);
 
-  // Calculate totals with coupon
+  // Calculate totals with coupon and points
   const subtotal = cartTotal;
-  const discountAmount = appliedCoupon?.discountAmount || 0;
-  const deliveryCharge = subtotal - discountAmount < 100 ? 100 : 0;
-  const finalTotal = subtotal - discountAmount + deliveryCharge;
+  const couponDiscount = appliedCoupon?.discountAmount || 0;
+  const pointsDiscount = appliedPoints?.discountAmount || 0;
+  const totalDiscount = couponDiscount + pointsDiscount;
+  const deliveryCharge = subtotal - totalDiscount < 100 ? 100 : 0;
+  const finalTotal = subtotal - totalDiscount + deliveryCharge;
 
   // Fetch default address and set user email on mount
   useEffect(() => {
@@ -64,6 +69,25 @@ export default function Checkout() {
           email: user.email || prev.email,
           name: user.displayName || prev.name,
         }));
+
+        // Fetch user loyalty data
+        try {
+          const token = await user.getIdToken();
+          const loyaltyResponse = await fetch(
+            `${import.meta.env.VITE_API_URL}/loyalty/my-points`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          if (loyaltyResponse.ok) {
+            const loyaltyData = await loyaltyResponse.json();
+            setUserLoyalty(loyaltyData.data);
+          }
+        } catch (loyaltyError) {
+          console.error("Failed to fetch loyalty data:", loyaltyError);
+        }
 
         // Try to get default address
         try {
@@ -126,6 +150,14 @@ export default function Checkout() {
     setAppliedCoupon(null);
   };
 
+  const handlePointsApplied = (pointsData) => {
+    setAppliedPoints(pointsData);
+  };
+
+  const handlePointsRemoved = () => {
+    setAppliedPoints(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -184,6 +216,10 @@ export default function Checkout() {
         paymentMethod: formData.paymentMethod,
         specialInstructions: formData.specialInstructions,
         couponCode: appliedCoupon?.code || null,
+        redeemedPoints: appliedPoints?.points || null,
+        pointsDiscount: appliedPoints?.discountAmount || 0,
+        couponDiscount: couponDiscount,
+        totalDiscount: totalDiscount,
       };
 
       console.log("Cart items:", cart);
@@ -939,6 +975,17 @@ export default function Checkout() {
                 />
               </div>
 
+              {/* Points Redemption */}
+              <div className="mb-6">
+                <PointsRedemption
+                  userLoyalty={userLoyalty}
+                  orderTotal={subtotal - couponDiscount} // Apply points after coupon discount
+                  onPointsApplied={handlePointsApplied}
+                  onPointsRemoved={handlePointsRemoved}
+                  appliedPoints={appliedPoints}
+                />
+              </div>
+
               {/* Pricing Breakdown */}
               <div className="border-t pt-4 space-y-3">
                 <div className="flex justify-between text-gray-600">
@@ -968,7 +1015,31 @@ export default function Checkout() {
                       Coupon Discount ({appliedCoupon.code})
                     </span>
                     <span className="font-semibold">
-                      -${discountAmount.toFixed(2)}
+                      -${couponDiscount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                {appliedPoints && (
+                  <div className="flex justify-between text-blue-600">
+                    <span className="flex items-center gap-2">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      Points Discount ({appliedPoints.points} points)
+                    </span>
+                    <span className="font-semibold">
+                      -${pointsDiscount.toFixed(2)}
                     </span>
                   </div>
                 )}

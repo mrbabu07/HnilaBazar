@@ -26,7 +26,7 @@ class Order {
     let deliveryCharge = subtotal < 100 ? 100 : 0; // 100tk delivery if order < 100tk
 
     // Apply coupon discount if provided
-    let discountAmount = 0;
+    let couponDiscountAmount = 0;
     let couponApplied = null;
 
     if (orderData.couponCode) {
@@ -41,15 +41,15 @@ class Order {
         if (coupon) {
           // Calculate discount
           if (coupon.discountType === "percentage") {
-            discountAmount = (subtotal * coupon.discountValue) / 100;
+            couponDiscountAmount = (subtotal * coupon.discountValue) / 100;
             if (coupon.maxDiscountAmount) {
-              discountAmount = Math.min(
-                discountAmount,
+              couponDiscountAmount = Math.min(
+                couponDiscountAmount,
                 coupon.maxDiscountAmount,
               );
             }
           } else {
-            discountAmount = coupon.discountValue;
+            couponDiscountAmount = coupon.discountValue;
           }
 
           // Apply coupon usage
@@ -68,7 +68,7 @@ class Order {
             code: coupon.code,
             discountType: coupon.discountType,
             discountValue: coupon.discountValue,
-            discountAmount: Math.round(discountAmount * 100) / 100,
+            discountAmount: Math.round(couponDiscountAmount * 100) / 100,
           };
         }
       } catch (couponError) {
@@ -77,15 +77,31 @@ class Order {
       }
     }
 
-    const finalTotal = subtotal - discountAmount + deliveryCharge;
+    // Handle points redemption
+    const pointsDiscountAmount = orderData.pointsDiscount || 0;
+    const redeemedPoints = orderData.redeemedPoints || 0;
+
+    // Calculate total discount and final total
+    const totalDiscountAmount = couponDiscountAmount + pointsDiscountAmount;
+
+    // Recalculate delivery charge based on discounted amount
+    const discountedSubtotal = subtotal - totalDiscountAmount;
+    if (discountedSubtotal < 100 && subtotal >= 100) {
+      deliveryCharge = 100; // Apply delivery charge if discounted total falls below 100
+    }
+
+    const finalTotal = subtotal - totalDiscountAmount + deliveryCharge;
 
     const result = await this.collection.insertOne({
       ...orderData,
       subtotal,
-      discountAmount: Math.round(discountAmount * 100) / 100,
+      couponDiscount: Math.round(couponDiscountAmount * 100) / 100,
+      pointsDiscount: Math.round(pointsDiscountAmount * 100) / 100,
+      totalDiscount: Math.round(totalDiscountAmount * 100) / 100,
       deliveryCharge,
       total: Math.round(finalTotal * 100) / 100,
       couponApplied,
+      redeemedPoints,
       status: "pending",
       createdAt: new Date(),
     });
