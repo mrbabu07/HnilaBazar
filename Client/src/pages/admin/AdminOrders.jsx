@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getAllOrders, updateOrderStatus } from "../../services/api";
 import Loading from "../../components/Loading";
 import toast, { Toaster } from "react-hot-toast";
+import { generateProfessionalInvoice } from "../../utils/printTemplate";
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -56,6 +57,546 @@ export default function AdminOrders() {
         id: loadingToast,
       });
     }
+  };
+
+  const printOrder = (order) => {
+    try {
+      // Create print content using professional template
+      const printContent = generateProfessionalInvoice(order);
+
+      // Create a new window for printing
+      const printWindow = window.open("", "_blank", "width=800,height=600");
+
+      if (!printWindow) {
+        // Fallback: Use iframe method if popup is blocked
+        printOrderWithIframe(order);
+        return;
+      }
+
+      // Write content to the new window
+      printWindow.document.open();
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+
+      // Wait for content to load, then print
+      printWindow.onload = function () {
+        printWindow.focus();
+        printWindow.print();
+
+        // Close window after printing (with delay to ensure print dialog appears)
+        setTimeout(() => {
+          printWindow.close();
+        }, 1000);
+      };
+    } catch (error) {
+      console.error("Print error:", error);
+      // Fallback to iframe method
+      printOrderWithIframe(order);
+    }
+  };
+
+  const printOrderWithIframe = (order) => {
+    try {
+      // Create hidden iframe for printing
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "absolute";
+      iframe.style.top = "-9999px";
+      iframe.style.left = "-9999px";
+      iframe.style.width = "0px";
+      iframe.style.height = "0px";
+
+      document.body.appendChild(iframe);
+
+      const printContent = generateProfessionalInvoice(order);
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+      iframeDoc.open();
+      iframeDoc.write(printContent);
+      iframeDoc.close();
+
+      // Wait for content to load, then print
+      iframe.onload = function () {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+
+        // Remove iframe after printing
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+        }, 1000);
+      };
+    } catch (error) {
+      console.error("Iframe print error:", error);
+      alert(
+        "Unable to print. Please check your browser settings and try again.",
+      );
+    }
+  };
+
+  const generatePrintContent = (order) => {
+    const orderDate = new Date(order.createdAt).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const subtotal = order.subtotal || order.total || 0;
+    const deliveryCharge = order.deliveryCharge || 0;
+    const total = order.total || 0;
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Order #${order._id.slice(-8).toUpperCase()} - HnilaBazar</title>
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          
+          .header {
+            text-align: center;
+            border-bottom: 3px solid #1e7098;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          
+          .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1e7098;
+            margin-bottom: 5px;
+          }
+          
+          .company-tagline {
+            color: #666;
+            font-size: 14px;
+          }
+          
+          .order-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #1e7098;
+          }
+          
+          .order-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e7098;
+            margin-bottom: 10px;
+          }
+          
+          .order-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+          }
+          
+          .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+          }
+          
+          .meta-label {
+            font-weight: bold;
+            color: #555;
+          }
+          
+          .meta-value {
+            color: #333;
+          }
+          
+          .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          
+          .status-pending { background: #fff3cd; color: #856404; }
+          .status-processing { background: #cce5ff; color: #004085; }
+          .status-shipped { background: #e2e3ff; color: #383d41; }
+          .status-delivered { background: #d4edda; color: #155724; }
+          .status-cancelled { background: #f8d7da; color: #721c24; }
+          
+          .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+          }
+          
+          .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e7098;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9ecef;
+          }
+          
+          .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+          }
+          
+          .info-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+          }
+          
+          .info-item {
+            margin-bottom: 12px;
+          }
+          
+          .info-label {
+            font-weight: bold;
+            color: #495057;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+          }
+          
+          .info-value {
+            color: #212529;
+            font-size: 14px;
+          }
+          
+          .address-box {
+            background: white;
+            border: 2px solid #1e7098;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-line;
+            line-height: 1.8;
+          }
+          
+          .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+          }
+          
+          .products-table th,
+          .products-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+          }
+          
+          .products-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+            border-bottom: 2px solid #1e7098;
+          }
+          
+          .product-image {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+          }
+          
+          .product-details {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+          }
+          
+          .total-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin-top: 20px;
+          }
+          
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+          }
+          
+          .total-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 16px;
+            color: #1e7098;
+            border-top: 2px solid #1e7098;
+            padding-top: 12px;
+            margin-top: 8px;
+          }
+          
+          .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+          }
+          
+          .print-date {
+            margin-top: 10px;
+            font-style: italic;
+          }
+          
+          @media print {
+            body {
+              margin: 0;
+              padding: 15px;
+            }
+            
+            .section {
+              page-break-inside: avoid;
+            }
+            
+            .order-header {
+              page-break-after: avoid;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <!-- Header -->
+        <div class="header">
+          <div class="company-name">HnilaBazar</div>
+          <div class="company-tagline">Your Trusted E-commerce Partner</div>
+        </div>
+
+        <!-- Order Header -->
+        <div class="order-header">
+          <div class="order-title">Order #${order._id.slice(-8).toUpperCase()}</div>
+          <div class="order-meta">
+            <div>
+              <div class="meta-item">
+                <span class="meta-label">Order Date:</span>
+                <span class="meta-value">${orderDate}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Payment Method:</span>
+                <span class="meta-value">${order.paymentMethod ? order.paymentMethod.toUpperCase() : "N/A"}</span>
+              </div>
+            </div>
+            <div>
+              <div class="meta-item">
+                <span class="meta-label">Status:</span>
+                <span class="meta-value">
+                  <span class="status-badge status-${order.status}">${order.status.toUpperCase()}</span>
+                </span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Total Amount:</span>
+                <span class="meta-value" style="font-weight: bold; color: #1e7098;">$${total.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer & Shipping Information -->
+        <div class="section">
+          <div class="section-title">📋 Customer & Shipping Information</div>
+          <div class="two-column">
+            <!-- Customer Info -->
+            <div>
+              <h4 style="margin-bottom: 15px; color: #495057;">👤 Customer Details</h4>
+              <div class="info-card">
+                ${
+                  order.shippingInfo
+                    ? `
+                  <div class="info-item">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value">${order.shippingInfo.name || "N/A"}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Phone Number</div>
+                    <div class="info-value">${order.shippingInfo.phone || "N/A"}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Email Address</div>
+                    <div class="info-value">${order.shippingInfo.email || "N/A"}</div>
+                  </div>
+                `
+                    : `
+                  <div style="text-align: center; color: #666; padding: 20px;">
+                    <strong>⚠️ No Customer Information Available</strong><br>
+                    <small>This order was placed before customer info collection was implemented</small>
+                  </div>
+                `
+                }
+                <div class="info-item" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+                  <div class="info-label">System User ID</div>
+                  <div class="info-value" style="font-family: monospace; font-size: 11px; word-break: break-all;">${order.userId}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Shipping Address -->
+            <div>
+              <h4 style="margin-bottom: 15px; color: #495057;">📍 Delivery Address</h4>
+              ${
+                order.shippingInfo
+                  ? `
+                <div class="info-card">
+                  <div class="info-item">
+                    <div class="info-label">Street Address</div>
+                    <div class="info-value">${order.shippingInfo.address || "N/A"}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Area/Thana</div>
+                    <div class="info-value">${order.shippingInfo.area || "N/A"}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">City/District</div>
+                    <div class="info-value">${order.shippingInfo.city || "N/A"}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Postal Code</div>
+                    <div class="info-value">${order.shippingInfo.zipCode || "N/A"}</div>
+                  </div>
+                  
+                  <div style="margin-top: 15px;">
+                    <div class="info-label">📦 Complete Shipping Address</div>
+                    <div class="address-box">${[
+                      order.shippingInfo.name,
+                      order.shippingInfo.phone,
+                      order.shippingInfo.address,
+                      order.shippingInfo.area +
+                        (order.shippingInfo.city
+                          ? `, ${order.shippingInfo.city}`
+                          : ""),
+                      order.shippingInfo.zipCode,
+                    ]
+                      .filter(Boolean)
+                      .join("\n")}</div>
+                  </div>
+                </div>
+              `
+                  : `
+                <div class="info-card" style="text-align: center; color: #666; padding: 30px;">
+                  <strong>⚠️ No Shipping Address Available</strong><br>
+                  <small>Please contact customer for delivery details</small>
+                </div>
+              `
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="section">
+          <div class="section-title">🛍️ Order Items (${order.products?.length || 0} items)</div>
+          <table class="products-table">
+            <thead>
+              <tr>
+                <th style="width: 60px;">Image</th>
+                <th>Product Details</th>
+                <th style="width: 80px; text-align: center;">Qty</th>
+                <th style="width: 100px; text-align: right;">Unit Price</th>
+                <th style="width: 100px; text-align: right;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                order.products
+                  ?.map(
+                    (item) => `
+                <tr>
+                  <td>
+                    ${
+                      item.image
+                        ? `<img src="${item.image}" alt="${item.title}" class="product-image" />`
+                        : '<div style="width: 40px; height: 40px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666;">No Image</div>'
+                    }
+                  </td>
+                  <td>
+                    <div style="font-weight: bold; margin-bottom: 4px;">${item.title}</div>
+                    <div class="product-details">
+                      ${item.selectedSize ? `Size: <strong>${item.selectedSize}</strong>` : ""}
+                      ${item.selectedSize && item.selectedColor ? " • " : ""}
+                      ${item.selectedColor ? `Color: <strong>${renderColor(item.selectedColor)}</strong>` : ""}
+                    </div>
+                  </td>
+                  <td style="text-align: center; font-weight: bold;">${item.quantity}</td>
+                  <td style="text-align: right;">$${(item.price || 0).toFixed(2)}</td>
+                  <td style="text-align: right; font-weight: bold;">$${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</td>
+                </tr>
+              `,
+                  )
+                  .join("") ||
+                '<tr><td colspan="5" style="text-align: center; color: #666; padding: 20px;">No items found</td></tr>'
+              }
+            </tbody>
+          </table>
+
+          <!-- Order Total -->
+          <div class="total-section">
+            <div class="total-row">
+              <span>Subtotal:</span>
+              <span>$${subtotal.toFixed(2)}</span>
+            </div>
+            <div class="total-row">
+              <span>Delivery Charge:</span>
+              <span>${deliveryCharge > 0 ? `$${deliveryCharge.toFixed(2)}` : "FREE"}</span>
+            </div>
+            <div class="total-row">
+              <span>Total Amount:</span>
+              <span>$${total.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+
+        ${
+          order.specialInstructions
+            ? `
+          <!-- Special Instructions -->
+          <div class="section">
+            <div class="section-title">📝 Special Instructions</div>
+            <div class="info-card" style="background: #fff3cd; border-color: #ffeaa7;">
+              <div style="color: #856404; font-weight: bold; margin-bottom: 8px;">Customer Notes:</div>
+              <div style="color: #856404;">${order.specialInstructions}</div>
+            </div>
+          </div>
+        `
+            : ""
+        }
+
+        <!-- Footer -->
+        <div class="footer">
+          <div><strong>HnilaBazar</strong> - Your Trusted E-commerce Partner</div>
+          <div>📞 Contact: +880 1XXX-XXXXXX | 📧 Email: support@hnilabazar.com</div>
+          <div class="print-date">Printed on: ${new Date().toLocaleString()}</div>
+        </div>
+      </body>
+      </html>
+    `;
   };
 
   const statusConfig = {
@@ -310,6 +851,33 @@ export default function AdminOrders() {
                           )}
                         </p>
                       </div>
+
+                      {/* Quick Print Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          printOrder(order);
+                        }}
+                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Print Order Details"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                          />
+                        </svg>
+                      </button>
+
                       <select
                         value={order.status}
                         onChange={(e) => {
@@ -817,6 +1385,32 @@ export default function AdminOrders() {
                             Quick Actions
                           </h5>
                           <div className="space-y-2">
+                            {/* Print Order Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                printOrder(order);
+                              }}
+                              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                                />
+                              </svg>
+                              Print Order Details
+                            </button>
+
                             {order.shippingInfo?.phone && (
                               <a
                                 href={`tel:${order.shippingInfo.phone}`}
