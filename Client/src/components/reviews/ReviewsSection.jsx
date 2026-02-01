@@ -130,6 +130,20 @@ const ReviewsSection = ({ productId }) => {
             Write a Review
           </button>
         )}
+
+        {!user && (
+          <div className="text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              Want to write a review?
+            </p>
+            <a
+              href="/login"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+            >
+              Sign In to Review
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Review Form */}
@@ -289,6 +303,15 @@ const ReviewsSection = ({ productId }) => {
               >
                 Write the First Review
               </button>
+            )}
+
+            {!user && (
+              <a
+                href="/login"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-block"
+              >
+                Sign In to Write Review
+              </a>
             )}
           </div>
         )}

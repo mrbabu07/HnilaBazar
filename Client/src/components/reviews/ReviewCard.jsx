@@ -14,6 +14,7 @@ const ReviewCard = ({
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -99,6 +100,142 @@ const ReviewCard = ({
       <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
         {review.comment}
       </p>
+
+      {/* Review Images */}
+      {review.images && review.images.length > 0 && (
+        <div className="space-y-3">
+          <h6 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Photos from this review:
+          </h6>
+          <div className="review-image-grid">
+            {review.images.map((imageUrl, index) => (
+              <div
+                key={index}
+                className="relative group cursor-pointer image-preview"
+                onClick={() => setSelectedImageIndex(index)}
+              >
+                <img
+                  src={imageUrl}
+                  alt={`Review image ${index + 1}`}
+                  className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {selectedImageIndex !== null && review.images && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 review-image-modal flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedImageIndex(null)}
+        >
+          <div className="relative max-w-4xl max-h-full">
+            <img
+              src={review.images[selectedImageIndex]}
+              alt={`Review image ${selectedImageIndex + 1}`}
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedImageIndex(null)}
+              className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-75 transition-all"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            {/* Navigation Arrows */}
+            {review.images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedImageIndex(
+                      selectedImageIndex > 0
+                        ? selectedImageIndex - 1
+                        : review.images.length - 1,
+                    );
+                  }}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-75 transition-all"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedImageIndex(
+                      selectedImageIndex < review.images.length - 1
+                        ? selectedImageIndex + 1
+                        : 0,
+                    );
+                  }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-75 transition-all"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {/* Image Counter */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+              {selectedImageIndex + 1} / {review.images.length}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Admin Reply */}
       {review.adminReply && (

@@ -10,8 +10,8 @@ import { ComparisonProvider } from "./context/ComparisonContext";
 import TawkToChat from "./components/TawkToChat";
 import OfferPopup from "./components/OfferPopup";
 import ToastContainer from "./components/Toast";
-import ComparisonFloatingButton from "./components/ComparisonFloatingButton";
 import PWAStatus from "./components/PWAStatus";
+import GlobalLoading from "./components/GlobalLoading";
 import router from "./routes/Routes";
 
 function App() {
@@ -27,8 +27,8 @@ function App() {
                   <TawkToChat />
                   <OfferPopup />
                   <ToastContainer />
-                  <ComparisonFloatingButton />
                   <PWAStatus />
+                  <GlobalLoading />
                   <Toaster
                     position="top-right"
                     toastOptions={{

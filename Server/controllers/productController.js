@@ -155,6 +155,11 @@ const getProductById = async (req, res) => {
         .json({ success: false, error: "Product not found" });
     }
 
+    // Increment view count (don't wait for it to complete)
+    Product.incrementViews(id).catch((error) => {
+      console.error("Failed to increment views:", error);
+    });
+
     console.log(`✅ Product found: ${product.title}`);
     res.json({ success: true, data: product });
   } catch (error) {
@@ -313,6 +318,33 @@ const searchProducts = async (req, res) => {
   }
 };
 
+const incrementProductView = async (req, res) => {
+  try {
+    const Product = req.app.locals.models.Product;
+    const { id } = req.params;
+
+    // Validate ObjectId format
+    if (!id || typeof id !== "string" || id.length !== 24) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid product ID format" });
+    }
+
+    const result = await Product.incrementViews(id);
+
+    if (!result || result.matchedCount === 0) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Product not found" });
+    }
+
+    res.json({ success: true, message: "View count incremented" });
+  } catch (error) {
+    console.error("Error incrementing product view:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   getAllProducts,
   getProductById,
@@ -324,4 +356,5 @@ module.exports = {
   getLowStockProducts,
   getOutOfStockProducts,
   updateStockBulk,
+  incrementProductView,
 };

@@ -2,9 +2,17 @@ const createReview = async (req, res) => {
   try {
     const Review = req.app.locals.models.Review;
     const User = req.app.locals.models.User;
-    const { productId, rating, comment, title } = req.body;
+    const { productId, rating, comment, title, images } = req.body;
     const userId = req.user.uid;
     const userName = req.user.name || req.user.email;
+
+    console.log("📝 Review submission attempt:", {
+      userId,
+      userName,
+      productId,
+      rating,
+      commentLength: comment?.length || 0,
+    });
 
     if (!productId || !rating || !comment) {
       return res.status(400).json({
@@ -20,8 +28,60 @@ const createReview = async (req, res) => {
       });
     }
 
-    // Check if user has purchased this product (for verified badge)
-    const verified = await Review.verifyPurchase(userId, productId);
+    // Check if user has purchased this product
+    console.log("🔍 Checking purchase verification...");
+    const hasPurchased = await Review.verifyPurchase(userId, productId);
+    console.log("✅ Purchase verification result:", hasPurchased);
+
+    if (!hasPurchased) {
+      console.log(
+        "❌ Purchase verification failed for user:",
+        userId,
+        "product:",
+        productId,
+      );
+
+      return res.status(403).json({
+        success: false,
+        error: "You can only review products you have purchased",
+        code: "PURCHASE_REQUIRED",
+      });
+    }
+
+    // Check if user has already reviewed this product
+    console.log("🔍 Checking for existing reviews...");
+    const existingReviews = await Review.findUserReviewsForProduct(
+      userId,
+      productId,
+    );
+    if (existingReviews.length > 0) {
+      console.log(
+        `ℹ️ User has ${existingReviews.length} existing review(s) for this product, but allowing multiple reviews like Daraz`,
+      );
+      // Allow multiple reviews - users can review the same product multiple times
+      // This is common in e-commerce platforms like Daraz where users might buy the same product multiple times
+      // or want to update their experience over time
+    }
+
+    // Validate images array if provided
+    if (images && Array.isArray(images)) {
+      if (images.length > 5) {
+        return res.status(400).json({
+          success: false,
+          error: "Maximum 5 images allowed per review",
+        });
+      }
+
+      // Validate image URLs (basic validation)
+      for (const imageUrl of images) {
+        if (typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
+          return res.status(400).json({
+            success: false,
+            error: "Invalid image URL format",
+          });
+        }
+      }
+    }
 
     const reviewId = await Review.create({
       productId,
@@ -30,7 +90,8 @@ const createReview = async (req, res) => {
       rating,
       comment,
       title: title || "",
-      verified,
+      images: images || [],
+      verified: true, // Always true since we verified purchase above
     });
 
     // Create notification for admin
@@ -56,7 +117,7 @@ const createReview = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      data: { id: reviewId, verified },
+      data: { id: reviewId, verified: true },
       message: "Review created successfully",
     });
   } catch (error) {
@@ -365,6 +426,57 @@ const deleteReviewAdmin = async (req, res) => {
   }
 };
 
+const canUserReviewProduct = async (req, res) => {
+  try {
+    const Review = req.app.locals.models.Review;
+    const { productId } = req.params;
+    const userId = req.user.uid;
+
+    console.log("🔍 Checking review eligibility for:", { userId, productId });
+
+    // Check if user has purchased this product
+    const hasPurchased = await Review.verifyPurchase(userId, productId);
+    console.log("📦 Purchase verification result:", hasPurchased);
+
+    if (!hasPurchased) {
+      return res.json({
+        success: true,
+        data: {
+          canReview: false,
+          reason: "PURCHASE_REQUIRED",
+          message: "You must purchase this product before you can review it",
+        },
+      });
+    }
+
+    // Allow multiple reviews like Daraz - users can review the same product multiple times
+    // This is especially useful when users purchase the same product multiple times
+    const existingReviews = await Review.findUserReviewsForProduct(
+      userId,
+      productId,
+    );
+    console.log(
+      `📝 User has ${existingReviews.length} existing reviews for this product`,
+    );
+
+    res.json({
+      success: true,
+      data: {
+        canReview: true,
+        message: "You can review this product",
+        existingReviewsCount: existingReviews.length,
+        note:
+          existingReviews.length > 0
+            ? "You can write multiple reviews for the same product"
+            : null,
+      },
+    });
+  } catch (error) {
+    console.error("Error checking review eligibility:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   createReview,
   getProductReviews,
@@ -377,4 +489,5 @@ module.exports = {
   getUnrepliedReviews,
   addAdminReply,
   deleteReviewAdmin,
+  canUserReviewProduct,
 };

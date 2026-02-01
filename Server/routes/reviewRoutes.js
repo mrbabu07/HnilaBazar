@@ -13,6 +13,7 @@ const {
   getUnrepliedReviews,
   addAdminReply,
   deleteReviewAdmin,
+  canUserReviewProduct,
 } = require("../controllers/reviewController");
 
 // GET /api/reviews/product/:productId/stats - Get rating stats for a product (public)
@@ -26,6 +27,9 @@ router.post("/:reviewId/helpful", markReviewHelpful);
 
 // All routes below require authentication
 router.use(verifyToken);
+
+// GET /api/reviews/can-review/:productId - Check if user can review a product
+router.get("/can-review/:productId", canUserReviewProduct);
 
 // POST /api/reviews - Create a new review
 router.post("/", createReview);

@@ -5,6 +5,7 @@ import { useContext } from "react";
 import { WishlistContext } from "../context/WishlistContext";
 import { useToast } from "../context/ToastContext";
 import BackButton from "../components/BackButton";
+import Breadcrumb from "../components/Breadcrumb";
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity, cartTotal } = useCart();
@@ -97,6 +98,9 @@ export default function Cart() {
       <div className="mb-6">
         <BackButton />
       </div>
+
+      {/* Breadcrumb */}
+      <Breadcrumb />
 
       <div className="flex items-center gap-4 mb-8">
         <Link

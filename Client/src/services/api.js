@@ -89,7 +89,7 @@ export const setDefaultAddress = (id) => api.patch(`/addresses/${id}/default`);
 // Returns
 export const getUserReturns = () => api.get("/returns/my-returns");
 export const createReturnRequest = (data) => api.post("/returns", data);
-export const getAllReturns = () => api.get("/returns/admin");
+export const getAllReturns = () => api.get("/returns/admin/all");
 export const updateReturnStatus = (id, status, adminNotes) =>
   api.patch(`/returns/${id}/status`, { status, adminNotes });
 export const processRefund = (id, refundAmount, refundMethod) =>

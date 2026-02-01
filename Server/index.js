@@ -130,7 +130,6 @@ async function run() {
       });
     });
 
-    // Debug: Test if routes are being registered
     console.log("🔧 Registering routes...");
 
     app.use("/api/products", productRoutes);
@@ -157,7 +156,7 @@ async function run() {
     app.use("/api/addresses", addressRoutes);
     console.log("✅ Addresses routes registered");
 
-    app.use("/api/test-returns-path", returnRoutes);
+    app.use("/api/returns", returnRoutes);
     console.log("✅ Returns routes registered");
     app.use("/api/payments", paymentRoutes);
     console.log("✅ Payments routes registered");
@@ -182,56 +181,8 @@ async function run() {
     app.use("/api/loyalty", loyaltyRoutes);
     console.log("✅ Loyalty routes registered");
 
-    // Test endpoint to verify server is running new code
-    app.get("/api/test-mongoose", (req, res) => {
-      res.json({
-        message: "Server is running NEW code with Mongoose!",
-        mongooseConnected: mongoose.connection.readyState === 1,
-        timestamp: new Date().toISOString(),
-      });
-    });
-
-    // Test route to verify addresses are working
-    app.get("/api/test-addresses", (req, res) => {
-      res.json({ message: "Test route working - addresses should work too!" });
-    });
-
-    // Test routes for debugging
-    app.get("/api/test-returns", (req, res) => {
-      res.json({
-        message: "Returns test route working!",
-        timestamp: new Date(),
-      });
-    });
-
-    app.post("/api/test-returns", (req, res) => {
-      res.json({ message: "Returns POST test route working!", data: req.body });
-    });
-
-    // Direct returns test route
-    app.get("/api/returns-working", (req, res) => {
-      res.json({ message: "Direct returns route is working!" });
-    });
-
-    app.post("/api/returns-working", (req, res) => {
-      res.json({
-        message: "Direct returns POST route is working!",
-        data: req.body,
-      });
-    });
-
-    // Direct returns routes for testing
-    app.get("/api/returns/test", (req, res) => {
-      console.log("🔥 Direct returns test route hit!");
-      res.json({
-        message: "Direct returns test working!",
-        timestamp: new Date(),
-      });
-    });
-
+    // Returns routes
     app.post("/api/returns", verifyToken, createReturnRequest);
-
-    // Add other essential returns routes
     app.get("/api/returns/my-returns", verifyToken, getUserReturns);
     app.get("/api/returns/admin", verifyToken, verifyAdmin, getAllReturns);
     app.patch(

@@ -256,6 +256,28 @@ class Product {
     return await this.collection.deleteOne({ _id: new ObjectId(id) });
   }
 
+  async incrementViews(id) {
+    try {
+      // Validate ObjectId format
+      if (!id || typeof id !== "string" || id.length !== 24) {
+        return null;
+      }
+
+      const result = await this.collection.updateOne(
+        { _id: new ObjectId(id) },
+        {
+          $inc: { views: 1 },
+          $set: { updatedAt: new Date() },
+        },
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Error incrementing views:", error);
+      return null;
+    }
+  }
+
   async updateStock(id, quantity) {
     return await this.collection.updateOne(
       { _id: new ObjectId(id) },
@@ -263,5 +285,7 @@ class Product {
     );
   }
 }
+
+module.exports = Product;
 
 module.exports = Product;

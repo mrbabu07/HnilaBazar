@@ -11,6 +11,7 @@ import CouponInput from "../components/CouponInput";
 import PointsRedemption from "../components/PointsRedemption";
 import { useNotifications } from "../context/NotificationContext";
 import BackButton from "../components/BackButton";
+import Breadcrumb from "../components/Breadcrumb";
 
 export default function Checkout() {
   const { cart, cartTotal, clearCart } = useCart();
@@ -350,6 +351,14 @@ export default function Checkout() {
 
       {/* Progress Steps */}
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <Breadcrumb
+          customItems={[
+            { label: "Cart", href: "/cart" },
+            { label: "Checkout" },
+          ]}
+        />
+
         <div className="flex items-center justify-center mb-8">
           {[
             { step: 1, title: "Shipping", icon: "📦" },

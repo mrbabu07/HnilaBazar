@@ -84,10 +84,13 @@ class RecommendationService {
       const product = await Product.findById(productId);
       if (!product) return [];
 
-      // Find similar products by category
+      // Find similar products by category (using categoryId field)
+      const categoryField = product.categoryId || product.category;
+      if (!categoryField) return [];
+
       const similarProducts = await Product.find({
         _id: { $ne: productId },
-        category: product.category,
+        $or: [{ categoryId: categoryField }, { category: categoryField }],
         stock: { $gt: 0 },
       })
         .sort({ views: -1, rating: -1 })
@@ -111,10 +114,30 @@ class RecommendationService {
 
       // Find products in same category with similar price range
       const priceRange = product.price * 0.3; // 30% price range
+      const categoryField = product.categoryId || product.category;
+
+      if (!categoryField) {
+        // If no category, just find products with similar price
+        const similarProducts = await Product.find({
+          _id: { $ne: productId },
+          price: {
+            $gte: product.price - priceRange,
+            $lte: product.price + priceRange,
+          },
+          stock: { $gt: 0 },
+        })
+          .sort({ rating: -1, sales: -1 })
+          .limit(limit);
+
+        return similarProducts.map((p) => ({
+          ...p.toObject(),
+          reason: "similar_price",
+        }));
+      }
 
       const similarProducts = await Product.find({
         _id: { $ne: productId },
-        category: product.category,
+        $or: [{ categoryId: categoryField }, { category: categoryField }],
         price: {
           $gte: product.price - priceRange,
           $lte: product.price + priceRange,
@@ -123,6 +146,22 @@ class RecommendationService {
       })
         .sort({ rating: -1, sales: -1 })
         .limit(limit);
+
+      // If no products found with price range, try without price filter
+      if (similarProducts.length === 0) {
+        const fallbackProducts = await Product.find({
+          _id: { $ne: productId },
+          $or: [{ categoryId: categoryField }, { category: categoryField }],
+          stock: { $gt: 0 },
+        })
+          .sort({ rating: -1, sales: -1 })
+          .limit(limit);
+
+        return fallbackProducts.map((p) => ({
+          ...p.toObject(),
+          reason: "similar_category",
+        }));
+      }
 
       return similarProducts.map((p) => ({
         ...p.toObject(),
@@ -159,6 +198,21 @@ class RecommendationService {
       ]);
 
       const productIds = trendingOrders.map((item) => item._id);
+
+      if (productIds.length === 0) {
+        // Fallback: Get products with highest rating or most recent
+        const fallbackProducts = await Product.find({
+          stock: { $gt: 0 },
+        })
+          .sort({ rating: -1, createdAt: -1 })
+          .limit(limit);
+
+        return fallbackProducts.map((p) => ({
+          ...p.toObject(),
+          reason: "popular",
+        }));
+      }
+
       const products = await Product.find({
         _id: { $in: productIds },
         stock: { $gt: 0 },
@@ -170,7 +224,23 @@ class RecommendationService {
       }));
     } catch (error) {
       console.error("Error getting trending products:", error);
-      return [];
+
+      // Final fallback: Get any products
+      try {
+        const fallbackProducts = await Product.find({
+          stock: { $gt: 0 },
+        })
+          .sort({ createdAt: -1 })
+          .limit(limit);
+
+        return fallbackProducts.map((p) => ({
+          ...p.toObject(),
+          reason: "recent",
+        }));
+      } catch (fallbackError) {
+        console.error("Fallback trending products failed:", fallbackError);
+        return [];
+      }
     }
   }
 

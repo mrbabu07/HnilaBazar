@@ -12,6 +12,7 @@ const {
   getLowStockProducts,
   getOutOfStockProducts,
   updateStockBulk,
+  incrementProductView,
 } = require("../controllers/productController");
 
 // Public routes
@@ -19,6 +20,7 @@ router.get("/", getAllProducts);
 router.get("/search", searchProducts);
 router.get("/filter-options", getFilterOptions);
 router.get("/:id", getProductById);
+router.post("/:id/view", incrementProductView);
 
 // Admin routes
 router.get("/admin/low-stock", verifyToken, verifyAdmin, getLowStockProducts);

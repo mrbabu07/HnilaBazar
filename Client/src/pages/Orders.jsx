@@ -9,6 +9,7 @@ import { useNotifications } from "../context/NotificationContext";
 import { useToast } from "../context/ToastContext";
 import useCart from "../hooks/useCart";
 import BackButton from "../components/BackButton";
+import OrderTracking from "../components/OrderTracking";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -115,8 +116,17 @@ export default function Orders() {
     setSubmittingReview(true);
 
     try {
+      const productId = selectedProduct.productId || selectedProduct._id;
+      console.log("Submitting review for product:", productId);
+      console.log("Selected product:", selectedProduct);
+
+      // Validate productId
+      if (!productId || productId.length !== 24) {
+        throw new Error("Invalid product ID. Please try again.");
+      }
+
       await createReview({
-        productId: selectedProduct.productId || selectedProduct._id,
+        productId: productId,
         rating: reviewFormData.rating,
         comment: reviewFormData.comment.trim(),
       });
@@ -126,8 +136,23 @@ export default function Orders() {
       success("Review submitted successfully! Thank you for your feedback.", {
         title: "Review Submitted",
       });
-    } catch (error) {
-      error(error.response?.data?.error || "Failed to submit review", {
+    } catch (err) {
+      console.error("Review submission error:", err);
+
+      // Handle specific error cases from our purchase verification
+      let errorMessage = "Failed to submit review";
+
+      if (err.response?.status === 403) {
+        errorMessage =
+          err.response?.data?.error ||
+          "You must purchase this product before you can review it";
+      } else if (err.response?.status === 409) {
+        errorMessage = "You have already reviewed this product";
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      }
+
+      error(errorMessage, {
         title: "Review Failed",
       });
     } finally {
@@ -193,8 +218,8 @@ export default function Orders() {
 
       // Navigate to returns page
       navigate("/returns");
-    } catch (error) {
-      error(error.response?.data?.error || "Failed to submit return request", {
+    } catch (err) {
+      error(err.response?.data?.error || "Failed to submit return request", {
         title: "Return Request Failed",
       });
     } finally {
@@ -552,6 +577,16 @@ export default function Orders() {
                     <p className="text-sm text-blue-800 font-medium">
                       📋 {statusConfig[order.status]?.description}
                     </p>
+                  </div>
+
+                  {/* Order Tracking */}
+                  <div className="mb-6">
+                    <OrderTracking
+                      orderId={order._id}
+                      currentStatus={order.status}
+                      orderDate={order.createdAt}
+                      estimatedDelivery={order.estimatedDelivery}
+                    />
                   </div>
 
                   {/* Order Items */}

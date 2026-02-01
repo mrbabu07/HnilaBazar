@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getProducts, getCategories } from "../services/api";
 import ProductCard from "../components/ProductCard";
 import Loading from "../components/Loading";
+import Breadcrumb from "../components/Breadcrumb";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -240,6 +241,9 @@ export default function Products() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <Breadcrumb />
+
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Sidebar - Filters */}
           <aside className="lg:w-64 flex-shrink-0">

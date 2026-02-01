@@ -1,10 +1,16 @@
 import { Link } from "react-router-dom";
+import NewsletterSignup from "./NewsletterSignup";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer className="bg-gray-900 dark:bg-black text-white border-t border-gray-800 dark:border-gray-900">
+      {/* Newsletter Signup */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-b border-gray-800">
+        <NewsletterSignup />
+      </div>
+
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

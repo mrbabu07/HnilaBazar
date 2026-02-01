@@ -33,13 +33,15 @@ router.use(verifyToken);
 // User routes
 router.get("/my-returns", getUserReturns);
 router.get("/order/:orderId", getOrderReturns);
-router.get("/:id", getReturnById);
 router.post("/", createReturnRequest);
 
-// Admin routes
-router.get("/", verifyAdmin, getAllReturns);
-router.get("/stats", verifyAdmin, getReturnStats);
+// Admin routes - these should come before the /:id route to avoid conflicts
+router.get("/admin/all", verifyAdmin, getAllReturns);
+router.get("/admin/stats", verifyAdmin, getReturnStats);
 router.patch("/:id/status", verifyAdmin, updateReturnStatus);
 router.post("/:id/refund", verifyAdmin, processRefund);
+
+// This route should come last to avoid conflicts
+router.get("/:id", getReturnById);
 
 module.exports = router;
