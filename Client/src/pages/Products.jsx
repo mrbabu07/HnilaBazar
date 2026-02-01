@@ -38,40 +38,41 @@ export default function Products() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await getProducts();
-      let allProducts = response.data.data || [];
+      // Build query parameters for server-side filtering
+      const queryParams = {};
 
-      // Apply filters
-      let filtered = allProducts;
-
-      // Category filter
       if (selectedCategory) {
-        filtered = filtered.filter(
-          (p) =>
-            p.category?._id === selectedCategory ||
-            p.category === selectedCategory,
-        );
+        queryParams.category = selectedCategory;
       }
 
-      // Price range filter
-      filtered = filtered.filter(
-        (p) => p.price >= priceRange[0] && p.price <= priceRange[1],
-      );
+      if (priceRange[0] > 0) {
+        queryParams.minPrice = priceRange[0];
+      }
 
-      // Sort
+      if (priceRange[1] < 1000) {
+        queryParams.maxPrice = priceRange[1];
+      }
+
+      // Add sorting parameters
       if (sortBy === "price-low") {
-        filtered.sort((a, b) => a.price - b.price);
+        queryParams.sortBy = "price";
+        queryParams.sortOrder = 1;
       } else if (sortBy === "price-high") {
-        filtered.sort((a, b) => b.price - a.price);
+        queryParams.sortBy = "price";
+        queryParams.sortOrder = -1;
       } else if (sortBy === "name") {
-        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        queryParams.sortBy = "title";
+        queryParams.sortOrder = 1;
       }
 
-      // Pagination
-      const total = Math.ceil(filtered.length / productsPerPage);
+      const response = await getProducts(queryParams);
+      const allProducts = response.data.data || [];
+
+      // Pagination (client-side for now, could be moved to server)
+      const total = Math.ceil(allProducts.length / productsPerPage);
       setTotalPages(total);
       const startIndex = (currentPage - 1) * productsPerPage;
-      const paginatedProducts = filtered.slice(
+      const paginatedProducts = allProducts.slice(
         startIndex,
         startIndex + productsPerPage,
       );
