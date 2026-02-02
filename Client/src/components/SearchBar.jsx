@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { searchProducts } from "../services/api";
 import { useDebounce } from "../hooks/useDebounce";
+import VoiceSearch from "./VoiceSearch";
 
 export default function SearchBar({
   placeholder = "Search products...",
@@ -129,29 +130,38 @@ export default function SearchBar({
           className={className}
         />
 
-        {/* Search Button */}
-        <button
-          type="submit"
-          className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 bg-[#1e7098] text-white rounded-md hover:bg-[#1a5f7f] transition-colors flex items-center justify-center"
-        >
-          {loading ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          )}
-        </button>
+        {/* Search and Voice Buttons */}
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          <VoiceSearch
+            onSearch={(searchTerm) => {
+              setQuery(searchTerm);
+              handleSearch(searchTerm);
+            }}
+          />
+
+          <button
+            type="submit"
+            className="h-10 w-10 bg-[#1e7098] text-white rounded-md hover:bg-[#1a5f7f] transition-colors flex items-center justify-center"
+          >
+            {loading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
       </form>
 
       {/* Search Suggestions */}

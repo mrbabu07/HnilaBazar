@@ -7,7 +7,8 @@
     "mongodb": "^7.0.0",
     "mongoose": "^9.1.4",
     "multer": "^2.0.2",
-    "nodemailer": "^6.9.8"
+    "nodemailer": "^6.9.8",
+    "web-push": "^3.6.7"
   },
   "scripts": {
     "start": "node index.js",
@@ -20,6 +21,10 @@
     "test:flash": "node scripts/testFlashSalesAPI.js",
     "test:all": "node scripts/testAllAPIs.js",
     "test:server": "node scripts/test-server.js",
+    "test:push": "node scripts/testPushNotifications.js",
+    "test:notifications": "node scripts/testFullNotificationFlow.js",
+    "test:notification-api": "node scripts/testNotificationAPI.js",
+    "generate:vapid": "node scripts/generateVapidKeys.js",
     "make:admin": "node scripts/makeAdmin.js"
   },
   "devDependencies": {

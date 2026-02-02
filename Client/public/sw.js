@@ -74,48 +74,143 @@ self.addEventListener("activate", (event) => {
 // Fetch event - serve cached content when offline
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  const url = new URL(request.url);
 
-  // Skip non-GET requests
-  if (request.method !== "GET") {
+  try {
+    const url = new URL(request.url);
+
+    // Skip non-GET requests
+    if (request.method !== "GET") {
+      return;
+    }
+
+    // Skip unsupported schemes and browser extensions
+    if (
+      !url.protocol.startsWith("http") ||
+      url.protocol === "chrome-extension:" ||
+      url.protocol === "moz-extension:" ||
+      url.protocol === "safari-extension:" ||
+      url.protocol === "edge-extension:" ||
+      url.protocol === "opera-extension:" ||
+      url.hostname.includes("extension") ||
+      url.hostname.includes("chrome") ||
+      url.hostname.includes("moz") ||
+      request.url.includes("chrome-extension") ||
+      request.url.includes("moz-extension")
+    ) {
+      console.log(
+        "🚫 Service Worker: Skipping unsupported request:",
+        request.url,
+      );
+      return;
+    }
+
+    // Skip third-party analytics and tracking
+    if (
+      url.hostname.includes("google-analytics") ||
+      url.hostname.includes("googletagmanager") ||
+      url.hostname.includes("facebook") ||
+      url.hostname.includes("tawk.to") ||
+      url.hostname.includes("hotjar") ||
+      url.hostname.includes("mixpanel")
+    ) {
+      console.log(
+        "🚫 Service Worker: Skipping third-party request:",
+        request.url,
+      );
+      return;
+    }
+
+    // Handle API requests
+    if (url.pathname.startsWith("/api/")) {
+      event.respondWith(handleApiRequest(request));
+      return;
+    }
+
+    // Handle navigation requests
+    if (request.mode === "navigate") {
+      event.respondWith(handleNavigationRequest(request));
+      return;
+    }
+
+    // Handle other requests (images, CSS, JS)
+    event.respondWith(handleResourceRequest(request));
+  } catch (error) {
+    console.error("🚫 Service Worker: Error processing fetch event:", error);
+    // Let the browser handle the request normally
     return;
   }
-
-  // Handle API requests
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(handleApiRequest(request));
-    return;
-  }
-
-  // Handle navigation requests
-  if (request.mode === "navigate") {
-    event.respondWith(handleNavigationRequest(request));
-    return;
-  }
-
-  // Handle other requests (images, CSS, JS)
-  event.respondWith(handleResourceRequest(request));
 });
 
 // Handle API requests with network-first strategy
 async function handleApiRequest(request) {
-  const url = new URL(request.url);
+  try {
+    const url = new URL(request.url);
 
-  // Check if this API should be cached
-  const shouldCache = API_CACHE_PATTERNS.some((pattern) =>
-    pattern.test(url.pathname),
-  );
+    // Check if this API should be cached
+    const shouldCache = API_CACHE_PATTERNS.some((pattern) =>
+      pattern.test(url.pathname),
+    );
 
-  if (!shouldCache) {
-    // For non-cacheable APIs, just try network
+    if (!shouldCache) {
+      // For non-cacheable APIs, just try network
+      try {
+        return await fetch(request);
+      } catch (error) {
+        console.log("📡 Service Worker: Network failed for API:", request.url);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Network unavailable",
+            offline: true,
+          }),
+          {
+            status: 503,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+    }
+
     try {
-      return await fetch(request);
+      // Try network first
+      const networkResponse = await fetch(request);
+
+      if (networkResponse.ok) {
+        // Cache successful responses
+        try {
+          const cache = await caches.open(DYNAMIC_CACHE);
+          // Clone the response before caching
+          const responseToCache = networkResponse.clone();
+          await cache.put(request, responseToCache);
+        } catch (cacheError) {
+          console.warn(
+            "⚠️ Service Worker: Failed to cache API response:",
+            request.url,
+            cacheError.message,
+          );
+        }
+      }
+
+      return networkResponse;
     } catch (error) {
+      // Network failed, try cache
+      console.log(
+        "📡 Service Worker: Network failed, trying cache for",
+        request.url,
+      );
+      const cachedResponse = await caches.match(request);
+
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      // Return offline response for API
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Network unavailable",
+          error: "Content not available offline",
           offline: true,
+          data: [],
         }),
         {
           status: 503,
@@ -123,41 +218,16 @@ async function handleApiRequest(request) {
         },
       );
     }
-  }
-
-  try {
-    // Try network first
-    const networkResponse = await fetch(request);
-
-    if (networkResponse.ok) {
-      // Cache successful responses
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, networkResponse.clone());
-    }
-
-    return networkResponse;
   } catch (error) {
-    // Network failed, try cache
-    console.log(
-      "📡 Service Worker: Network failed, trying cache for",
-      request.url,
-    );
-    const cachedResponse = await caches.match(request);
-
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-
-    // Return offline response for API
+    console.error("🚫 Service Worker: Error in API request handler:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: "Content not available offline",
+        error: "Service worker error",
         offline: true,
-        data: [],
       }),
       {
-        status: 503,
+        status: 500,
         headers: { "Content-Type": "application/json" },
       },
     );
@@ -230,24 +300,63 @@ async function handleNavigationRequest(request) {
 
 // Handle resource requests (images, CSS, JS)
 async function handleResourceRequest(request) {
-  // Try cache first for resources
-  const cachedResponse = await caches.match(request);
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-
   try {
+    const url = new URL(request.url);
+
+    // Skip unsupported schemes
+    if (!url.protocol.startsWith("http")) {
+      console.log(
+        "🚫 Service Worker: Skipping unsupported scheme:",
+        url.protocol,
+      );
+      return fetch(request);
+    }
+
+    // Skip chrome-extension and other browser-specific requests
+    if (
+      url.protocol === "chrome-extension:" ||
+      url.protocol === "moz-extension:" ||
+      url.protocol === "safari-extension:" ||
+      url.hostname.includes("extension") ||
+      request.url.includes("chrome-extension") ||
+      request.url.includes("moz-extension")
+    ) {
+      console.log(
+        "🚫 Service Worker: Skipping browser extension request:",
+        request.url,
+      );
+      return fetch(request);
+    }
+
+    // Try cache first for resources
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
     // Try network
     const networkResponse = await fetch(request);
 
-    if (networkResponse.ok) {
-      // Cache successful responses
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, networkResponse.clone());
+    if (networkResponse.ok && url.protocol.startsWith("http")) {
+      // Only cache HTTP/HTTPS responses
+      try {
+        const cache = await caches.open(DYNAMIC_CACHE);
+        // Clone the response before caching
+        const responseToCache = networkResponse.clone();
+        await cache.put(request, responseToCache);
+      } catch (cacheError) {
+        console.warn(
+          "⚠️ Service Worker: Failed to cache request:",
+          request.url,
+          cacheError.message,
+        );
+      }
     }
 
     return networkResponse;
   } catch (error) {
+    console.log("📡 Service Worker: Network failed for resource:", request.url);
+
     // For images, return a placeholder
     if (request.destination === "image") {
       return new Response(
@@ -321,18 +430,19 @@ async function syncWishlistData() {
 self.addEventListener("push", (event) => {
   console.log("📬 Service Worker: Push notification received");
 
-  const options = {
+  let notificationData = {
+    title: "HnilaBazar",
     body: "You have new updates from HnilaBazar!",
     icon: "/icons/icon-192x192.png",
     badge: "/icons/icon-72x72.png",
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
-      primaryKey: 1,
+      url: "/",
     },
     actions: [
       {
-        action: "explore",
+        action: "view",
         title: "View Details",
         icon: "/icons/icon-96x96.png",
       },
@@ -345,31 +455,123 @@ self.addEventListener("push", (event) => {
   };
 
   if (event.data) {
-    const data = event.data.json();
-    options.body = data.body || options.body;
-    options.title = data.title || "HnilaBazar";
-    options.data = { ...options.data, ...data };
+    try {
+      const data = event.data.json();
+      console.log("📬 Push data received:", data);
+
+      // Update notification with received data
+      notificationData.title = data.title || notificationData.title;
+      notificationData.body = data.body || notificationData.body;
+      notificationData.icon = data.icon || notificationData.icon;
+      notificationData.badge = data.badge || notificationData.badge;
+      notificationData.tag = data.tag || "default";
+      notificationData.data = { ...notificationData.data, ...data.data };
+
+      // Customize actions based on notification type
+      if (data.type === "order_status") {
+        notificationData.actions = [
+          {
+            action: "view_order",
+            title: "View Order",
+            icon: "/icons/icon-96x96.png",
+          },
+          {
+            action: "close",
+            title: "Close",
+            icon: "/icons/icon-96x96.png",
+          },
+        ];
+      } else if (data.type === "flash_sale") {
+        notificationData.actions = [
+          {
+            action: "view_sale",
+            title: "Shop Now",
+            icon: "/icons/icon-96x96.png",
+          },
+          {
+            action: "close",
+            title: "Close",
+            icon: "/icons/icon-96x96.png",
+          },
+        ];
+      } else if (data.type === "back_in_stock") {
+        notificationData.actions = [
+          {
+            action: "view_product",
+            title: "View Product",
+            icon: "/icons/icon-96x96.png",
+          },
+          {
+            action: "close",
+            title: "Close",
+            icon: "/icons/icon-96x96.png",
+          },
+        ];
+      }
+    } catch (error) {
+      console.error("❌ Error parsing push data:", error);
+    }
   }
 
-  event.waitUntil(self.registration.showNotification("HnilaBazar", options));
+  event.waitUntil(
+    self.registration.showNotification(
+      notificationData.title,
+      notificationData,
+    ),
+  );
 });
 
 // Notification click event
 self.addEventListener("notificationclick", (event) => {
-  console.log("🔔 Service Worker: Notification clicked");
+  console.log("🔔 Service Worker: Notification clicked", event.action);
 
   event.notification.close();
 
-  if (event.action === "explore") {
-    // Open the app to a specific page
-    event.waitUntil(clients.openWindow("/"));
+  const notificationData = event.notification.data || {};
+  let targetUrl = "/";
+
+  // Determine target URL based on action and notification data
+  if (
+    event.action === "view_order" ||
+    notificationData.type === "order_status"
+  ) {
+    targetUrl = notificationData.url || "/orders";
+  } else if (
+    event.action === "view_sale" ||
+    notificationData.type === "flash_sale"
+  ) {
+    targetUrl = notificationData.url || "/flash-sales";
+  } else if (
+    event.action === "view_product" ||
+    notificationData.type === "back_in_stock"
+  ) {
+    targetUrl = notificationData.url || "/products";
   } else if (event.action === "close") {
     // Just close the notification
     return;
-  } else {
-    // Default action - open the app
-    event.waitUntil(clients.openWindow("/"));
+  } else if (notificationData.url) {
+    // Use URL from notification data
+    targetUrl = notificationData.url;
   }
+
+  // Open the target URL
+  event.waitUntil(
+    clients.matchAll({ type: "window" }).then((clientList) => {
+      // Check if app is already open
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          // Navigate existing window to target URL
+          client.navigate(targetUrl);
+          return client.focus();
+        }
+      }
+
+      // Open new window if app is not open
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    }),
+  );
 });
 
 // Helper functions for IndexedDB operations
@@ -389,6 +591,14 @@ self.addEventListener("message", (event) => {
 
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
+  }
+
+  if (event.data && event.data.type === "DEBUG_INFO") {
+    console.log("🔧 Service Worker Debug Info:", {
+      caches: STATIC_CACHE + ", " + DYNAMIC_CACHE,
+      timestamp: event.data.timestamp,
+      version: "1.0.0",
+    });
   }
 });
 

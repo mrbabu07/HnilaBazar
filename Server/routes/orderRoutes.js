@@ -11,6 +11,7 @@ const {
 router.get("/", verifyToken, verifyAdmin, getAllOrders);
 router.get("/my-orders", verifyToken, getUserOrders);
 router.post("/", verifyToken, createOrder);
+router.post("/guest", createOrder); // Guest checkout - no auth required
 router.patch("/:id/status", verifyToken, verifyAdmin, updateOrderStatus);
 
 module.exports = router;

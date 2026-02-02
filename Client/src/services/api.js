@@ -46,6 +46,7 @@ export const deleteCategory = (id) => api.delete(`/categories/${id}`);
 export const getUserOrders = () => api.get("/orders/my-orders");
 export const getAllOrders = () => api.get("/orders");
 export const createOrder = (data) => api.post("/orders", data);
+export const createGuestOrder = (data) => api.post("/orders/guest", data);
 export const updateOrderStatus = (id, status, trackingNumber) =>
   api.patch(`/orders/${id}/status`, { status, trackingNumber });
 

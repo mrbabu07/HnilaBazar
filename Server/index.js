@@ -28,6 +28,7 @@ const SupportTicket = require("./models/SupportTicket");
 const LiveChat = require("./models/LiveChat");
 const CustomerInsight = require("./models/CustomerInsight");
 const Offer = require("./models/Offer");
+const NotificationSubscription = require("./models/NotificationSubscription");
 
 // Import routes
 const productRoutes = require("./routes/productRoutes");
@@ -47,6 +48,7 @@ const flashSaleRoutes = require("./routes/flashSaleRoutes");
 const recommendationRoutes = require("./routes/recommendationRoutes");
 const stockAlertRoutes = require("./routes/stockAlertRoutes");
 const loyaltyRoutes = require("./routes/loyaltyRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 // Import middleware and controllers for direct routes
 const { verifyToken, verifyAdmin } = require("./middleware/auth");
@@ -104,6 +106,7 @@ async function run() {
       LiveChat: new LiveChat(db),
       CustomerInsight: new CustomerInsight(db),
       Offer: new Offer(db),
+      NotificationSubscription: new NotificationSubscription(db),
     };
 
     // Store db reference for controllers that need it
@@ -180,6 +183,9 @@ async function run() {
 
     app.use("/api/loyalty", loyaltyRoutes);
     console.log("✅ Loyalty routes registered");
+
+    app.use("/api/notifications", notificationRoutes);
+    console.log("✅ Notification routes registered");
 
     // Returns routes
     app.post("/api/returns", verifyToken, createReturnRequest);

@@ -151,6 +151,35 @@ exports.createFlashSale = async (req, res) => {
     const populatedSale = await FlashSale.findById(flashSale._id).populate(
       "product",
     );
+
+    // Send push notification for new flash sale (if it's active)
+    if (flashSale.status === "active") {
+      try {
+        const NotificationService = require("../services/notificationService");
+
+        console.log("📱 Sending flash sale notification:", {
+          flashSaleId: flashSale._id,
+          title: flashSale.title,
+          discountPercentage: flashSale.discountPercentage,
+        });
+
+        await NotificationService.sendFlashSaleAlert({
+          _id: flashSale._id,
+          title: flashSale.title,
+          discountPercentage: flashSale.discountPercentage,
+          product: productDoc,
+        });
+
+        console.log("✅ Flash sale notification sent successfully");
+      } catch (notificationError) {
+        console.error(
+          "⚠️ Failed to send flash sale notification:",
+          notificationError,
+        );
+        // Don't fail the flash sale creation if notification fails
+      }
+    }
+
     res.status(201).json(populatedSale);
   } catch (error) {
     res

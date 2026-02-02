@@ -31,17 +31,19 @@ const createOrder = async (req, res) => {
       paymentMethod,
       specialInstructions,
       couponCode,
+      isGuest = false,
     } = req.body;
 
     // Log the received data for debugging
     console.log("📦 Creating order with data:", {
-      userId: req.user.uid,
+      userId: req.user?.uid || "guest",
       productsCount: products?.length,
       total,
       shippingInfo: shippingInfo ? "provided" : "missing",
       paymentMethod,
       specialInstructions: specialInstructions ? "provided" : "none",
       couponCode: couponCode || "none",
+      isGuest,
     });
 
     if (!products || !Array.isArray(products) || products.length === 0) {
@@ -110,13 +112,14 @@ const createOrder = async (req, res) => {
 
     // Create order with coupon support
     const orderData = {
-      userId: req.user.uid,
+      userId: req.user?.uid || null,
       products,
       subtotal: total, // This will be recalculated in the model
       shippingInfo,
       paymentMethod,
       specialInstructions,
       couponCode,
+      isGuest: isGuest || false,
     };
 
     console.log("📦 Creating order in database...");
@@ -198,6 +201,7 @@ const updateOrderStatus = async (req, res) => {
   try {
     const Order = req.app.locals.models.Order;
     const loyaltyService = require("../services/loyaltyService");
+    const NotificationService = require("../services/notificationService");
     const { id } = req.params;
     const { status, trackingNumber } = req.body;
 
@@ -238,6 +242,27 @@ const updateOrderStatus = async (req, res) => {
         success: false,
         error: "Order not found",
       });
+    }
+
+    // Send push notification for order status update
+    try {
+      console.log("📱 Sending push notification for order status update:", {
+        orderId: id,
+        userId: order.userId,
+        status,
+      });
+
+      await NotificationService.sendOrderStatusNotification(order.userId, {
+        _id: id,
+        status,
+        trackingNumber,
+        ...order,
+      });
+
+      console.log("✅ Push notification sent successfully");
+    } catch (notificationError) {
+      console.error("⚠️ Failed to send push notification:", notificationError);
+      // Don't fail the status update if notification fails
     }
 
     // Award loyalty points when order is delivered

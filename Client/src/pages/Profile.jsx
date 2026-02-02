@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import NotificationSettings from "../components/NotificationSettings";
 
 export default function Profile() {
   const { user, isAdmin, logout } = useAuth();
@@ -283,6 +284,11 @@ export default function Profile() {
               <p className="text-sm text-gray-600">{link.description}</p>
             </Link>
           ))}
+        </div>
+
+        {/* Notification Settings */}
+        <div className="mb-8">
+          <NotificationSettings />
         </div>
 
         {/* Account Info */}

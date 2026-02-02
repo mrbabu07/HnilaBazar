@@ -1,4 +1,5 @@
 import { useState } from "react";
+import QRCodeShare from "./QRCodeShare";
 
 export default function SocialShare({ product }) {
   const [showShareMenu, setShowShareMenu] = useState(false);
@@ -193,6 +194,9 @@ export default function SocialShare({ product }) {
                 </div>
                 <span className="text-sm text-gray-700">Copy Link</span>
               </button>
+
+              {/* QR Code */}
+              <QRCodeShare url={shareUrl} title={shareTitle} />
             </div>
           </div>
         </>
