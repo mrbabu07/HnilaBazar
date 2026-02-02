@@ -2,6 +2,10 @@
 .env
 .env.local
 .env.*.local
+**/.env
+**/.env.local
+Server/.env
+Client/.env.local
 
 # Dependencies
 node_modules/
@@ -35,6 +39,15 @@ firestore-debug.log
 # MongoDB
 *.pem
 
+# Uploads (user uploaded files)
+Server/uploads/*
+!Server/uploads/.gitkeep
+
 # Misc
 .cache/
 coverage/
+
+# Temporary files
+*.tmp
+*.temp
+CLEANUP_COMPLETE.md
