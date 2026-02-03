@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getAllOrders, updateOrderStatus } from "../../services/api";
+import { useCurrency } from "../../hooks/useCurrency";
 import Loading from "../../components/Loading";
 import toast, { Toaster } from "react-hot-toast";
 import { generateProfessionalInvoice } from "../../utils/printTemplate";
@@ -10,6 +11,7 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const { formatPrice } = useCurrency();
 
   // Utility function to safely render color
   const renderColor = (color) => {
@@ -414,7 +416,7 @@ export default function AdminOrders() {
               </div>
               <div class="meta-item">
                 <span class="meta-label">Total Amount:</span>
-                <span class="meta-value" style="font-weight: bold; color: #1e7098;">$${total.toFixed(2)}</span>
+                <span class="meta-value" style="font-weight: bold; color: #1e7098;">${formatPrice(total)}</span>
               </div>
             </div>
           </div>
@@ -545,8 +547,8 @@ export default function AdminOrders() {
                     </div>
                   </td>
                   <td style="text-align: center; font-weight: bold;">${item.quantity}</td>
-                  <td style="text-align: right;">$${(item.price || 0).toFixed(2)}</td>
-                  <td style="text-align: right; font-weight: bold;">$${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</td>
+                  <td style="text-align: right;">${formatPrice(item.price)}</td>
+                  <td style="text-align: right; font-weight: bold;">${formatPrice(item.price * item.quantity)}</td>
                 </tr>
               `,
                   )
@@ -560,15 +562,15 @@ export default function AdminOrders() {
           <div class="total-section">
             <div class="total-row">
               <span>Subtotal:</span>
-              <span>$${subtotal.toFixed(2)}</span>
+              <span>${formatPrice(subtotal)}</span>
             </div>
             <div class="total-row">
               <span>Delivery Charge:</span>
-              <span>${deliveryCharge > 0 ? `$${deliveryCharge.toFixed(2)}` : "FREE"}</span>
+              <span>${deliveryCharge > 0 ? formatPrice(deliveryCharge) : "FREE"}</span>
             </div>
             <div class="total-row">
               <span>Total Amount:</span>
-              <span>$${total.toFixed(2)}</span>
+              <span>${formatPrice(total)}</span>
             </div>
           </div>
         </div>
@@ -843,10 +845,10 @@ export default function AdminOrders() {
                           )}
                         </div>
                         <p className="font-bold text-lg text-primary-500">
-                          ${order.total?.toFixed(2)}
+                          {formatPrice(order.total)}
                           {order.deliveryCharge > 0 && (
                             <span className="text-xs text-gray-500 ml-1">
-                              (+${order.deliveryCharge.toFixed(2)} delivery)
+                              (+{formatPrice(order.deliveryCharge)} delivery)
                             </span>
                           )}
                         </p>
@@ -989,7 +991,7 @@ export default function AdminOrders() {
                                         Unit Price:
                                       </span>
                                       <span className="ml-2 font-medium text-gray-900">
-                                        ${item.price?.toFixed(2)}
+                                        {formatPrice(item.price)}
                                       </span>
                                     </div>
                                     {item.selectedSize && (
@@ -1028,11 +1030,10 @@ export default function AdminOrders() {
                                         Subtotal:
                                       </span>
                                       <span className="ml-2 font-semibold text-gray-900">
-                                        $
-                                        {(
+                                        {formatPrice(
                                           (item.price || 0) *
-                                          (item.quantity || 0)
-                                        ).toFixed(2)}
+                                            (item.quantity || 0),
+                                        )}
                                       </span>
                                     </div>
                                   </div>
@@ -1050,7 +1051,7 @@ export default function AdminOrders() {
                               <div className="flex justify-between">
                                 <span className="text-gray-500">Subtotal:</span>
                                 <span className="text-gray-900">
-                                  ${(order.subtotal || order.total)?.toFixed(2)}
+                                  {formatPrice(order.subtotal || order.total)}
                                 </span>
                               </div>
                               <div className="flex justify-between">
@@ -1059,14 +1060,14 @@ export default function AdminOrders() {
                                 </span>
                                 <span className="text-gray-900">
                                   {order.deliveryCharge
-                                    ? `$${order.deliveryCharge.toFixed(2)}`
+                                    ? formatPrice(order.deliveryCharge)
                                     : "FREE"}
                                 </span>
                               </div>
                               <div className="border-t pt-2 flex justify-between font-semibold">
                                 <span className="text-gray-900">Total:</span>
                                 <span className="text-primary-600">
-                                  ${order.total?.toFixed(2)}
+                                  {formatPrice(order.total)}
                                 </span>
                               </div>
                             </div>

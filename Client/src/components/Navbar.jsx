@@ -102,7 +102,6 @@ export default function Navbar() {
               <span className="hidden md:inline border-l border-white/30 pl-4 relative overflow-visible">
                 <TopBarLanguageSwitcher />
               </span>
-              <span className="hidden md:inline">BDT</span>
             </div>
           </div>
         </div>

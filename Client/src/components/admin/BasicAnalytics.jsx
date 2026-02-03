@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { getAllOrders, getProducts } from "../../services/api";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function BasicAnalytics() {
+  const { formatPrice } = useCurrency();
   const [analytics, setAnalytics] = useState({
     totalOrders: 0,
     totalRevenue: 0,
@@ -115,8 +117,6 @@ export default function BasicAnalytics() {
     );
   }
 
-  const formatCurrency = (amount) => `$${amount.toFixed(2)}`;
-
   return (
     <div className="space-y-6">
       {/* Time Range Selector */}
@@ -142,7 +142,7 @@ export default function BasicAnalytics() {
             <div>
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>
               <p className="text-3xl font-bold text-gray-900">
-                {formatCurrency(analytics.totalRevenue)}
+                {formatPrice(analytics.totalRevenue)}
               </p>
               <p className="text-sm text-green-600 flex items-center mt-1">
                 <svg
@@ -371,7 +371,7 @@ export default function BasicAnalytics() {
                     {order.shippingInfo?.name || "N/A"}
                   </td>
                   <td className="py-3 px-4 text-sm font-medium">
-                    {formatCurrency(order.total || 0)}
+                    {formatPrice(order.total || 0)}
                   </td>
                   <td className="py-3 px-4">
                     <span

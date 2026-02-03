@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useCart from "../hooks/useCart";
+import { useCurrency } from "../hooks/useCurrency";
 import { createGuestOrder } from "../services/api";
 
 export default function GuestCheckout() {
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const { cart, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
@@ -277,7 +279,7 @@ export default function GuestCheckout() {
                 Items ({cart.length})
               </span>
               <span className="text-gray-900 dark:text-white">
-                ${total.toFixed(2)}
+                {formatPrice(total)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
@@ -288,7 +290,7 @@ export default function GuestCheckout() {
               <div className="flex justify-between font-semibold">
                 <span className="text-gray-900 dark:text-white">Total</span>
                 <span className="text-gray-900 dark:text-white">
-                  ${total.toFixed(2)}
+                  {formatPrice(total)}
                 </span>
               </div>
             </div>
@@ -307,7 +309,7 @@ export default function GuestCheckout() {
               Processing Order...
             </div>
           ) : (
-            `Place Order - $${total.toFixed(2)}`
+            `Place Order - ${formatPrice(total)}`
           )}
         </button>
 

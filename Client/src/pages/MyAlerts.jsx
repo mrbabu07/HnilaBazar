@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { useToast } from "../context/ToastContext";
 import { getCurrentUserToken } from "../utils/auth";
+import { useCurrency } from "../hooks/useCurrency";
 import Loading from "../components/Loading";
 
 export default function MyAlerts() {
   const { user } = useAuth();
   const { success, error } = useToast();
+  const { formatPrice } = useCurrency();
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -232,11 +234,11 @@ export default function MyAlerts() {
 
                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                     <span>
-                      Current Price: ${alert.productId?.price?.toFixed(2)}
+                      Current Price: {formatPrice(alert.productId?.price)}
                     </span>
                     {alert.priceThreshold && (
                       <span>
-                        Target Price: ${alert.priceThreshold.toFixed(2)}
+                        Target Price: {formatPrice(alert.priceThreshold)}
                       </span>
                     )}
                     {alert.productId?.stock !== undefined && (

@@ -10,6 +10,7 @@ import Products from "../pages/Products";
 import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
 import Wishlist from "../pages/Wishlist";
+import SharedWishlist from "../pages/SharedWishlist";
 import Compare from "../pages/Compare";
 import Checkout from "../pages/Checkout";
 import Orders from "../pages/Orders";
@@ -27,12 +28,14 @@ import AdminReviews from "../pages/admin/AdminReviews";
 import AdminUserManagement from "../pages/admin/AdminUserManagement";
 import AdminCustomerInsights from "../pages/admin/AdminCustomerInsights";
 import AdminSupport from "../pages/admin/AdminSupport";
+import AdminQA from "../pages/admin/AdminQA";
+import AdminFlashSales from "../pages/admin/AdminFlashSales";
+import AdminDeliverySettings from "../pages/admin/AdminDeliverySettings";
 import OfferForm from "../pages/admin/OfferForm";
 import Returns from "../pages/Returns";
 import Support from "../pages/Support";
 import Addresses from "../pages/Addresses";
 import FlashSales from "../pages/FlashSales";
-import AdminFlashSales from "../pages/admin/AdminFlashSales";
 import MyAlerts from "../pages/MyAlerts";
 import LoyaltyDashboard from "../pages/LoyaltyDashboard";
 import PrivateRoute from "../components/PrivateRoute";
@@ -71,6 +74,7 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
+      { path: "/wishlist/shared/:shareId", element: <SharedWishlist /> },
       {
         path: "/checkout",
         element: (
@@ -200,6 +204,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/admin/qa",
+        element: (
+          <AdminRoute>
+            <AdminQA />
+          </AdminRoute>
+        ),
+      },
+      {
         path: "/admin/users",
         element: (
           <AdminRoute>
@@ -228,6 +240,14 @@ const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <AdminFlashSales />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/delivery-settings",
+        element: (
+          <AdminRoute>
+            <AdminDeliverySettings />
           </AdminRoute>
         ),
       },

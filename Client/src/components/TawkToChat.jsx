@@ -9,23 +9,30 @@ export default function TawkToChat() {
   useEffect(() => {
     // Wait for Tawk.to to load
     const checkTawk = setInterval(() => {
-      if (window.Tawk_API) {
+      if (
+        window.Tawk_API &&
+        typeof window.Tawk_API.setAttributes === "function"
+      ) {
         clearInterval(checkTawk);
 
         // Set user info if logged in
         if (user) {
-          window.Tawk_API.setAttributes(
-            {
-              name: user.displayName || user.email,
-              email: user.email,
-              hash: user.uid,
-            },
-            function (error) {
-              if (error) {
-                console.error("Tawk.to error:", error);
-              }
-            },
-          );
+          try {
+            window.Tawk_API.setAttributes(
+              {
+                name: user.displayName || user.email,
+                email: user.email,
+                hash: user.uid,
+              },
+              function (error) {
+                if (error) {
+                  console.error("Tawk.to error:", error);
+                }
+              },
+            );
+          } catch (error) {
+            console.error("Failed to set Tawk attributes:", error);
+          }
         }
 
         // Customize widget based on theme

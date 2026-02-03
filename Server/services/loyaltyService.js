@@ -117,8 +117,10 @@ class LoyaltyService {
       loyalty.redeemPoints(points, `Redeemed for order #${orderId}`, orderId);
       await loyalty.save();
 
-      // Convert points to discount (100 points = $1)
-      const discountAmount = points / 100;
+      // Convert points to discount (100 points = 1 BDT = 1/110 USD)
+      // Since prices are stored in USD, we need to convert BDT to USD
+      const discountInBDT = points / 100; // 100 points = 1 BDT
+      const discountAmount = discountInBDT / 110; // Convert BDT to USD
 
       return {
         discountAmount,
@@ -185,9 +187,16 @@ class LoyaltyService {
     return loyalty.points >= points && points >= 100; // Minimum 100 points to redeem
   }
 
-  // Get points value in currency
+  // Get points value in currency (USD)
   getPointsValue(points) {
-    return points / 100; // 100 points = $1
+    // 100 points = 1 BDT = 1/110 USD
+    const bdtValue = points / 100;
+    return bdtValue / 110; // Convert BDT to USD for database
+  }
+
+  // Get points value in BDT for display
+  getPointsValueInBDT(points) {
+    return points / 100; // 100 points = 1 BDT
   }
 }
 

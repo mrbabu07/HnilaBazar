@@ -31,12 +31,87 @@ class Wishlist {
       await this.collection.insertOne({
         userId,
         products: [new ObjectId(productId)],
+        isPublic: false,
+        shareId: this.generateShareId(),
         createdAt: new Date(),
         updatedAt: new Date(),
       });
     }
 
     return { success: true, message: "Product added to wishlist" };
+  }
+
+  generateShareId() {
+    return (
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15)
+    );
+  }
+
+  async togglePublic(userId) {
+    const wishlist = await this.findByUserId(userId);
+    if (!wishlist) {
+      return { success: false, message: "Wishlist not found" };
+    }
+
+    const newPublicState = !wishlist.isPublic;
+
+    // Ensure shareId exists
+    let shareId = wishlist.shareId;
+    if (!shareId) {
+      shareId = this.generateShareId();
+    }
+
+    await this.collection.updateOne(
+      { userId },
+      {
+        $set: {
+          isPublic: newPublicState,
+          shareId: shareId,
+          updatedAt: new Date(),
+        },
+      },
+    );
+
+    return { success: true, isPublic: newPublicState, shareId };
+  }
+
+  async findByShareId(shareId) {
+    return await this.collection.findOne({ shareId, isPublic: true });
+  }
+
+  async getSharedWishlistWithProducts(shareId) {
+    const pipeline = [
+      { $match: { shareId, isPublic: true } },
+      {
+        $lookup: {
+          from: "products",
+          localField: "products",
+          foreignField: "_id",
+          as: "productDetails",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      {
+        $project: {
+          products: 1,
+          productDetails: 1,
+          createdAt: 1,
+          "userDetails.name": 1,
+          "userDetails.email": 1,
+        },
+      },
+    ];
+
+    const result = await this.collection.aggregate(pipeline).toArray();
+    return result[0] || null;
   }
 
   async removeProduct(userId, productId) {

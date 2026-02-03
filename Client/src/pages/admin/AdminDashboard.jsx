@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getProducts, getCategories, getAllOrders } from "../../services/api";
+import { useCurrency } from "../../hooks/useCurrency";
 import MetricCard from "../../components/admin/MetricCard";
 import AnalyticsChart from "../../components/admin/AnalyticsChart";
 import RealtimeStats from "../../components/admin/RealtimeStats";
@@ -9,6 +10,7 @@ import LowStockAlert from "../../components/admin/LowStockAlert";
 import BasicAnalytics from "../../components/admin/BasicAnalytics";
 
 export default function AdminDashboard() {
+  const { formatPrice } = useCurrency();
   const [stats, setStats] = useState({
     products: 0,
     categories: 0,
@@ -549,6 +551,34 @@ export default function AdminDashboard() {
                   </div>
                 </Link>
                 <Link
+                  to="/admin/delivery-settings"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
+                >
+                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center text-purple-600 dark:text-purple-400">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      Delivery Settings
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Configure delivery charges
+                    </p>
+                  </div>
+                </Link>
+                <Link
                   to="/admin/offers"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
                 >
@@ -601,6 +631,34 @@ export default function AdminDashboard() {
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       Reply to customer feedback
+                    </p>
+                  </div>
+                </Link>
+                <Link
+                  to="/admin/qa"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
+                >
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      Q&A Management
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Answer customer questions
                     </p>
                   </div>
                 </Link>
@@ -739,7 +797,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            ${order.total.toFixed(2)}
+                            {formatPrice(order.total)}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             {new Date(order.createdAt).toLocaleDateString()}

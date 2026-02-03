@@ -40,8 +40,12 @@ export default function LowStockAlert({ threshold = 5 }) {
 
   // Show alert if there are low stock products
   if (lowStockProducts.length > 0) {
-    const lowStock = lowStockProducts.filter(p => p.stock > 0 && p.stock <= threshold);
-    const outOfStock = lowStockProducts.filter(p => p.stock === 0 || p.stock === undefined);
+    const lowStock = lowStockProducts.filter(
+      (p) => p.stock > 0 && p.stock <= threshold,
+    );
+    const outOfStock = lowStockProducts.filter(
+      (p) => p.stock === 0 || p.stock === undefined,
+    );
 
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6">
@@ -69,12 +73,16 @@ export default function LowStockAlert({ threshold = 5 }) {
               <div className="text-sm text-red-700 dark:text-red-300 mb-3">
                 {lowStock.length > 0 && (
                   <p className="mb-1">
-                    <span className="font-medium">{lowStock.length}</span> product{lowStock.length > 1 ? "s" : ""} running low on stock (≤{threshold} units)
+                    <span className="font-medium">{lowStock.length}</span>{" "}
+                    product{lowStock.length > 1 ? "s" : ""} running low on stock
+                    (≤{threshold} units)
                   </p>
                 )}
                 {outOfStock.length > 0 && (
                   <p>
-                    <span className="font-medium">{outOfStock.length}</span> product{outOfStock.length > 1 ? "s" : ""} completely out of stock
+                    <span className="font-medium">{outOfStock.length}</span>{" "}
+                    product{outOfStock.length > 1 ? "s" : ""} completely out of
+                    stock
                   </p>
                 )}
               </div>
@@ -95,8 +103,12 @@ export default function LowStockAlert({ threshold = 5 }) {
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-48">
                           {product.title}
                         </p>
-                        <p className={`text-xs ${product.stock === 0 ? 'text-red-600 dark:text-red-400 font-medium' : 'text-orange-600 dark:text-orange-400'}`}>
-                          {product.stock === 0 ? 'Out of stock' : `Only ${product.stock} left`}
+                        <p
+                          className={`text-xs ${product.stock === 0 ? "text-red-600 dark:text-red-400 font-medium" : "text-orange-600 dark:text-orange-400"}`}
+                        >
+                          {product.stock === 0
+                            ? "Out of stock"
+                            : `Only ${product.stock} left`}
                         </p>
                       </div>
                     </div>
@@ -121,8 +133,18 @@ export default function LowStockAlert({ threshold = 5 }) {
                   to="/admin/inventory"
                   className="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors"
                 >
-                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <svg
+                    className="w-3 h-3 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
                   </svg>
                   Manage Inventory
                 </Link>
@@ -185,7 +207,8 @@ export default function LowStockAlert({ threshold = 5 }) {
               ✅ Inventory Status: All Good
             </h3>
             <p className="text-sm text-green-700 dark:text-green-300 mb-3">
-              All {totalProducts} products are well-stocked (>{threshold} units). No immediate restocking needed.
+              All {totalProducts} products are well-stocked (&gt;{threshold}{" "}
+              units). No immediate restocking needed.
             </p>
 
             <div className="flex gap-2">
@@ -193,8 +216,18 @@ export default function LowStockAlert({ threshold = 5 }) {
                 to="/admin/inventory"
                 className="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
               >
-                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                <svg
+                  className="w-3 h-3 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
                 </svg>
                 View Inventory
               </Link>

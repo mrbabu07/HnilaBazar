@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getProducts, getCategories } from "../services/api";
+import { useCurrency } from "../hooks/useCurrency";
 import ProductCard from "../components/ProductCard";
 import Loading from "../components/Loading";
 import Breadcrumb from "../components/Breadcrumb";
 
 export default function Products() {
+  const { formatPrice } = useCurrency();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -314,12 +316,12 @@ export default function Products() {
                     className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
                   />
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">$0</span>
+                    <span className="text-gray-600 dark:text-gray-400">৳0</span>
                     <span className="font-semibold text-primary-600 dark:text-primary-400">
-                      ${priceRange[1]}
+                      {formatPrice(priceRange[1])}
                     </span>
                     <span className="text-gray-600 dark:text-gray-400">
-                      $1000
+                      ৳110,000
                     </span>
                   </div>
                 </div>

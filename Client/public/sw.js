@@ -1,30 +1,23 @@
-const CACHE_NAME = "hnilabazar-v1.0.0";
-const STATIC_CACHE = "hnilabazar-static-v1.0.0";
-const DYNAMIC_CACHE = "hnilabazar-dynamic-v1.0.0";
+const CACHE_NAME = "hnilabazar-v1.0.1";
+const STATIC_CACHE = "hnilabazar-static-v1.0.1";
+const DYNAMIC_CACHE = "hnilabazar-dynamic-v1.0.1";
 
 // Assets to cache immediately
-const STATIC_ASSETS = [
-  "/",
-  "/products",
-  "/cart",
-  "/wishlist",
-  "/orders",
-  "/manifest.json",
-  // Add critical CSS and JS files
-  "/src/index.css",
-  "/src/main.jsx",
-  // Fallback pages
-  "/offline.html",
+const STATIC_ASSETS = ["/", "/offline.html", "/manifest.json"];
+
+// API endpoints that should NEVER be cached (always fresh)
+const NO_CACHE_PATTERNS = [
+  /\/api\/wishlist/,
+  /\/api\/cart/,
+  /\/api\/orders/,
+  /\/api\/user/,
+  /\/api\/auth/,
+  /\/api\/checkout/,
+  /\/api\/payment/,
 ];
 
-// API endpoints to cache
-const API_CACHE_PATTERNS = [
-  /\/api\/products/,
-  /\/api\/categories/,
-  /\/api\/user/,
-  /\/api\/wishlist/,
-  /\/api\/reviews/,
-];
+// API endpoints that can be cached with network-first strategy
+const API_CACHE_PATTERNS = [/\/api\/products/, /\/api\/categories/];
 
 // Install event - cache static assets
 self.addEventListener("install", (event) => {
@@ -146,46 +139,55 @@ async function handleApiRequest(request) {
   try {
     const url = new URL(request.url);
 
-    // Check if this API should be cached
-    const shouldCache = API_CACHE_PATTERNS.some((pattern) =>
+    // Check if this API should NEVER be cached
+    const shouldNeverCache = NO_CACHE_PATTERNS.some((pattern) =>
       pattern.test(url.pathname),
     );
 
-    if (!shouldCache) {
-      // For non-cacheable APIs, just try network
-      try {
-        return await fetch(request);
-      } catch (error) {
-        console.log("📡 Service Worker: Network failed for API:", request.url);
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "Network unavailable",
-            offline: true,
-          }),
-          {
-            status: 503,
-            headers: { "Content-Type": "application/json" },
-          },
-        );
-      }
+    if (shouldNeverCache) {
+      // Always fetch fresh data, no caching
+      console.log(
+        "🔄 Service Worker: Fetching fresh data (no cache):",
+        request.url,
+      );
+      return await fetch(request);
     }
 
+    // Check if this API can be cached
+    const canCache = API_CACHE_PATTERNS.some((pattern) =>
+      pattern.test(url.pathname),
+    );
+
+    if (!canCache) {
+      // For non-cacheable APIs, just try network
+      return await fetch(request);
+    }
+
+    // Network-first strategy for cacheable APIs
     try {
-      // Try network first
       const networkResponse = await fetch(request);
 
       if (networkResponse.ok) {
-        // Cache successful responses
+        // Cache successful responses with short TTL
         try {
           const cache = await caches.open(DYNAMIC_CACHE);
-          // Clone the response before caching
           const responseToCache = networkResponse.clone();
-          await cache.put(request, responseToCache);
+
+          // Add timestamp to track cache age
+          const headers = new Headers(responseToCache.headers);
+          headers.set("sw-cached-at", Date.now().toString());
+
+          await cache.put(
+            request,
+            new Response(responseToCache.body, {
+              status: responseToCache.status,
+              statusText: responseToCache.statusText,
+              headers: headers,
+            }),
+          );
         } catch (cacheError) {
           console.warn(
-            "⚠️ Service Worker: Failed to cache API response:",
-            request.url,
+            "⚠️ Service Worker: Failed to cache:",
             cacheError.message,
           );
         }
@@ -193,18 +195,27 @@ async function handleApiRequest(request) {
 
       return networkResponse;
     } catch (error) {
-      // Network failed, try cache
-      console.log(
-        "📡 Service Worker: Network failed, trying cache for",
-        request.url,
-      );
+      // Network failed, try cache as fallback
+      console.log("📡 Service Worker: Network failed, trying cache");
       const cachedResponse = await caches.match(request);
 
       if (cachedResponse) {
+        // Check cache age (max 5 minutes)
+        const cachedAt = cachedResponse.headers.get("sw-cached-at");
+        if (cachedAt) {
+          const age = Date.now() - parseInt(cachedAt);
+          if (age > 5 * 60 * 1000) {
+            // 5 minutes
+            console.log(
+              "⚠️ Service Worker: Cache too old, returning offline response",
+            );
+            throw error;
+          }
+        }
         return cachedResponse;
       }
 
-      // Return offline response for API
+      // Return offline response
       return new Response(
         JSON.stringify({
           success: false,

@@ -29,6 +29,7 @@ const LiveChat = require("./models/LiveChat");
 const CustomerInsight = require("./models/CustomerInsight");
 const Offer = require("./models/Offer");
 const NotificationSubscription = require("./models/NotificationSubscription");
+const Question = require("./models/Question");
 
 // Import routes
 const productRoutes = require("./routes/productRoutes");
@@ -49,6 +50,8 @@ const recommendationRoutes = require("./routes/recommendationRoutes");
 const stockAlertRoutes = require("./routes/stockAlertRoutes");
 const loyaltyRoutes = require("./routes/loyaltyRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const questionRoutes = require("./routes/questionRoutes");
+const deliverySettingsRoutes = require("./routes/deliverySettingsRoutes");
 
 // Import middleware and controllers for direct routes
 const { verifyToken, verifyAdmin } = require("./middleware/auth");
@@ -65,6 +68,21 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Add cache control headers for API responses
+app.use((req, res, next) => {
+  // Disable caching for API routes
+  if (req.path.startsWith("/api/")) {
+    res.set({
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+      "Surrogate-Control": "no-store",
+    });
+  }
+  next();
+});
+
 app.use("/uploads", express.static("uploads")); // Serve uploaded images
 
 // MongoDB client
@@ -107,6 +125,7 @@ async function run() {
       CustomerInsight: new CustomerInsight(db),
       Offer: new Offer(db),
       NotificationSubscription: new NotificationSubscription(db),
+      Question: new Question(db),
     };
 
     // Store db reference for controllers that need it
@@ -186,6 +205,12 @@ async function run() {
 
     app.use("/api/notifications", notificationRoutes);
     console.log("✅ Notification routes registered");
+
+    app.use("/api", questionRoutes);
+    console.log("✅ Question routes registered");
+
+    app.use("/api/delivery-settings", deliverySettingsRoutes);
+    console.log("✅ Delivery Settings routes registered");
 
     // Returns routes
     app.post("/api/returns", verifyToken, createReturnRequest);

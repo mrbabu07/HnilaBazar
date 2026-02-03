@@ -8,9 +8,11 @@ import QuickViewModal from "./QuickViewModal";
 import CompareButton from "./CompareButton";
 import ProductRatingDisplay from "./ProductRatingDisplay";
 import { formatViewCount } from "../utils/formatters";
+import { useCurrency } from "../hooks/useCurrency";
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
+  const { formatPrice } = useCurrency();
   const [isAdding, setIsAdding] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -252,12 +254,12 @@ export default function ProductCard({ product }) {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-baseline gap-2">
                 <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  ${product.price?.toFixed(2)}
+                  {formatPrice(product.price)}
                 </span>
                 {product.originalPrice &&
                   product.originalPrice > product.price && (
                     <span className="text-sm text-gray-500 line-through">
-                      ${product.originalPrice.toFixed(2)}
+                      {formatPrice(product.originalPrice)}
                     </span>
                   )}
               </div>

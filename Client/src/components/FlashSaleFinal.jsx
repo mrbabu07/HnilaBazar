@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { useCurrency } from "../hooks/useCurrency";
 
 export default function FlashSaleFinal() {
+  const { formatPrice } = useCurrency();
   const [flashSales, setFlashSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -291,14 +293,14 @@ export default function FlashSaleFinal() {
                       {/* Price */}
                       <div className="flex items-baseline gap-2 mb-3">
                         <span className="text-2xl font-bold bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
-                          ${sale.flashPrice}
+                          {formatPrice(sale.flashPrice)}
                         </span>
                         <span className="text-sm text-gray-400 line-through">
-                          ${sale.originalPrice}
+                          {formatPrice(sale.originalPrice)}
                         </span>
                         <span className="ml-auto text-xs font-semibold text-green-600 dark:text-green-400">
-                          Save $
-                          {(sale.originalPrice - sale.flashPrice).toFixed(0)}
+                          Save{" "}
+                          {formatPrice(sale.originalPrice - sale.flashPrice)}
                         </span>
                       </div>
 

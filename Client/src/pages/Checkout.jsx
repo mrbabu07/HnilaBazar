@@ -10,11 +10,13 @@ import { auth } from "../firebase/firebase.config";
 import CouponInput from "../components/CouponInput";
 import PointsRedemption from "../components/PointsRedemption";
 import { useNotifications } from "../context/NotificationContext";
+import { useCurrency } from "../hooks/useCurrency";
 import BackButton from "../components/BackButton";
 import Breadcrumb from "../components/Breadcrumb";
 
 export default function Checkout() {
   const { cart, cartTotal, clearCart } = useCart();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
   const [loading, setLoading] = useState(false);
@@ -26,6 +28,7 @@ export default function Checkout() {
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [showAddressSelector, setShowAddressSelector] = useState(false);
   const [addressLoaded, setAddressLoaded] = useState(false);
+  const [deliverySettings, setDeliverySettings] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -37,6 +40,36 @@ export default function Checkout() {
     paymentMethod: "cod",
     specialInstructions: "",
   });
+
+  // Fetch delivery settings
+  useEffect(() => {
+    const fetchDeliverySettings = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/delivery-settings`,
+        );
+        const data = await response.json();
+        if (data.success) {
+          setDeliverySettings(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching delivery settings:", err);
+        // Use defaults if fetch fails
+        setDeliverySettings({
+          freeDeliveryThreshold: 50,
+          standardDeliveryCharge: 100 / 110,
+          freeDeliveryEnabled: true,
+        });
+      }
+    };
+    fetchDeliverySettings();
+  }, []);
+
+  // Use delivery settings or defaults
+  const freeDeliveryThreshold = deliverySettings?.freeDeliveryThreshold || 50;
+  const deliveryChargeAmount =
+    deliverySettings?.standardDeliveryCharge || 100 / 110;
+  const freeDeliveryEnabled = deliverySettings?.freeDeliveryEnabled !== false;
 
   // Validate cart items have product IDs
   useEffect(() => {
@@ -54,7 +87,12 @@ export default function Checkout() {
   const couponDiscount = appliedCoupon?.discountAmount || 0;
   const pointsDiscount = appliedPoints?.discountAmount || 0;
   const totalDiscount = couponDiscount + pointsDiscount;
-  const deliveryCharge = subtotal - totalDiscount < 100 ? 100 : 0;
+
+  // Calculate delivery charge based on settings
+  const deliveryCharge =
+    freeDeliveryEnabled && subtotal - totalDiscount >= freeDeliveryThreshold
+      ? 0
+      : deliveryChargeAmount;
   const finalTotal = subtotal - totalDiscount + deliveryCharge;
 
   // Fetch default address and set user email on mount
@@ -966,7 +1004,7 @@ export default function Checkout() {
                           Qty: {item.quantity}
                         </span>
                         <span className="font-bold text-primary-600">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          {formatPrice(item.price * item.quantity)}
                         </span>
                       </div>
                     </div>
@@ -1002,7 +1040,7 @@ export default function Checkout() {
                     Subtotal (
                     {cart.reduce((sum, item) => sum + item.quantity, 0)} items)
                   </span>
-                  <span>${cartTotal.toFixed(2)}</span>
+                  <span>{formatPrice(cartTotal)}</span>
                 </div>
 
                 {appliedCoupon && (
@@ -1024,7 +1062,7 @@ export default function Checkout() {
                       Coupon Discount ({appliedCoupon.code})
                     </span>
                     <span className="font-semibold">
-                      -${couponDiscount.toFixed(2)}
+                      -{formatPrice(couponDiscount)}
                     </span>
                   </div>
                 )}
@@ -1048,7 +1086,7 @@ export default function Checkout() {
                       Points Discount ({appliedPoints.points} points)
                     </span>
                     <span className="font-semibold">
-                      -${pointsDiscount.toFixed(2)}
+                      -{formatPrice(pointsDiscount)}
                     </span>
                   </div>
                 )}
@@ -1067,23 +1105,25 @@ export default function Checkout() {
                       deliveryCharge === 0 ? "line-through text-gray-400" : ""
                     }
                   >
-                    ${deliveryCharge.toFixed(2)}
+                    {formatPrice(deliveryCharge)}
                   </span>
                 </div>
 
-                {cartTotal < 100 && !appliedCoupon && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                    <p className="text-xs text-amber-700">
-                      💡 Add ${(100 - cartTotal).toFixed(2)} more to get FREE
-                      delivery!
-                    </p>
-                  </div>
-                )}
+                {freeDeliveryEnabled &&
+                  cartTotal < freeDeliveryThreshold &&
+                  !appliedCoupon && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <p className="text-xs text-amber-700">
+                        💡 Add {formatPrice(freeDeliveryThreshold - cartTotal)}{" "}
+                        more to get FREE delivery!
+                      </p>
+                    </div>
+                  )}
 
                 <div className="border-t pt-3 flex justify-between text-lg font-bold">
                   <span>Total</span>
                   <span className="text-primary-600">
-                    ${finalTotal.toFixed(2)}
+                    {formatPrice(finalTotal)}
                   </span>
                 </div>
               </div>
@@ -1132,7 +1172,7 @@ export default function Checkout() {
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    Place Order - ৳{finalTotal.toFixed(2)}
+                    Place Order - {formatPrice(finalTotal)}
                   </>
                 )}
               </button>
@@ -1186,7 +1226,7 @@ export default function Checkout() {
                     </p>
                     <ul className="text-xs text-blue-600 mt-1 space-y-1">
                       <li>• Standard delivery: 2-5 business days</li>
-                      <li>• Free delivery on orders over $100</li>
+                      <li>• Free delivery on orders over ৳11,000</li>
                       <li>• Cash on delivery available</li>
                     </ul>
                   </div>

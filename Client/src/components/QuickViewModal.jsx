@@ -6,9 +6,11 @@ import StarRating from "./StarRating";
 import StockIndicator from "./StockIndicator";
 import ProductBadge from "./ProductBadge";
 import useCart from "../hooks/useCart";
+import { useCurrency } from "../hooks/useCurrency";
 
 export default function QuickViewModal({ product, isOpen, onClose }) {
   const { addToCart } = useCart();
+  const { formatPrice } = useCurrency();
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState(null);
@@ -70,7 +72,7 @@ export default function QuickViewModal({ product, isOpen, onClose }) {
 
           <div className="flex items-center gap-4 mb-4">
             <span className="text-3xl font-bold text-primary-500">
-              ${product.price?.toFixed(2)}
+              {formatPrice(product.price)}
             </span>
             <StockIndicator stock={product.stock} />
           </div>

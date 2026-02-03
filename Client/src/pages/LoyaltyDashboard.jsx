@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import useAuth from "../hooks/useAuth";
+import { useCurrency } from "../hooks/useCurrency";
 import { useToast } from "../context/ToastContext";
 import { getCurrentUserToken } from "../utils/auth";
 import Loading from "../components/Loading";
 
 export default function LoyaltyDashboard() {
+  const { formatPrice } = useCurrency();
   const { user } = useAuth();
   const { success, error } = useToast();
   const [loyalty, setLoyalty] = useState(null);
@@ -149,9 +151,10 @@ export default function LoyaltyDashboard() {
       const data = await response.json();
 
       if (response.ok) {
-        const discountValue = (pointsToRedeem / 100).toFixed(2);
+        // Calculate BDT value: 100 points = 1 BDT
+        const discountValueBDT = (pointsToRedeem / 100).toFixed(2);
         success(
-          `Successfully redeemed ${pointsToRedeem} points for $${discountValue} store credit!`,
+          `Successfully redeemed ${pointsToRedeem} points for ৳${discountValueBDT} store credit!`,
         );
         fetchLoyaltyData(); // Refresh loyalty data
         fetchPointsHistory(); // Refresh transaction history
@@ -280,7 +283,7 @@ export default function LoyaltyDashboard() {
           </div>
           <div className="bg-white/20 rounded-lg p-3">
             <div className="text-2xl font-bold">
-              ${((loyalty?.points || 0) / 100).toFixed(2)}
+              ৳{((loyalty?.points || 0) / 100).toFixed(2)}
             </div>
             <div className="text-sm text-white/80">Points Value</div>
           </div>
@@ -541,7 +544,7 @@ export default function LoyaltyDashboard() {
               Redeem Points
             </h3>
             <p className="text-gray-600 text-sm mb-4">
-              Convert your points to discount credits. 100 points = $1 discount
+              Convert your points to discount credits. 100 points = ৳1 discount
             </p>
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
@@ -552,7 +555,7 @@ export default function LoyaltyDashboard() {
                 </span>
               </div>
               <div className="text-sm text-green-600">
-                Worth ${((loyalty?.points || 0) / 100).toFixed(2)} in discounts
+                Worth ৳{((loyalty?.points || 0) / 100).toFixed(2)} in discounts
               </div>
             </div>
 
@@ -565,7 +568,7 @@ export default function LoyaltyDashboard() {
                   className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div className="font-semibold">100 pts</div>
-                  <div className="text-sm text-gray-600">$1.00</div>
+                  <div className="text-sm text-gray-600">৳110</div>
                 </button>
                 <button
                   onClick={() => handleRedeemPoints(500)}
@@ -573,7 +576,7 @@ export default function LoyaltyDashboard() {
                   className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div className="font-semibold">500 pts</div>
-                  <div className="text-sm text-gray-600">$5.00</div>
+                  <div className="text-sm text-gray-600">৳550</div>
                 </button>
                 <button
                   onClick={() => handleRedeemPoints(1000)}
@@ -581,7 +584,7 @@ export default function LoyaltyDashboard() {
                   className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div className="font-semibold">1000 pts</div>
-                  <div className="text-sm text-gray-600">$10.00</div>
+                  <div className="text-sm text-gray-600">৳1,100</div>
                 </button>
                 <button
                   onClick={() => handleRedeemPoints(loyalty?.points || 0)}
@@ -590,7 +593,7 @@ export default function LoyaltyDashboard() {
                 >
                   <div className="font-semibold">All</div>
                   <div className="text-sm">
-                    ${((loyalty?.points || 0) / 100).toFixed(2)}
+                    {formatPrice((loyalty?.points || 0) / 100)}
                   </div>
                 </button>
               </div>
@@ -644,7 +647,7 @@ export default function LoyaltyDashboard() {
               How to Earn Points
             </h3>
             <div className="space-y-2 text-sm text-blue-800">
-              <p>• 1 point per $1 spent</p>
+              <p>• 1 point per ৳1 spent</p>
               <p>
                 • {loyalty?.benefits?.pointsMultiplier}x multiplier for your
                 tier
@@ -654,7 +657,7 @@ export default function LoyaltyDashboard() {
                 • {loyalty?.benefits?.birthdayBonus} points on your birthday
               </p>
               <p className="pt-2 border-t border-blue-200">
-                <strong>Redeem:</strong> 100 points = $1 discount
+                <strong>Redeem:</strong> 100 points = ৳110 discount
               </p>
             </div>
           </div>

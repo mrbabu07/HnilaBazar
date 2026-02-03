@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useCurrency } from "../hooks/useCurrency";
 import Loading from "../components/Loading";
 import useCart from "../hooks/useCart";
 import { useToast } from "../context/ToastContext";
 import BackButton from "../components/BackButton";
 
 const FlashSales = () => {
+  const { formatPrice } = useCurrency();
   const { t } = useTranslation();
   const { addToCart } = useCart();
   const { success, error } = useToast();
@@ -158,13 +160,13 @@ const FlashSales = () => {
           {/* Price Section */}
           <div className="flex items-baseline gap-3 mb-4">
             <span className="text-3xl font-bold text-primary-500 dark:text-primary-400">
-              ${sale.flashPrice.toFixed(2)}
+              {formatPrice(sale.flashPrice)}
             </span>
             <span className="text-lg text-gray-400 dark:text-gray-500 line-through">
-              ${sale.originalPrice.toFixed(2)}
+              {formatPrice(sale.originalPrice)}
             </span>
             <span className="ml-auto text-sm font-semibold text-success-600 dark:text-success-400 bg-success-50 dark:bg-success-900/30 px-2 py-1 rounded-full">
-              Save ${(sale.originalPrice - sale.flashPrice).toFixed(2)}
+              Save {formatPrice(sale.originalPrice - sale.flashPrice)}
             </span>
           </div>
 

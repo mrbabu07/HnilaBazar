@@ -22,8 +22,14 @@ class Order {
 
   async create(orderData) {
     // Calculate delivery charge
+    // 100 BDT = 100/110 USD (since prices are stored in USD)
+    const DELIVERY_CHARGE_BDT = 100; // 100 BDT
+    const DELIVERY_CHARGE_USD = DELIVERY_CHARGE_BDT / 110; // Convert to USD for database
+    const FREE_DELIVERY_THRESHOLD_USD = 100; // $100 USD order = free delivery
+
     const subtotal = orderData.subtotal || orderData.total || 0;
-    let deliveryCharge = subtotal < 100 ? 100 : 0; // 100tk delivery if order < 100tk
+    let deliveryCharge =
+      subtotal < FREE_DELIVERY_THRESHOLD_USD ? DELIVERY_CHARGE_USD : 0;
 
     // Apply coupon discount if provided
     let couponDiscountAmount = 0;
@@ -86,8 +92,11 @@ class Order {
 
     // Recalculate delivery charge based on discounted amount
     const discountedSubtotal = subtotal - totalDiscountAmount;
-    if (discountedSubtotal < 100 && subtotal >= 100) {
-      deliveryCharge = 100; // Apply delivery charge if discounted total falls below 100
+    if (
+      discountedSubtotal < FREE_DELIVERY_THRESHOLD_USD &&
+      subtotal >= FREE_DELIVERY_THRESHOLD_USD
+    ) {
+      deliveryCharge = DELIVERY_CHARGE_USD; // Apply delivery charge if discounted total falls below threshold
     }
 
     const finalTotal = subtotal - totalDiscountAmount + deliveryCharge;

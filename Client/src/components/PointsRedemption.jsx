@@ -14,7 +14,7 @@ export default function PointsRedemption({
 
   const maxRedeemablePoints = Math.min(
     userLoyalty?.points || 0,
-    Math.floor(orderTotal * 100), // Can't redeem more than order total (100 points = $1)
+    Math.floor(orderTotal * 110 * 100), // Can't redeem more than order total (100 points = 1 BDT, orderTotal is in USD)
   );
 
   const handleRedeemPoints = async () => {
@@ -40,7 +40,9 @@ export default function PointsRedemption({
 
     // Don't actually redeem points yet - just calculate discount
     // Points will be redeemed when order is placed
-    const discountAmount = points / 100; // 100 points = $1
+    // 100 points = 1 BDT = 1/110 USD
+    const discountInBDT = points / 100; // 100 points = 1 BDT
+    const discountAmount = discountInBDT / 110; // Convert BDT to USD for order calculation
 
     onPointsApplied({
       points,
@@ -113,7 +115,7 @@ export default function PointsRedemption({
                 Points Redeemed: {appliedPoints.points} points
               </p>
               <p className="text-xs text-green-600 dark:text-green-400">
-                You saved ${appliedPoints.discountAmount.toFixed(2)}!
+                You saved ৳{(appliedPoints.points / 100).toFixed(2)}!
               </p>
             </div>
           </div>
@@ -199,7 +201,7 @@ export default function PointsRedemption({
             disabled={points > maxRedeemablePoints}
             className="px-3 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {points} pts (${(points / 100).toFixed(2)})
+            {points} pts (৳{(points / 100).toFixed(2)})
           </button>
         ))}
         {maxRedeemablePoints > 1000 && (
@@ -232,7 +234,7 @@ export default function PointsRedemption({
       )}
 
       <div className="text-xs text-gray-500 dark:text-gray-400">
-        💡 100 points = $1 discount. Minimum 100 points required.
+        💡 100 points = ৳1 discount. Minimum 100 points required.
       </div>
     </div>
   );

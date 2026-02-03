@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../../context/ToastContext";
+import { useCurrency } from "../../hooks/useCurrency";
 import { auth } from "../../firebase/firebase.config";
 import SimpleModal from "../../components/SimpleModal";
 import Loading from "../../components/Loading";
@@ -8,6 +9,7 @@ import Loading from "../../components/Loading";
 const AdminFlashSales = () => {
   const { t } = useTranslation();
   const { success, error } = useToast();
+  const { formatPrice } = useCurrency();
   const [flashSales, setFlashSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -295,10 +297,10 @@ const AdminFlashSales = () => {
                   <td className="px-6 py-4">
                     <div className="text-sm">
                       <div className="font-bold text-primary-600 dark:text-primary-400">
-                        ${sale.flashPrice}
+                        {formatPrice(sale.flashPrice)}
                       </div>
                       <div className="text-gray-500 line-through">
-                        ${sale.originalPrice}
+                        {formatPrice(sale.originalPrice)}
                       </div>
                       <div className="text-success-600 dark:text-success-400 font-semibold">
                         -{sale.discountPercentage}%
@@ -397,7 +399,7 @@ const AdminFlashSales = () => {
               {Array.isArray(products) && products.length > 0 ? (
                 products.map((product) => (
                   <option key={product._id} value={product._id}>
-                    {product.name} - ${product.price}
+                    {product.name} - {formatPrice(product.price)}
                   </option>
                 ))
               ) : (
@@ -411,7 +413,7 @@ const AdminFlashSales = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">
-                Flash Price
+                Flash Price (USD - displays as BDT)
               </label>
               <input
                 type="number"
@@ -422,6 +424,7 @@ const AdminFlashSales = () => {
                 }
                 className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                 required
+                placeholder="e.g., 10 (will show as ৳1,100)"
               />
             </div>
 

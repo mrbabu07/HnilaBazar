@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getProducts, updateProduct } from "../../services/api";
+import { useCurrency } from "../../hooks/useCurrency";
 import { useToast } from "../../context/ToastContext";
 import InventoryImportExport from "../../components/admin/InventoryImportExport";
 import StockMovementTracker from "../../components/admin/StockMovementTracker";
 
 export default function AdminInventory() {
+  const { formatPrice } = useCurrency();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all"); // all, low-stock, out-of-stock, in-stock
@@ -596,10 +598,10 @@ export default function AdminInventory() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        ${product.price.toFixed(2)}
+                        {formatPrice(product.price)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        ${(product.price * product.stock).toFixed(2)}
+                        {formatPrice(product.price * product.stock)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <Link

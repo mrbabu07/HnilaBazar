@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getProducts, getAllOrders } from "../../services/api";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function TopProducts() {
+  const { formatPrice } = useCurrency();
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState("week"); // week, month, all
@@ -179,17 +181,17 @@ export default function TopProducts() {
                   <span>{product.sales.orders} orders</span>
                   <span>•</span>
                   <span className="text-green-600 dark:text-green-400 font-medium">
-                    ${product.sales.revenue.toFixed(2)}
+                    {formatPrice(product.sales.revenue)}
                   </span>
                 </div>
               </div>
 
               <div className="text-right">
                 <div className="text-lg font-bold text-gray-900 dark:text-white">
-                  ${product.sales.revenue.toFixed(0)}
+                  {formatPrice(product.sales.revenue)}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  ${(product.sales.revenue / product.sales.quantity).toFixed(2)}{" "}
+                  {formatPrice(product.sales.revenue / product.sales.quantity)}{" "}
                   avg
                 </div>
               </div>

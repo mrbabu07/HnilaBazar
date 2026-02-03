@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { getAllOrders, getProducts } from "../../services/api";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function RealtimeStats() {
+  const { formatPrice } = useCurrency();
   const [stats, setStats] = useState({
     todayOrders: 0,
     todayRevenue: 0,
@@ -82,7 +84,7 @@ export default function RealtimeStats() {
     },
     {
       label: "Today's Revenue",
-      value: `$${stats.todayRevenue.toFixed(2)}`,
+      value: formatPrice(stats.todayRevenue),
       icon: "💰",
       color: "text-green-600",
       bg: "bg-green-50",
@@ -103,7 +105,7 @@ export default function RealtimeStats() {
     },
     {
       label: "Avg Order Value",
-      value: `$${stats.avgOrderValue.toFixed(2)}`,
+      value: formatPrice(stats.avgOrderValue),
       icon: "🛒",
       color: "text-indigo-600",
       bg: "bg-indigo-50",

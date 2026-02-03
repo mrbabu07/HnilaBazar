@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getUserOrders, createReturnRequest } from "../services/api";
 import { createReview } from "../services/reviewApi";
 import { uploadToImgBB } from "../services/imageUpload";
+import { useCurrency } from "../hooks/useCurrency";
 import Loading from "../components/Loading";
 import Modal from "../components/Modal";
 import { useNotifications } from "../context/NotificationContext";
@@ -20,6 +21,7 @@ export default function Orders() {
   const { addNotification } = useNotifications();
   const { success, error } = useToast();
   const { addToCart } = useCart();
+  const { formatPrice } = useCurrency();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -633,14 +635,13 @@ export default function Orders() {
                                 Color: {renderColor(item.selectedColor)}
                               </span>
                             )}
-                            <span>${item.price} each</span>
+                            <span>{formatPrice(item.price)} each</span>
                           </div>
                         </div>
                         <div className="text-right flex flex-col items-end gap-2">
                           <p className="font-bold text-gray-900">
-                            $
-                            {((item.price || 0) * (item.quantity || 0)).toFixed(
-                              2,
+                            {formatPrice(
+                              (item.price || 0) * (item.quantity || 0),
                             )}
                           </p>
 
@@ -851,7 +852,7 @@ export default function Orders() {
                           items)
                         </span>
                         <span>
-                          ${(order.subtotal || order.total || 0).toFixed(2)}
+                          {formatPrice(order.subtotal || order.total || 0)}
                         </span>
                       </div>
                       <div className="flex justify-between text-gray-600">
@@ -865,13 +866,13 @@ export default function Orders() {
                         >
                           {(order.deliveryCharge || 0) === 0
                             ? "FREE"
-                            : `$${(order.deliveryCharge || 0).toFixed(2)}`}
+                            : formatPrice(order.deliveryCharge)}
                         </span>
                       </div>
                       <div className="border-t pt-3 flex justify-between text-xl font-bold">
                         <span>Total Paid</span>
                         <span className="text-primary-600">
-                          ${(order.total || 0).toFixed(2)}
+                          {formatPrice(order.total || 0)}
                         </span>
                       </div>
 
@@ -970,7 +971,8 @@ export default function Orders() {
                     {selectedProduct.title}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Qty: {selectedProduct.quantity} • ${selectedProduct.price}
+                    Qty: {selectedProduct.quantity} •{" "}
+                    {formatPrice(selectedProduct.price)}
                   </p>
                   {selectedProduct.selectedSize && (
                     <p className="text-sm text-gray-600">
@@ -1408,7 +1410,7 @@ export default function Orders() {
                     {selectedProduct.title}
                   </p>
                   <p className="text-sm text-gray-600">
-                    ${selectedProduct.price}
+                    {formatPrice(selectedProduct.price)}
                   </p>
                 </div>
               </div>

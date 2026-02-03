@@ -8,6 +8,7 @@ import {
 } from "../../services/api";
 import { uploadImage } from "../../services/imageUpload";
 import Loading from "../../components/Loading";
+import ProductVariantManager from "../../components/admin/ProductVariantManager";
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -32,6 +33,7 @@ export default function ProductForm() {
     sizes: [],
     colors: [],
     sizeChart: "",
+    variants: [],
   });
 
   const availableSizes = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
@@ -75,6 +77,7 @@ export default function ProductForm() {
         sizes: product.sizes || [],
         colors: product.colors || [],
         sizeChart: product.sizeChart || "",
+        variants: product.variants || [],
       });
     } catch (error) {
       console.error("Failed to fetch product:", error);
@@ -169,6 +172,10 @@ export default function ProductForm() {
 
   const setMainImage = (url) => {
     setFormData({ ...formData, image: url });
+  };
+
+  const handleVariantsChange = (variants) => {
+    setFormData({ ...formData, variants });
   };
 
   const handleSubmit = async (e) => {
@@ -573,6 +580,14 @@ export default function ProductForm() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Product Variants Section */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <ProductVariantManager
+              variants={formData.variants}
+              onChange={handleVariantsChange}
+            />
           </div>
 
           {/* Size Chart (Optional) */}

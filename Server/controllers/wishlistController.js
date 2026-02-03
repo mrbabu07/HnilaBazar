@@ -105,9 +105,61 @@ const clearWishlist = async (req, res) => {
   }
 };
 
+const toggleWishlistPublic = async (req, res) => {
+  try {
+    const Wishlist = req.app.locals.models.Wishlist;
+    const userId = req.user.uid;
+
+    const result = await Wishlist.togglePublic(userId);
+
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        error: result.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      isPublic: result.isPublic,
+      shareId: result.shareId,
+      message: `Wishlist is now ${result.isPublic ? "public" : "private"}`,
+    });
+  } catch (error) {
+    console.error("Error toggling wishlist public:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const getSharedWishlist = async (req, res) => {
+  try {
+    const Wishlist = req.app.locals.models.Wishlist;
+    const { shareId } = req.params;
+
+    const wishlist = await Wishlist.getSharedWishlistWithProducts(shareId);
+
+    if (!wishlist) {
+      return res.status(404).json({
+        success: false,
+        error: "Wishlist not found or not public",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: wishlist,
+    });
+  } catch (error) {
+    console.error("Error fetching shared wishlist:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   addToWishlist,
   removeFromWishlist,
   getWishlist,
   clearWishlist,
+  toggleWishlistPublic,
+  getSharedWishlist,
 };

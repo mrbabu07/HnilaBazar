@@ -1,9 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import useCart from "../hooks/useCart";
 import useAuth from "../hooks/useAuth";
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import { WishlistContext } from "../context/WishlistContext";
 import { useToast } from "../context/ToastContext";
+import { useCurrency } from "../hooks/useCurrency";
 import BackButton from "../components/BackButton";
 import Breadcrumb from "../components/Breadcrumb";
 
@@ -12,7 +13,38 @@ export default function Cart() {
   const { user } = useAuth();
   const { addToWishlist } = useContext(WishlistContext);
   const { success, error } = useToast();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
+  const [deliverySettings, setDeliverySettings] = useState(null);
+
+  // Fetch delivery settings
+  useEffect(() => {
+    const fetchDeliverySettings = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/delivery-settings`,
+        );
+        const data = await response.json();
+        if (data.success) {
+          setDeliverySettings(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching delivery settings:", err);
+        // Use defaults if fetch fails
+        setDeliverySettings({
+          freeDeliveryThreshold: 50,
+          standardDeliveryCharge: 100 / 110,
+          freeDeliveryEnabled: true,
+        });
+      }
+    };
+    fetchDeliverySettings();
+  }, []);
+
+  // Use delivery settings or defaults
+  const freeDeliveryThreshold = deliverySettings?.freeDeliveryThreshold || 50;
+  const deliveryCharge = deliverySettings?.standardDeliveryCharge || 100 / 110;
+  const freeDeliveryEnabled = deliverySettings?.freeDeliveryEnabled !== false;
 
   const handleCheckout = () => {
     if (!user) {
@@ -231,11 +263,11 @@ export default function Cart() {
                         )}
 
                         <p className="text-primary-500 font-bold text-lg">
-                          ${item.price?.toFixed(2)}
+                          {formatPrice(item.price)}
                         </p>
                       </div>
                       <p className="text-lg font-bold text-gray-900 sm:text-right">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {formatPrice(item.price * item.quantity)}
                       </p>
                     </div>
 
@@ -368,21 +400,24 @@ export default function Cart() {
                   Subtotal ({cart.reduce((sum, item) => sum + item.quantity, 0)}{" "}
                   items)
                 </span>
-                <span className="font-medium">${cartTotal.toFixed(2)}</span>
+                <span className="font-medium">{formatPrice(cartTotal)}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span className="flex items-center gap-2">
                   Delivery Charge
-                  {cartTotal >= 100 && (
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                      FREE
-                    </span>
-                  )}
+                  {freeDeliveryEnabled &&
+                    cartTotal >= freeDeliveryThreshold && (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                        FREE
+                      </span>
+                    )}
                 </span>
                 <span
-                  className={`font-medium ${cartTotal >= 100 ? "line-through text-gray-400" : ""}`}
+                  className={`font-medium ${freeDeliveryEnabled && cartTotal >= freeDeliveryThreshold ? "line-through text-gray-400" : ""}`}
                 >
-                  ${cartTotal < 100 ? "100.00" : "0.00"}
+                  {freeDeliveryEnabled && cartTotal >= freeDeliveryThreshold
+                    ? formatPrice(0)
+                    : formatPrice(deliveryCharge)}
                 </span>
               </div>
 
@@ -416,7 +451,7 @@ export default function Cart() {
                 </div>
               </div>
 
-              {cartTotal < 100 && (
+              {freeDeliveryEnabled && cartTotal < freeDeliveryThreshold && (
                 <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-lg">🚚</span>
@@ -427,7 +462,7 @@ export default function Cart() {
                   <p className="text-xs text-amber-700">
                     Add{" "}
                     <span className="font-bold">
-                      ${(100 - cartTotal).toFixed(2)}
+                      {formatPrice(freeDeliveryThreshold - cartTotal)}
                     </span>{" "}
                     more to get free delivery
                   </p>
@@ -435,7 +470,7 @@ export default function Cart() {
                     <div
                       className="bg-gradient-to-r from-amber-400 to-orange-400 h-2 rounded-full transition-all duration-300"
                       style={{
-                        width: `${Math.min((cartTotal / 100) * 100, 100)}%`,
+                        width: `${Math.min((cartTotal / freeDeliveryThreshold) * 100, 100)}%`,
                       }}
                     />
                   </div>
@@ -446,7 +481,13 @@ export default function Cart() {
                 <div className="flex justify-between">
                   <span className="text-lg font-bold text-gray-900">Total</span>
                   <span className="text-2xl font-bold text-primary-500">
-                    ${(cartTotal + (cartTotal < 100 ? 100 : 0)).toFixed(2)}
+                    {formatPrice(
+                      cartTotal +
+                        (freeDeliveryEnabled &&
+                        cartTotal >= freeDeliveryThreshold
+                          ? 0
+                          : deliveryCharge),
+                    )}
                   </span>
                 </div>
               </div>

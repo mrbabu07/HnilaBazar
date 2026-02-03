@@ -12,12 +12,24 @@ export default defineConfig({
         secure: false,
       },
     },
+    // Disable caching during development
+    headers: {
+      "Cache-Control": "no-store",
+    },
   },
   build: {
     // Generate service worker and manifest
     rollupOptions: {
       input: {
         main: "./index.html",
+      },
+    },
+    // Add hash to filenames for cache busting
+    rollupOptions: {
+      output: {
+        entryFileNames: "assets/[name].[hash].js",
+        chunkFileNames: "assets/[name].[hash].js",
+        assetFileNames: "assets/[name].[hash].[ext]",
       },
     },
   },

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { getProductById } from "../services/api";
 import useCart from "../hooks/useCart";
 import { useRecentlyViewed } from "../hooks/useRecentlyViewed";
+import { useCurrency } from "../hooks/useCurrency";
 import { ProductDetailSkeleton } from "../components/Skeleton";
 import StockIndicator from "../components/StockIndicator";
 import ReviewsSection from "../components/reviews/ReviewsSection";
@@ -10,12 +11,15 @@ import ProductRecommendations from "../components/ProductRecommendations";
 import SizeGuide from "../components/SizeGuide";
 import BackButton from "../components/BackButton";
 import Breadcrumb from "../components/Breadcrumb";
+import ProductVariantSelector from "../components/ProductVariantSelector";
+import ProductQA from "../components/ProductQA";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { addToRecentlyViewed } = useRecentlyViewed();
+  const { formatPrice } = useCurrency();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,6 +31,7 @@ export default function ProductDetail() {
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState(null);
 
   useEffect(() => {
     fetchProduct();
@@ -81,6 +86,14 @@ export default function ProductDetail() {
     }
   };
 
+  const handleVariantChange = (variant) => {
+    setSelectedVariant(variant);
+    if (variant.image) {
+      setSelectedImage(variant.image);
+      setImageLoaded(false);
+    }
+  };
+
   const handleAddToCart = () => {
     if (product.sizes?.length > 0 && !selectedSize) {
       alert("Please select a size");
@@ -122,21 +135,23 @@ export default function ProductDetail() {
   const displayImages = allImages.length > 0 ? allImages : [fallbackImage];
 
   const getStockStatus = () => {
-    if (product?.stock === 0)
+    const stock = selectedVariant ? selectedVariant.stock : product?.stock;
+
+    if (stock === 0)
       return {
         text: "Out of Stock",
         color: "text-red-600",
         bgColor: "bg-red-50",
         available: false,
       };
-    if (product?.stock <= 3)
+    if (stock <= 3)
       return {
-        text: `Only ${product.stock} left`,
+        text: `Only ${stock} left`,
         color: "text-orange-600",
         bgColor: "bg-orange-50",
         available: true,
       };
-    if (product?.stock <= 10)
+    if (stock <= 10)
       return {
         text: "Low Stock",
         color: "text-yellow-600",
@@ -313,12 +328,12 @@ export default function ProductDetail() {
             <div className="flex items-center gap-4 mb-4">
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-bold text-primary-600 dark:text-primary-400">
-                  ${product.price?.toFixed(2)}
+                  {formatPrice(selectedVariant?.price || product.price)}
                 </span>
                 {product.originalPrice &&
                   product.originalPrice > product.price && (
                     <span className="text-xl text-gray-500 line-through">
-                      ${product.originalPrice.toFixed(2)}
+                      {formatPrice(product.originalPrice)}
                     </span>
                   )}
               </div>
@@ -370,93 +385,108 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* Size Selection */}
-          {product.sizes && product.sizes.length > 0 && (
+          {/* Product Variants */}
+          {product.variants && product.variants.length > 0 && (
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Select Size
-                </h3>
-                <button
-                  onClick={() => setShowSizeGuide(true)}
-                  className="flex items-center gap-1 text-primary-600 text-sm font-medium hover:text-primary-700 transition-colors"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Size Guide
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-3 rounded-xl border-2 font-medium transition-all hover:shadow-sm ${
-                      selectedSize === size
-                        ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300"
-                        : "border-gray-300 text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
+              <ProductVariantSelector
+                product={product}
+                onVariantChange={handleVariantChange}
+                selectedVariant={selectedVariant}
+              />
             </div>
           )}
 
-          {/* Color Selection */}
-          {product.colors && product.colors.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                Select Color
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                {product.colors.map((color) => (
+          {/* Size Selection (Legacy - only show if no variants) */}
+          {(!product.variants || product.variants.length === 0) &&
+            product.sizes &&
+            product.sizes.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Select Size
+                  </h3>
                   <button
-                    key={color.name}
-                    onClick={() => setSelectedColor(color)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 font-medium transition-all hover:shadow-sm ${
-                      selectedColor?.name === color.name
-                        ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300"
-                        : "border-gray-300 text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300"
-                    }`}
+                    onClick={() => setShowSizeGuide(true)}
+                    className="flex items-center gap-1 text-primary-600 text-sm font-medium hover:text-primary-700 transition-colors"
                   >
-                    <div
-                      className="w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0"
-                      style={{ backgroundColor: color.value }}
-                    />
-                    <span>{color.name}</span>
-                    {selectedColor?.name === color.name && (
-                      <svg
-                        className="w-4 h-4 text-primary-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    )}
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                    Size Guide
                   </button>
-                ))}
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-4 py-3 rounded-xl border-2 font-medium transition-all hover:shadow-sm ${
+                        selectedSize === size
+                          ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300"
+                          : "border-gray-300 text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+          {/* Color Selection (Legacy - only show if no variants) */}
+          {(!product.variants || product.variants.length === 0) &&
+            product.colors &&
+            product.colors.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                  Select Color
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {product.colors.map((color) => (
+                    <button
+                      key={color.name}
+                      onClick={() => setSelectedColor(color)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 font-medium transition-all hover:shadow-sm ${
+                        selectedColor?.name === color.name
+                          ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300"
+                          : "border-gray-300 text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300"
+                      }`}
+                    >
+                      <div
+                        className="w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0"
+                        style={{ backgroundColor: color.value }}
+                      />
+                      <span>{color.name}</span>
+                      {selectedColor?.name === color.name && (
+                        <svg
+                          className="w-4 h-4 text-primary-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
           {/* Stock Alert */}
           {!stockStatus.available && (
@@ -485,9 +515,16 @@ export default function ProductDetail() {
                 </span>
                 <button
                   onClick={() =>
-                    setQuantity(Math.min(product.stock, quantity + 1))
+                    setQuantity(
+                      Math.min(
+                        selectedVariant?.stock || product.stock,
+                        quantity + 1,
+                      ),
+                    )
                   }
-                  disabled={quantity >= product.stock}
+                  disabled={
+                    quantity >= (selectedVariant?.stock || product.stock)
+                  }
                   className="w-12 h-12 flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   +
@@ -648,6 +685,11 @@ export default function ProductDetail() {
       {/* Reviews Section */}
       <div className="mt-16 border-t pt-12">
         <ReviewsSection productId={id} />
+      </div>
+
+      {/* Q&A Section */}
+      <div className="mt-16 border-t pt-12">
+        <ProductQA productId={id} />
       </div>
 
       {/* Product Recommendations */}

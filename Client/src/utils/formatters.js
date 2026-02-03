@@ -13,12 +13,16 @@ export const formatViewCount = (count) => {
   }
 };
 
-// Format price for display
-export const formatPrice = (price) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(price);
+// Format price for display in BDT
+// Prices are stored in USD in database, converted to BDT for display
+const BDT_RATE = 110; // 1 USD = 110 BDT
+const BDT_SYMBOL = "৳";
+
+export const formatPrice = (priceInUSD) => {
+  if (!priceInUSD && priceInUSD !== 0) return `${BDT_SYMBOL}0`;
+  const priceInBDT = priceInUSD * BDT_RATE;
+  // Format with comma separators for BDT (no decimals)
+  return `${BDT_SYMBOL}${Math.round(priceInBDT).toLocaleString()}`;
 };
 
 // Format date for display

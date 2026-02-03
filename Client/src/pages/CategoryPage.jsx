@@ -8,10 +8,12 @@ import {
 } from "../components/Skeleton";
 import SortDropdown from "../components/SortDropdown";
 import { useSorting } from "../hooks/useSorting";
+import { useCurrency } from "../hooks/useCurrency";
 
 export default function CategoryPage() {
   const { category } = useParams();
   const location = useLocation();
+  const { formatPrice } = useCurrency();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -388,7 +390,7 @@ export default function CategoryPage() {
                   </div>
                   <div className="flex items-center justify-between mt-4">
                     <span className="text-2xl font-bold text-primary-500">
-                      ${product.price}
+                      {formatPrice(product.price)}
                     </span>
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-medium ${

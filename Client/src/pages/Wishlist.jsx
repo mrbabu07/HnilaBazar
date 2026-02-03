@@ -3,10 +3,75 @@ import useWishlist from "../hooks/useWishlist";
 import useCart from "../hooks/useCart";
 import Loading from "../components/Loading";
 import WishlistButton from "../components/WishlistButton";
+import WishlistShare from "../components/WishlistShare";
+import { useCurrency } from "../hooks/useCurrency";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { auth } from "../firebase/firebase.config";
 
 export default function Wishlist() {
   const { wishlist, loading } = useWishlist();
   const { addToCart } = useCart();
+  const { formatPrice } = useCurrency();
+  const [isPublic, setIsPublic] = useState(false);
+  const [shareId, setShareId] = useState("");
+
+  const handleTogglePublic = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        alert("Please login");
+        return;
+      }
+
+      const token = await currentUser.getIdToken();
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/wishlist/toggle-public`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (response.data.success) {
+        setIsPublic(response.data.isPublic);
+        if (response.data.shareId) {
+          setShareId(response.data.shareId);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to toggle wishlist public:", error);
+    }
+  };
+
+  // Fetch wishlist data to get shareId and isPublic status
+  useEffect(() => {
+    const fetchWishlistData = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) return;
+
+        const token = await currentUser.getIdToken();
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/wishlist`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
+        if (response.data.success && response.data.data) {
+          setIsPublic(response.data.data.isPublic || false);
+          setShareId(response.data.data.shareId || "");
+        }
+      } catch (error) {
+        console.error("Failed to fetch wishlist data:", error);
+      }
+    };
+
+    if (!loading && auth.currentUser) {
+      fetchWishlistData();
+    }
+  }, [loading]);
 
   const handleAddToCart = (product) => {
     const imageToUse = product.image || (product.images && product.images[0]);
@@ -20,33 +85,46 @@ export default function Wishlist() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Link
-          to="/"
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          title="Back to Home"
-        >
-          <svg
-            className="w-6 h-6 text-gray-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <Link
+            to="/"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            title="Back to Home"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Wishlist</h1>
-          <p className="text-gray-600 mt-1">
-            {wishlist.length} {wishlist.length === 1 ? "item" : "items"} saved
-            for later
-          </p>
+            <svg
+              className="w-6 h-6 text-gray-600 dark:text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              My Wishlist
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              {wishlist.length} {wishlist.length === 1 ? "item" : "items"} saved
+              for later
+            </p>
+          </div>
         </div>
+
+        {/* Share Button */}
+        {wishlist.length > 0 && (
+          <WishlistShare
+            wishlistId={shareId}
+            isPublic={isPublic}
+            onTogglePublic={handleTogglePublic}
+          />
+        )}
       </div>
 
       {wishlist.length === 0 ? (
@@ -118,7 +196,7 @@ export default function Wishlist() {
 
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xl font-bold text-primary-500">
-                    ${product.price?.toFixed(2)}
+                    {formatPrice(product.price)}
                   </span>
                   {product.stock > 0 && (
                     <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full">

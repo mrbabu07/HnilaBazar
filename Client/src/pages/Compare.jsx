@@ -3,6 +3,7 @@ import { useComparison } from "../context/ComparisonContext";
 import useCart from "../hooks/useCart";
 import { useContext } from "react";
 import { WishlistContext } from "../context/WishlistContext";
+import { useCurrency } from "../hooks/useCurrency";
 import StarRating from "../components/StarRating";
 import CompareButton from "../components/CompareButton";
 
@@ -10,6 +11,7 @@ export default function Compare() {
   const { compareList, removeFromCompare, clearComparison } = useComparison();
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist } = useContext(WishlistContext);
+  const { formatPrice } = useCurrency();
 
   if (compareList.length === 0) {
     return (
@@ -124,7 +126,7 @@ export default function Compare() {
                     <td key={product._id} className="p-4 text-center">
                       <div className="space-y-1">
                         <span className="text-2xl font-bold text-primary-600">
-                          ${product.price}
+                          {formatPrice(product.price)}
                         </span>
                         {product.originalPrice &&
                           product.originalPrice > product.price && (

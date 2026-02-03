@@ -345,6 +345,88 @@ const incrementProductView = async (req, res) => {
   }
 };
 
+const updateProductVariants = async (req, res) => {
+  try {
+    const Product = req.app.locals.models.Product;
+    const { id } = req.params;
+    const { variants } = req.body;
+
+    if (!id || typeof id !== "string" || id.length !== 24) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid product ID format",
+      });
+    }
+
+    if (!variants || !Array.isArray(variants)) {
+      return res.status(400).json({
+        success: false,
+        error: "Variants array is required",
+      });
+    }
+
+    // Validate and sanitize variants
+    const sanitizedVariants = variants.map((variant, index) => ({
+      _id: variant._id || `variant_${Date.now()}_${index}`,
+      size: variant.size || "",
+      color: variant.color || "",
+      price: parseFloat(variant.price) || 0,
+      stock: parseInt(variant.stock) || 0,
+      sku: variant.sku || "",
+      image: variant.image || "",
+    }));
+
+    const result = await Product.updateVariants(id, sanitizedVariants);
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Product not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Product variants updated successfully",
+      data: { variants: sanitizedVariants },
+    });
+  } catch (error) {
+    console.error("Error updating product variants:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const getProductVariants = async (req, res) => {
+  try {
+    const Product = req.app.locals.models.Product;
+    const { id } = req.params;
+
+    if (!id || typeof id !== "string" || id.length !== 24) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid product ID format",
+      });
+    }
+
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        error: "Product not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: product.variants || [],
+    });
+  } catch (error) {
+    console.error("Error fetching product variants:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   getAllProducts,
   getProductById,
@@ -357,4 +439,6 @@ module.exports = {
   getOutOfStockProducts,
   updateStockBulk,
   incrementProductView,
+  updateProductVariants,
+  getProductVariants,
 };

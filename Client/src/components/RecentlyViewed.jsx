@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { useRecentlyViewed } from "../hooks/useRecentlyViewed";
+import { useCurrency } from "../hooks/useCurrency";
 
 export default function RecentlyViewed() {
   const { recentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
+  const { formatPrice } = useCurrency();
 
   if (recentlyViewed.length === 0) return null;
 
@@ -44,7 +46,7 @@ export default function RecentlyViewed() {
                 {product.title}
               </h3>
               <p className="text-primary-600 dark:text-primary-400 font-bold text-sm">
-                ${product.price}
+                {formatPrice(product.price)}
               </p>
             </Link>
           ))}

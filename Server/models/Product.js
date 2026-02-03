@@ -202,6 +202,61 @@ class Product {
     }
   }
 
+  async updateVariants(productId, variants) {
+    try {
+      if (
+        !productId ||
+        typeof productId !== "string" ||
+        productId.length !== 24
+      ) {
+        throw new Error(`Invalid ObjectId format: ${productId}`);
+      }
+
+      const result = await this.collection.updateOne(
+        { _id: new ObjectId(productId) },
+        {
+          $set: {
+            variants: variants,
+            updatedAt: new Date(),
+          },
+        },
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Error updating variants:", error);
+      throw error;
+    }
+  }
+
+  async updateVariantStock(productId, variantId, quantity) {
+    try {
+      if (
+        !productId ||
+        typeof productId !== "string" ||
+        productId.length !== 24
+      ) {
+        throw new Error(`Invalid ObjectId format: ${productId}`);
+      }
+
+      const result = await this.collection.updateOne(
+        {
+          _id: new ObjectId(productId),
+          "variants._id": variantId,
+        },
+        {
+          $inc: { "variants.$.stock": -quantity },
+          $set: { updatedAt: new Date() },
+        },
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Error updating variant stock:", error);
+      throw error;
+    }
+  }
+
   async findByCategory(categoryId) {
     return await this.collection.find({ categoryId }).toArray();
   }
@@ -285,7 +340,5 @@ class Product {
     );
   }
 }
-
-module.exports = Product;
 
 module.exports = Product;

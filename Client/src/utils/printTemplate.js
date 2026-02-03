@@ -13,6 +13,18 @@ export const generateProfessionalInvoice = (order) => {
   const tax = order.tax || 0;
   const total = order.total || 0;
 
+  // Fixed to BDT only - no currency conversion
+  const BDT_RATE = 110; // 1 USD = 110 BDT
+  const BDT_SYMBOL = "৳";
+
+  // Format price in BDT (prices stored in USD in database)
+  const formatPrice = (priceInUSD) => {
+    if (!priceInUSD && priceInUSD !== 0) return `${BDT_SYMBOL}0`;
+    const priceInBDT = priceInUSD * BDT_RATE;
+    // Format with comma separators for BDT (no decimals)
+    return `${BDT_SYMBOL}${Math.round(priceInBDT).toLocaleString()}`;
+  };
+
   // Utility function to safely render color
   const renderColor = (color) => {
     if (!color) return null;
@@ -133,7 +145,7 @@ export const generateProfessionalInvoice = (order) => {
                     order.products && order.products.length > 0
                       ? order.products
                           .map(
-                            (item, index) => `
+                            (item) => `
                     <tr class="hover:bg-gray-50">
                       <td class="py-3 px-3">
                         <div class="flex items-center gap-3">
@@ -152,8 +164,8 @@ export const generateProfessionalInvoice = (order) => {
                         </div>
                       </td>
                       <td class="py-3 px-3 text-center font-semibold text-gray-900">${item.quantity || 1}</td>
-                      <td class="py-3 px-3 text-right text-gray-900">$${(item.price || 0).toFixed(2)}</td>
-                      <td class="py-3 px-3 text-right font-semibold text-gray-900">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                      <td class="py-3 px-3 text-right text-gray-900">${formatPrice(item.price || 0)}</td>
+                      <td class="py-3 px-3 text-right font-semibold text-gray-900">${formatPrice((item.price || 0) * (item.quantity || 1))}</td>
                     </tr>
                   `,
                           )
@@ -207,19 +219,19 @@ export const generateProfessionalInvoice = (order) => {
               <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                   <span class="text-gray-600">Subtotal:</span>
-                  <span class="text-gray-900 font-medium">$${subtotal.toFixed(2)}</span>
+                  <span class="text-gray-900 font-medium">${formatPrice(subtotal)}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">Shipping:</span>
-                  <span class="${deliveryCharge === 0 ? "text-green-600 font-semibold" : "text-gray-900 font-medium"}">${deliveryCharge > 0 ? `$${deliveryCharge.toFixed(2)}` : "FREE"}</span>
+                  <span class="${deliveryCharge === 0 ? "text-green-600 font-semibold" : "text-gray-900 font-medium"}">${deliveryCharge > 0 ? formatPrice(deliveryCharge) : "FREE"}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">Tax:</span>
-                  <span class="text-gray-900 font-medium">$${tax.toFixed(2)}</span>
+                  <span class="text-gray-900 font-medium">${formatPrice(tax)}</span>
                 </div>
                 <div class="border-t border-gray-300 pt-2 flex justify-between text-base">
                   <span class="font-bold text-gray-900">Total:</span>
-                  <span class="font-bold text-blue-600">$${total.toFixed(2)}</span>
+                  <span class="font-bold text-blue-600">${formatPrice(total)}</span>
                 </div>
               </div>
             </div>
