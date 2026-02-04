@@ -1,4 +1,5 @@
 const { ObjectId } = require("mongodb");
+const emailService = require("../services/emailService");
 
 const getAllReturns = async (req, res) => {
   try {
@@ -145,6 +146,25 @@ const createReturnRequest = async (req, res) => {
     };
 
     const returnId = await Return.create(returnData);
+
+    // Send return confirmation email
+    try {
+      const User = req.app.locals.models.User;
+      const user = await User.findByFirebaseUid(userId);
+
+      await emailService.sendReturnConfirmation({
+        userEmail: user?.email || req.user.email,
+        userName: user?.name || req.user.name || "Customer",
+        returnId: returnId.toString(),
+        orderId,
+        reason,
+        refundAmount: returnData.refundAmount,
+      });
+      console.log("✅ Return confirmation email sent");
+    } catch (emailError) {
+      console.error("⚠️ Failed to send return confirmation email:", emailError);
+      // Don't fail the return creation if email fails
+    }
 
     res.status(201).json({
       success: true,

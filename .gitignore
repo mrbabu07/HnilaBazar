@@ -7,6 +7,13 @@
 Server/.env
 Client/.env.local
 
+# CRITICAL: Never commit these files - they contain sensitive credentials
+# - MongoDB connection strings
+# - Firebase private keys
+# - SMTP passwords
+# - VAPID keys
+# - API keys
+
 # Dependencies
 node_modules/
 
@@ -47,7 +54,15 @@ Server/uploads/*
 .cache/
 coverage/
 
-# Temporary files
+# Temporary documentation files
 *.tmp
 *.temp
-CLEANUP_COMPLETE.md
+*_COMPLETE.md
+*_FIX.md
+*_FIXED.md
+*_GUIDE.md
+test-*.md
+verify-*.md
+verify-*.bat
+COMMIT_MESSAGE.txt
+PUSH_TO_GITHUB.md

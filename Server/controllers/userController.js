@@ -1,3 +1,5 @@
+const emailService = require("../services/emailService");
+
 const getOrCreateUser = async (req, res) => {
   try {
     console.log("📝 Getting user for Firebase UID:", req.user.uid);
@@ -19,6 +21,19 @@ const getOrCreateUser = async (req, res) => {
 
       user = newUser;
       console.log("📝 Created user:", user);
+
+      // Send welcome email to new user
+      try {
+        console.log("📧 Sending welcome email to new user...");
+        await emailService.sendWelcomeEmail({
+          userEmail: req.user.email,
+          userName: req.user.name || req.user.email.split("@")[0],
+        });
+        console.log("✅ Welcome email sent successfully");
+      } catch (emailError) {
+        console.error("⚠️ Failed to send welcome email:", emailError);
+        // Don't fail user creation if email fails
+      }
     }
 
     res.json({ success: true, data: user });

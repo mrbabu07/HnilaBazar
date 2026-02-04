@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { getUserOrders, createReturnRequest } from "../services/api";
+import {
+  getUserOrders,
+  createReturnRequest,
+  cancelOrder,
+} from "../services/api";
 import { createReview } from "../services/reviewApi";
 import { uploadToImgBB } from "../services/imageUpload";
 import { useCurrency } from "../hooks/useCurrency";
@@ -305,7 +309,7 @@ export default function Orders() {
     }
   };
 
-  // Reorder entire order
+  // Reorder entire order - go to checkout
   const handleReorderEntireOrder = async (order) => {
     setReorderingItems((prev) => ({ ...prev, [order._id]: true }));
 
@@ -336,6 +340,8 @@ export default function Orders() {
         success(`All ${successCount} items added to cart!`, {
           title: "Order Reordered Successfully",
         });
+        // Navigate to checkout
+        navigate("/checkout");
       } else if (successCount > 0) {
         success(
           `${successCount} of ${order.products.length} items added to cart`,
@@ -343,6 +349,8 @@ export default function Orders() {
             title: "Partial Reorder Successful",
           },
         );
+        // Navigate to checkout
+        navigate("/checkout");
       } else {
         error("Failed to add any items to cart", {
           title: "Reorder Failed",
@@ -355,6 +363,39 @@ export default function Orders() {
     } finally {
       setReorderingItems((prev) => ({ ...prev, [order._id]: false }));
     }
+  };
+
+  // Cancel order (within 30 minutes)
+  const handleCancelOrder = async (orderId) => {
+    if (!confirm("Are you sure you want to cancel this order?")) {
+      return;
+    }
+
+    try {
+      await cancelOrder(orderId);
+      success("Order cancelled successfully", {
+        title: "Order Cancelled",
+      });
+      // Refresh orders
+      fetchOrders();
+    } catch (err) {
+      error(err.response?.data?.error || "Failed to cancel order", {
+        title: "Cancellation Failed",
+      });
+    }
+  };
+
+  // Check if order can be cancelled (within 30 minutes and pending)
+  const canCancelOrder = (order) => {
+    if (order.status !== "pending") return false;
+
+    const createdAt = new Date(order.createdAt);
+    const canCancelUntil = order.canCancelUntil
+      ? new Date(order.canCancelUntil)
+      : new Date(createdAt.getTime() + 30 * 60 * 1000);
+    const now = new Date();
+
+    return now < canCancelUntil;
   };
 
   if (loading) return <Loading />;
@@ -877,7 +918,30 @@ export default function Orders() {
                       </div>
 
                       {/* Reorder Entire Order Button */}
-                      <div className="border-t pt-3">
+                      <div className="border-t pt-3 space-y-2">
+                        {/* Cancel Order Button (if within 30 min and pending) */}
+                        {canCancelOrder(order) && (
+                          <button
+                            onClick={() => handleCancelOrder(order._id)}
+                            className="w-full py-2 px-4 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-all flex items-center justify-center gap-2"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                            Cancel Order (within 30 min)
+                          </button>
+                        )}
+
                         <button
                           onClick={() => handleReorderEntireOrder(order)}
                           disabled={reorderingItems[order._id]}

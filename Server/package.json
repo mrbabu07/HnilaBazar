@@ -7,7 +7,7 @@
     "mongodb": "^7.0.0",
     "mongoose": "^9.1.4",
     "multer": "^2.0.2",
-    "nodemailer": "^6.9.8",
+    "nodemailer": "^8.0.0",
     "web-push": "^3.6.7"
   },
   "scripts": {
@@ -24,6 +24,8 @@
     "test:push": "node scripts/testPushNotifications.js",
     "test:notifications": "node scripts/testFullNotificationFlow.js",
     "test:notification-api": "node scripts/testNotificationAPI.js",
+    "test:email": "node scripts/testEmail.js",
+    "check:email": "node scripts/checkEmailService.js",
     "generate:vapid": "node scripts/generateVapidKeys.js",
     "make:admin": "node scripts/makeAdmin.js"
   },

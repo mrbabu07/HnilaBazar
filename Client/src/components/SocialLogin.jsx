@@ -1,51 +1,62 @@
-import { useState, useEffect } from "react";
-import {
-  signInWithRedirect,
-  getRedirectResult,
-  GoogleAuthProvider,
-} from "firebase/auth";
+import { useState } from "react";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "../firebase/firebase.config";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { getCurrentUser } from "../services/api";
 
 export default function SocialLogin() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
-
-  // Check for redirect result on component mount
-  useEffect(() => {
-    const handleRedirectResult = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          // User successfully signed in
-          console.log("Google sign-in successful:", result.user);
-          // Navigate to home or intended page
-          navigate("/");
-        }
-      } catch (error) {
-        console.error("Google login redirect error:", error);
-        if (error.code !== "auth/popup-closed-by-user") {
-          alert("Google login failed. Please try again.");
-        }
-      }
-    };
-
-    handleRedirectResult();
-  }, [navigate]);
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    setError("");
+
     try {
       const provider = new GoogleAuthProvider();
       // Add custom parameters for better UX
       provider.setCustomParameters({
         prompt: "select_account",
       });
-      await signInWithRedirect(auth, provider);
-      // User will be redirected to Google sign-in page
+
+      // Use popup instead of redirect for better reliability
+      const result = await signInWithPopup(auth, provider);
+
+      if (result.user) {
+        console.log("✅ Google sign-in successful:", result.user.email);
+
+        // Register/get user in backend database
+        try {
+          await getCurrentUser();
+          console.log("✅ User registered in backend");
+
+          // Navigate to intended page or home
+          navigate(from, { replace: true });
+        } catch (backendError) {
+          console.error("❌ Backend registration failed:", backendError);
+          setError("Failed to complete registration. Please try again.");
+          setLoading(false);
+        }
+      }
     } catch (error) {
-      console.error("Google login failed:", error);
-      alert("Google login failed. Please try again.");
+      console.error("❌ Google login failed:", error);
+
+      // Handle specific error cases
+      if (error.code === "auth/popup-closed-by-user") {
+        setError("Sign-in cancelled. Please try again.");
+      } else if (error.code === "auth/popup-blocked") {
+        setError("Popup blocked. Please allow popups for this site.");
+      } else if (error.code === "auth/unauthorized-domain") {
+        setError(
+          "This domain is not authorized. Please add it to Firebase Console.",
+        );
+      } else {
+        setError(error.message || "Google login failed. Please try again.");
+      }
+
       setLoading(false);
     }
   };
@@ -63,13 +74,22 @@ export default function SocialLogin() {
         </div>
       </div>
 
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-700 text-sm">{error}</p>
+        </div>
+      )}
+
       <button
         onClick={handleGoogleLogin}
         disabled={loading}
         className="w-full inline-flex justify-center items-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? (
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900 dark:border-white"></div>
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900 dark:border-white"></div>
+            <span>Signing in...</span>
+          </div>
         ) : (
           <>
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">

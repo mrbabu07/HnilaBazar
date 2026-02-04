@@ -174,9 +174,9 @@ const createOrder = async (req, res) => {
         userEmail: shippingInfo.email,
         userName: shippingInfo.name,
         orderId: orderId.toString(),
-        products,
-        total,
-        shippingInfo,
+        orderTotal: total,
+        items: products,
+        shippingAddress: shippingInfo,
       });
       console.log("✅ Order confirmation email sent");
     } catch (emailError) {
@@ -290,15 +290,35 @@ const updateOrderStatus = async (req, res) => {
 
     // Send status update email
     try {
-      await emailService.sendOrderStatusUpdate({
+      console.log("📧 Sending order status update email...");
+      console.log("   Email to:", order.shippingInfo.email);
+      console.log("   User name:", order.shippingInfo.name);
+      console.log("   Order ID:", id);
+      console.log("   New status:", status);
+
+      const emailResult = await emailService.sendOrderStatusUpdate({
         userEmail: order.shippingInfo.email,
         userName: order.shippingInfo.name,
         orderId: id,
         status,
         trackingNumber,
       });
+
+      if (emailResult.success) {
+        console.log("✅ Order status email sent successfully");
+        if (emailResult.messageId) {
+          console.log("   Message ID:", emailResult.messageId);
+        }
+      } else {
+        console.error("❌ Failed to send order status email");
+        console.error("   Error:", emailResult.error);
+      }
     } catch (emailError) {
-      console.error("Failed to send order status email:", emailError);
+      console.error(
+        "❌ Exception sending order status email:",
+        emailError.message,
+      );
+      console.error("   Stack:", emailError.stack);
       // Don't fail the status update if email fails
     }
 
@@ -312,9 +332,50 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+const cancelOrder = async (req, res) => {
+  try {
+    const Order = req.app.locals.models.Order;
+    const { id } = req.params;
+    const userId = req.user.uid;
+
+    // Get order details before cancelling
+    const order = await Order.findById(id);
+
+    await Order.cancelOrder(id, userId);
+
+    // Send cancellation email
+    try {
+      await emailService.sendOrderStatusUpdate({
+        userEmail: order.shippingInfo.email,
+        userName: order.shippingInfo.name,
+        orderId: id,
+        status: "cancelled",
+      });
+    } catch (emailError) {
+      console.error("Failed to send cancellation email:", emailError);
+    }
+
+    res.json({
+      success: true,
+      message: "Order cancelled successfully",
+    });
+  } catch (error) {
+    console.error("Error cancelling order:", error);
+    const statusCode = error.message.includes("not found")
+      ? 404
+      : error.message.includes("Unauthorized")
+        ? 403
+        : error.message.includes("expired")
+          ? 400
+          : 500;
+    res.status(statusCode).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   getAllOrders,
   getUserOrders,
   createOrder,
   updateOrderStatus,
+  cancelOrder,
 };

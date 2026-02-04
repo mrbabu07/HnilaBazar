@@ -21,15 +21,21 @@ class Order {
   }
 
   async create(orderData) {
-    // Calculate delivery charge
-    // 100 BDT = 100/110 USD (since prices are stored in USD)
-    const DELIVERY_CHARGE_BDT = 100; // 100 BDT
-    const DELIVERY_CHARGE_USD = DELIVERY_CHARGE_BDT / 110; // Convert to USD for database
-    const FREE_DELIVERY_THRESHOLD_USD = 100; // $100 USD order = free delivery
+    // ALWAYS calculate subtotal from products (don't trust frontend)
+    let calculatedSubtotal = 0;
+    if (orderData.products && Array.isArray(orderData.products)) {
+      calculatedSubtotal = orderData.products.reduce((sum, product) => {
+        return sum + product.price * product.quantity;
+      }, 0);
+    }
 
-    const subtotal = orderData.subtotal || orderData.total || 0;
-    let deliveryCharge =
-      subtotal < FREE_DELIVERY_THRESHOLD_USD ? DELIVERY_CHARGE_USD : 0;
+    // Use calculated subtotal (secure)
+    const subtotal = calculatedSubtotal;
+    const totalDiscount = orderData.totalDiscount || 0;
+
+    // Calculate delivery charge (always ৳100 = 100/110 USD)
+    const DELIVERY_CHARGE_USD = 100 / 110;
+    let deliveryCharge = DELIVERY_CHARGE_USD;
 
     // Apply coupon discount if provided
     let couponDiscountAmount = 0;
@@ -90,29 +96,22 @@ class Order {
     // Calculate total discount and final total
     const totalDiscountAmount = couponDiscountAmount + pointsDiscountAmount;
 
-    // Recalculate delivery charge based on discounted amount
-    const discountedSubtotal = subtotal - totalDiscountAmount;
-    if (
-      discountedSubtotal < FREE_DELIVERY_THRESHOLD_USD &&
-      subtotal >= FREE_DELIVERY_THRESHOLD_USD
-    ) {
-      deliveryCharge = DELIVERY_CHARGE_USD; // Apply delivery charge if discounted total falls below threshold
-    }
-
+    // Calculate final total (secure calculation)
     const finalTotal = subtotal - totalDiscountAmount + deliveryCharge;
 
     const result = await this.collection.insertOne({
       ...orderData,
-      subtotal,
+      subtotal: Math.round(subtotal * 100) / 100,
       couponDiscount: Math.round(couponDiscountAmount * 100) / 100,
       pointsDiscount: Math.round(pointsDiscountAmount * 100) / 100,
       totalDiscount: Math.round(totalDiscountAmount * 100) / 100,
-      deliveryCharge,
+      deliveryCharge: Math.round(deliveryCharge * 100) / 100,
       total: Math.round(finalTotal * 100) / 100,
       couponApplied,
       redeemedPoints,
       status: "pending",
       createdAt: new Date(),
+      canCancelUntil: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
     });
     return result.insertedId;
   }
@@ -121,6 +120,41 @@ class Order {
     return await this.collection.updateOne(
       { _id: new ObjectId(id) },
       { $set: { status, updatedAt: new Date() } },
+    );
+  }
+
+  async cancelOrder(id, userId) {
+    const order = await this.findById(id);
+
+    if (!order) {
+      throw new Error("Order not found");
+    }
+
+    if (order.userId !== userId) {
+      throw new Error("Unauthorized to cancel this order");
+    }
+
+    if (order.status !== "pending") {
+      throw new Error("Only pending orders can be cancelled");
+    }
+
+    // Check if within 30 minutes
+    const now = new Date();
+    const canCancelUntil = order.canCancelUntil || order.createdAt;
+
+    if (now > canCancelUntil) {
+      throw new Error("Cancellation period has expired (30 minutes)");
+    }
+
+    return await this.collection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          status: "cancelled",
+          cancelledAt: new Date(),
+          updatedAt: new Date(),
+        },
+      },
     );
   }
 }

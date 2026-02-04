@@ -1,5 +1,6 @@
 const StockAlert = require("../models/StockAlert");
 const mongoose = require("mongoose");
+const emailService = require("./emailService");
 
 const productSchema = new mongoose.Schema({}, { strict: false });
 const Product =
