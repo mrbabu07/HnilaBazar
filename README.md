@@ -837,6 +837,37 @@ const emailTemplates = {
 
 ---
 
+## 🔐 Security
+
+### Before Pushing to Git
+
+**⚠️ IMPORTANT:** Always run the security check before pushing:
+
+```bash
+check-secrets.bat
+```
+
+This verifies that your MongoDB credentials and other secrets are NOT being pushed to Git.
+
+### Security Documentation
+
+- **[READY-TO-PUSH.md](./READY-TO-PUSH.md)** - Quick verification before pushing
+- **[QUICK-PUSH.md](./QUICK-PUSH.md)** - Fast reference guide
+- **[SECURITY.md](./SECURITY.md)** - Complete security guide
+
+### What's Protected
+
+✅ MongoDB connection strings  
+✅ Firebase private keys  
+✅ SMTP passwords  
+✅ API keys  
+✅ VAPID keys  
+✅ SSL certificates
+
+All sensitive data is in `.env` files which are protected by `.gitignore`.
+
+---
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
