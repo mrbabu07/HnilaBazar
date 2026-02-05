@@ -1,18 +1,45 @@
-# Environment variables (IMPORTANT - Contains secrets!)
+# ========================================
+# CRITICAL SECURITY - NEVER COMMIT THESE!
+# ========================================
+
+# Environment variables (Contains ALL secrets!)
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
+.env.test
 **/.env
 **/.env.local
 Server/.env
 Client/.env.local
+Client/.env
 
-# CRITICAL: Never commit these files - they contain sensitive credentials
-# - MongoDB connection strings
+# CRITICAL: These files contain:
+# - MongoDB connection strings with passwords
 # - Firebase private keys
 # - SMTP passwords
-# - VAPID keys
-# - API keys
+# - VAPID keys (push notifications)
+# - API keys (ImgBB, etc.)
+# - JWT secrets
+# - OAuth credentials
+
+# Firebase credentials
+firebase-adminsdk-*.json
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+
+# SSL/TLS certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Database dumps
+*.sql
+*.dump
+*.backup
 
 # Dependencies
 node_modules/
@@ -46,23 +73,18 @@ firestore-debug.log
 # MongoDB
 *.pem
 
-# Uploads (user uploaded files)
+# Uploads (user uploaded files - may contain sensitive data)
 Server/uploads/*
 !Server/uploads/.gitkeep
 
-# Misc
-.cache/
-coverage/
+# Generated invoices (may contain customer data)
+Server/invoices/*.pdf
+!Server/invoices/.gitkeep
 
-# Temporary documentation files
+# Temporary files
 *.tmp
 *.temp
-*_COMPLETE.md
-*_FIX.md
-*_FIXED.md
-*_GUIDE.md
-test-*.md
-verify-*.md
-verify-*.bat
-COMMIT_MESSAGE.txt
-PUSH_TO_GITHUB.md
+*.bak
+*.swp
+*.swo
+*~
