@@ -1,4 +1,5 @@
 const emailService = require("../services/emailService");
+const invoiceService = require("../services/invoiceService");
 
 const getAllOrders = async (req, res) => {
   try {
@@ -29,6 +30,7 @@ const createOrder = async (req, res) => {
       total,
       shippingInfo,
       paymentMethod,
+      transactionId,
       specialInstructions,
       couponCode,
       isGuest = false,
@@ -41,6 +43,7 @@ const createOrder = async (req, res) => {
       total,
       shippingInfo: shippingInfo ? "provided" : "missing",
       paymentMethod,
+      transactionId: transactionId || "none",
       specialInstructions: specialInstructions ? "provided" : "none",
       couponCode: couponCode || "none",
       isGuest,
@@ -117,6 +120,7 @@ const createOrder = async (req, res) => {
       subtotal: total, // This will be recalculated in the model
       shippingInfo,
       paymentMethod,
+      transactionId: transactionId || null,
       specialInstructions,
       couponCode,
       isGuest: isGuest || false,
@@ -182,6 +186,17 @@ const createOrder = async (req, res) => {
     } catch (emailError) {
       console.error("⚠️ Failed to send order confirmation email:", emailError);
       // Don't fail the order creation if email fails
+    }
+
+    // Generate invoice PDF
+    try {
+      console.log("📄 Generating invoice PDF...");
+      const order = await Order.findById(orderId);
+      await invoiceService.generateInvoice(order);
+      console.log("✅ Invoice PDF generated successfully");
+    } catch (invoiceError) {
+      console.error("⚠️ Failed to generate invoice:", invoiceError);
+      // Don't fail the order creation if invoice generation fails
     }
 
     console.log("🎉 Order creation completed successfully");
@@ -372,10 +387,60 @@ const cancelOrder = async (req, res) => {
   }
 };
 
+const downloadInvoice = async (req, res) => {
+  try {
+    const Order = req.app.locals.models.Order;
+    const { id } = req.params;
+    const userId = req.user?.uid;
+
+    // Get order
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        error: "Order not found",
+      });
+    }
+
+    // Check if user owns this order (unless admin)
+    if (userId && order.userId !== userId && !req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized to access this invoice",
+      });
+    }
+
+    // Check if invoice exists, if not generate it
+    if (!invoiceService.invoiceExists(id)) {
+      console.log("📄 Invoice not found, generating...");
+      await invoiceService.generateInvoice(order);
+    }
+
+    // Get invoice path
+    const invoicePath = invoiceService.getInvoicePath(id);
+
+    // Send file
+    res.download(invoicePath, `invoice-${id}.pdf`, (err) => {
+      if (err) {
+        console.error("Error downloading invoice:", err);
+        res.status(500).json({
+          success: false,
+          error: "Failed to download invoice",
+        });
+      }
+    });
+  } catch (error) {
+    console.error("Error downloading invoice:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   getAllOrders,
   getUserOrders,
   createOrder,
   updateOrderStatus,
   cancelOrder,
+  downloadInvoice,
 };

@@ -25,3 +25,7 @@ serviceAccountKey.json
 
 # MongoDB
 *.pem
+
+# Generated invoices (optional - keep locally but don't commit)
+invoices/*.pdf
+!invoices/.gitkeep

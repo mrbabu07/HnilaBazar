@@ -146,9 +146,9 @@ export default function Home() {
                   {activeCoupons[currentCouponIndex].discountType ===
                   "percentage"
                     ? `${activeCoupons[currentCouponIndex].discountValue}% OFF`
-                    : `$${activeCoupons[currentCouponIndex].discountValue} OFF`}
+                    : `৳${Math.round(activeCoupons[currentCouponIndex].discountValue * 110)} OFF`}
                   {activeCoupons[currentCouponIndex].minOrderAmount &&
-                    ` on orders over $${activeCoupons[currentCouponIndex].minOrderAmount}`}
+                    ` on orders over ৳${Math.round(activeCoupons[currentCouponIndex].minOrderAmount * 110)}`}
                 </span>
                 <span className="animate-pulse">🎉</span>
               </div>

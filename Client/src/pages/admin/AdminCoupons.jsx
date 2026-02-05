@@ -46,10 +46,27 @@ export default function AdminCoupons() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Convert BDT values to USD before sending to backend
+      const dataToSend = {
+        ...formData,
+        // For fixed discount type, convert BDT to USD
+        discountValue:
+          formData.discountType === "fixed"
+            ? parseFloat(formData.discountValue) / 110
+            : parseFloat(formData.discountValue),
+        // Convert min/max amounts from BDT to USD
+        minOrderAmount: formData.minOrderAmount
+          ? parseFloat(formData.minOrderAmount) / 110
+          : null,
+        maxDiscountAmount: formData.maxDiscountAmount
+          ? parseFloat(formData.maxDiscountAmount) / 110
+          : null,
+      };
+
       if (editingCoupon) {
-        await updateCoupon(editingCoupon._id, formData);
+        await updateCoupon(editingCoupon._id, dataToSend);
       } else {
-        await createCoupon(formData);
+        await createCoupon(dataToSend);
       }
       await fetchCoupons();
       handleCloseModal();
@@ -65,9 +82,18 @@ export default function AdminCoupons() {
       name: coupon.name,
       description: coupon.description || "",
       discountType: coupon.discountType,
-      discountValue: coupon.discountValue.toString(),
-      maxDiscountAmount: coupon.maxDiscountAmount?.toString() || "",
-      minOrderAmount: coupon.minOrderAmount?.toString() || "",
+      // For fixed discount, convert USD to BDT for display
+      discountValue:
+        coupon.discountType === "fixed"
+          ? Math.round(coupon.discountValue * 110).toString()
+          : coupon.discountValue.toString(),
+      // Convert USD to BDT for display
+      maxDiscountAmount: coupon.maxDiscountAmount
+        ? Math.round(coupon.maxDiscountAmount * 110).toString()
+        : "",
+      minOrderAmount: coupon.minOrderAmount
+        ? Math.round(coupon.minOrderAmount * 110).toString()
+        : "",
       usageLimit: coupon.usageLimit?.toString() || "",
       userUsageLimit: coupon.userUsageLimit?.toString() || "",
       expiresAt: new Date(coupon.expiresAt).toISOString().split("T")[0],
@@ -228,11 +254,11 @@ export default function AdminCoupons() {
                       <div className="text-sm text-gray-900">
                         {coupon.discountType === "percentage"
                           ? `${coupon.discountValue}%`
-                          : `৳${coupon.discountValue}`}
+                          : `৳${Math.round(coupon.discountValue * 110)}`}
                       </div>
                       {coupon.maxDiscountAmount && (
                         <div className="text-xs text-gray-500">
-                          Max: ৳{coupon.maxDiscountAmount}
+                          Max: ৳{Math.round(coupon.maxDiscountAmount * 110)}
                         </div>
                       )}
                     </td>
@@ -365,6 +391,12 @@ export default function AdminCoupons() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Discount Value *
+                {formData.discountType === "percentage" && (
+                  <span className="text-gray-500 text-xs ml-1">(in %)</span>
+                )}
+                {formData.discountType === "fixed" && (
+                  <span className="text-gray-500 text-xs ml-1">(in ৳)</span>
+                )}
               </label>
               <input
                 type="number"
@@ -377,16 +409,24 @@ export default function AdminCoupons() {
                 step="0.01"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                 placeholder={
-                  formData.discountType === "percentage" ? "20" : "100"
+                  formData.discountType === "percentage"
+                    ? "20 (for 20%)"
+                    : "100 (for ৳100)"
                 }
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.discountType === "percentage"
+                  ? "Enter percentage value (e.g., 10 for 10% off)"
+                  : "Enter amount in Taka (e.g., 100 for ৳100 off)"}
+              </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Max Discount Amount (৳)
+                Max Discount Amount
+                <span className="text-gray-500 text-xs ml-1">(in ৳)</span>
               </label>
               <input
                 type="number"
@@ -398,15 +438,19 @@ export default function AdminCoupons() {
                   })
                 }
                 min="0"
-                step="0.01"
+                step="1"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                 placeholder="500"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Maximum discount in Taka (optional)
+              </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Min Order Amount (৳)
+                Min Order Amount
+                <span className="text-gray-500 text-xs ml-1">(in ৳)</span>
               </label>
               <input
                 type="number"
@@ -415,10 +459,13 @@ export default function AdminCoupons() {
                   setFormData({ ...formData, minOrderAmount: e.target.value })
                 }
                 min="0"
-                step="0.01"
+                step="1"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                 placeholder="1000"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Minimum order amount in Taka (optional)
+              </p>
             </div>
           </div>
 

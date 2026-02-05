@@ -46,12 +46,17 @@ const validateCoupon = async (req, res) => {
     const { code, orderTotal } = req.body;
     const userId = req.user?.uid;
 
-    console.log("Validating coupon/offer code:", { code, orderTotal, userId });
+    console.log("📋 Validating coupon/offer code:", {
+      code,
+      orderTotal,
+      userId: userId || "guest",
+    });
 
-    if (!code || !orderTotal) {
-      console.log("Missing required fields:", {
-        code: !!code,
-        orderTotal: !!orderTotal,
+    if (!code || orderTotal === undefined || orderTotal === null) {
+      console.log("❌ Missing required fields:", {
+        hasCode: !!code,
+        hasOrderTotal: orderTotal !== undefined && orderTotal !== null,
+        orderTotal,
       });
       return res.status(400).json({
         success: false,
@@ -66,7 +71,7 @@ const validateCoupon = async (req, res) => {
         orderTotal,
         userId,
       );
-      console.log("Coupon validation result:", couponValidation);
+      console.log("✅ Coupon validation result:", couponValidation);
 
       if (couponValidation.valid) {
         return res.json({
@@ -80,7 +85,7 @@ const validateCoupon = async (req, res) => {
       }
     } catch (couponError) {
       console.log(
-        "Coupon validation failed, trying offer code:",
+        "⚠️ Coupon validation failed, trying offer code:",
         couponError.message,
       );
     }
@@ -95,6 +100,7 @@ const validateCoupon = async (req, res) => {
       });
 
       if (!offer) {
+        console.log("❌ No valid offer found for code:", code);
         return res.status(400).json({
           success: false,
           error: "Invalid or expired coupon code",
@@ -112,7 +118,7 @@ const validateCoupon = async (req, res) => {
       // Ensure discount doesn't exceed order total
       discountAmount = Math.min(discountAmount, orderTotal);
 
-      console.log("Offer validation successful:", {
+      console.log("✅ Offer validation successful:", {
         offer: offer.title,
         discountAmount,
       });
@@ -133,16 +139,17 @@ const validateCoupon = async (req, res) => {
         },
       });
     } catch (offerError) {
-      console.log("Offer validation failed:", offerError.message);
+      console.log("⚠️ Offer validation failed:", offerError.message);
     }
 
     // If both coupon and offer validation fail
+    console.log("❌ Both coupon and offer validation failed for code:", code);
     return res.status(400).json({
       success: false,
       error: "Invalid or expired coupon code",
     });
   } catch (error) {
-    console.error("Error validating coupon/offer:", error);
+    console.error("❌ Error validating coupon/offer:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

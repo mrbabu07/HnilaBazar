@@ -593,7 +593,7 @@ export default function AdminOrders() {
         <!-- Footer -->
         <div class="footer">
           <div><strong>HnilaBazar</strong> - Your Trusted E-commerce Partner</div>
-          <div>📞 Contact: +880 1XXX-XXXXXX | 📧 Email: support@hnilabazar.com</div>
+          <div>📞 Contact: +880 1521-721946 | 📧 Email: mdjahedulislamjaved@gmail.com</div>
           <div class="print-date">Printed on: ${new Date().toLocaleString()}</div>
         </div>
       </body>
@@ -1347,6 +1347,61 @@ export default function AdminOrders() {
                                 <p className="text-sm font-medium text-gray-900 mt-1 capitalize">
                                   {order.paymentMethod}
                                 </p>
+                              </div>
+                            )}
+                            {order.transactionId && (
+                              <div>
+                                <span className="text-xs text-gray-500 uppercase tracking-wide">
+                                  Transaction ID
+                                </span>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <p className="text-sm font-mono font-bold text-green-700 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200">
+                                    {order.transactionId}
+                                  </p>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(
+                                        order.transactionId,
+                                      );
+                                      toast.success("Transaction ID copied!");
+                                    }}
+                                    className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                                    title="Copy Transaction ID"
+                                  >
+                                    <svg
+                                      className="w-4 h-4 text-gray-600"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                      />
+                                    </svg>
+                                  </button>
+                                </div>
+                                {order.paymentStatus ===
+                                  "pending_verification" && (
+                                  <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                                    <svg
+                                      className="w-3 h-3"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
+                                    Payment verification pending
+                                  </p>
+                                )}
                               </div>
                             )}
                             <div>

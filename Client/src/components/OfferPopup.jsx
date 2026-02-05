@@ -68,7 +68,7 @@ export default function OfferPopup() {
 
   const imageUrl = offer.image?.startsWith("http")
     ? offer.image
-    : `http://localhost:5000${offer.image}`;
+    : `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${offer.image}`;
 
   return (
     <>

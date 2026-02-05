@@ -39,6 +39,7 @@ export default function Checkout() {
     zipCode: "",
     paymentMethod: "cod",
     specialInstructions: "",
+    transactionId: "",
   });
 
   // Fetch delivery settings
@@ -222,6 +223,18 @@ export default function Checkout() {
         return;
       }
 
+      // Validate transaction ID for mobile banking payments
+      if (
+        (formData.paymentMethod === "bkash" ||
+          formData.paymentMethod === "nagad" ||
+          formData.paymentMethod === "rocket") &&
+        !formData.transactionId
+      ) {
+        alert("Please enter your transaction ID for mobile banking payment");
+        setLoading(false);
+        return;
+      }
+
       const orderData = {
         products: cart.map((item) => {
           // Ensure we have a valid product ID
@@ -241,11 +254,11 @@ export default function Checkout() {
             image: item.selectedImage || item.image,
           };
         }),
-        total: finalTotal, // Use finalTotal instead of subtotal to include discounts and delivery
+        total: finalTotal,
         subtotal: subtotal,
         shippingInfo: {
           name: formData.name,
-          email: user.email || formData.email, // Always use authenticated user's email
+          email: user.email || formData.email,
           phone: formData.phone,
           address: formData.address,
           city: formData.city,
@@ -253,6 +266,8 @@ export default function Checkout() {
           zipCode: formData.zipCode,
         },
         paymentMethod: formData.paymentMethod,
+        transactionId:
+          formData.paymentMethod !== "cod" ? formData.transactionId : null,
         specialInstructions: formData.specialInstructions,
         couponCode: appliedCoupon?.code || null,
         redeemedPoints: appliedPoints?.points || null,
@@ -261,13 +276,7 @@ export default function Checkout() {
         totalDiscount: totalDiscount,
       };
 
-      console.log("Cart items:", cart);
-      console.log("Form data:", formData);
-      console.log("Applied coupon:", appliedCoupon);
-      console.log("Submitting order:", orderData);
-
       const response = await createOrder(orderData);
-      console.log("Order response:", response);
 
       // Get order ID safely
       const orderId = response.data?.data?._id || response.data?._id || "NEW";
@@ -669,7 +678,7 @@ export default function Checkout() {
                       value={formData.phone}
                       onChange={handleChange}
                       required
-                      placeholder="+880 1XXX-XXXXXX"
+                      placeholder="+880 1521-721946"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                     />
                   </div>
@@ -935,7 +944,526 @@ export default function Checkout() {
                       </div>
                     )}
                   </label>
+
+                  <label
+                    className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all hover:bg-gray-50 ${
+                      formData.paymentMethod === "rocket"
+                        ? "border-primary-500 bg-primary-50 shadow-sm"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="rocket"
+                      checked={formData.paymentMethod === "rocket"}
+                      onChange={handleChange}
+                      className="w-5 h-5 text-primary-500 border-gray-300 focus:ring-primary-500"
+                    />
+                    <div className="ml-4 flex-1">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">🚀</span>
+                        <div>
+                          <span className="font-semibold text-gray-900">
+                            Rocket Payment
+                          </span>
+                          <p className="text-sm text-gray-500">
+                            Pay with Rocket mobile banking
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    {formData.paymentMethod === "rocket" && (
+                      <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-4 h-4 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </label>
                 </div>
+
+                {/* Payment Instructions for Mobile Banking */}
+                {(formData.paymentMethod === "bkash" ||
+                  formData.paymentMethod === "nagad" ||
+                  formData.paymentMethod === "rocket") && (
+                  <div className="mt-6 p-4 sm:p-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-2 border-blue-300 rounded-2xl shadow-lg">
+                    {/* Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 mb-5">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <svg
+                          className="w-6 h-6 sm:w-7 sm:h-7 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
+                          💳 Payment Instructions
+                        </h3>
+                        <p className="text-sm sm:text-base text-gray-600">
+                          Complete your payment using{" "}
+                          <span className="font-semibold text-blue-700">
+                            {formData.paymentMethod === "bkash"
+                              ? "bKash"
+                              : formData.paymentMethod === "nagad"
+                                ? "Nagad"
+                                : "Rocket"}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {formData.paymentMethod === "bkash" && (
+                      <div className="space-y-4 sm:space-y-5">
+                        {/* bKash Numbers Card */}
+                        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border-2 border-pink-200 shadow-md hover:shadow-lg transition-shadow">
+                          <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                            <span className="text-2xl sm:text-3xl">📱</span>
+                            <h4 className="text-base sm:text-lg font-bold text-gray-900">
+                              bKash Payment Numbers
+                            </h4>
+                          </div>
+                          <div className="space-y-3">
+                            {/* Merchant Account - Payment */}
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl border-2 border-pink-300 gap-2">
+                              <div className="flex-1">
+                                <p className="text-xs sm:text-sm text-pink-700 font-semibold mb-1">
+                                  💼 Merchant Account - Use "Payment" Option
+                                </p>
+                                <p className="text-xl sm:text-2xl font-bold text-pink-600 font-mono tracking-wide">
+                                  01521721946
+                                </p>
+                                <p className="text-xs text-pink-600 mt-1 font-medium">
+                                  ⚠️ Use "Payment" not "Send Money"
+                                </p>
+                              </div>
+                              <span className="px-3 py-1.5 bg-pink-500 text-white text-xs sm:text-sm font-bold rounded-full shadow-md self-start sm:self-center">
+                                ⭐ Preferred
+                              </span>
+                            </div>
+
+                            {/* Personal Account - Send Money */}
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-50 rounded-xl border-2 border-gray-300 gap-2">
+                              <div className="flex-1">
+                                <p className="text-xs sm:text-sm text-gray-600 font-semibold mb-1">
+                                  👤 Personal Account - Use "Send Money"
+                                </p>
+                                <p className="text-xl sm:text-2xl font-bold text-gray-700 font-mono tracking-wide">
+                                  01621937035
+                                </p>
+                                <p className="text-xs text-gray-600 mt-1 font-medium">
+                                  ℹ️ Use "Send Money" option
+                                </p>
+                              </div>
+                              <span className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs sm:text-sm font-semibold rounded-full self-start sm:self-center">
+                                Alternative
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* How to Pay Card */}
+                        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border-2 border-blue-200 shadow-md">
+                          <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <span className="text-xl sm:text-2xl">📝</span>
+                            Step-by-Step Guide
+                          </h4>
+                          <ol className="space-y-3">
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                1
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Open your{" "}
+                                <strong className="text-pink-600">
+                                  bKash app
+                                </strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                2
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                <strong className="text-pink-600">
+                                  For Merchant (01521721946):
+                                </strong>{" "}
+                                Select <strong>"Payment"</strong> option
+                                <br />
+                                <strong className="text-gray-600">
+                                  For Personal (01621937035):
+                                </strong>{" "}
+                                Select <strong>"Send Money"</strong> option
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                3
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Enter number:{" "}
+                                <strong className="text-pink-600 font-mono text-base sm:text-lg">
+                                  01521721946
+                                </strong>{" "}
+                                (Payment) or{" "}
+                                <strong className="text-gray-600 font-mono text-base sm:text-lg">
+                                  01621937035
+                                </strong>{" "}
+                                (Send Money)
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                4
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Enter amount:{" "}
+                                <strong className="text-green-600 text-base sm:text-lg">
+                                  {formatPrice(finalTotal)}
+                                </strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                5
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Add reference: Your phone number or order note
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                6
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Complete payment and{" "}
+                                <strong className="text-red-600">
+                                  save the transaction ID
+                                </strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                7
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Enter transaction ID below and click "Place
+                                Order"
+                              </span>
+                            </li>
+                          </ol>
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.paymentMethod === "nagad" && (
+                      <div className="space-y-4 sm:space-y-5">
+                        {/* Nagad Number Card */}
+                        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border-2 border-orange-200 shadow-md hover:shadow-lg transition-shadow">
+                          <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                            <span className="text-2xl sm:text-3xl">📱</span>
+                            <h4 className="text-base sm:text-lg font-bold text-gray-900">
+                              Nagad Payment Number
+                            </h4>
+                          </div>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border-2 border-orange-300 gap-2">
+                            <div className="flex-1">
+                              <p className="text-xs sm:text-sm text-orange-700 font-semibold mb-1">
+                                💳 Nagad Account
+                              </p>
+                              <p className="text-xl sm:text-2xl font-bold text-orange-600 font-mono tracking-wide">
+                                01521721946
+                              </p>
+                            </div>
+                            <span className="px-3 py-1.5 bg-orange-500 text-white text-xs sm:text-sm font-bold rounded-full shadow-md self-start sm:self-center">
+                              ✓ Active
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* How to Pay Card */}
+                        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border-2 border-blue-200 shadow-md">
+                          <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <span className="text-xl sm:text-2xl">📝</span>
+                            Step-by-Step Guide
+                          </h4>
+                          <ol className="space-y-3">
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                1
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Open your{" "}
+                                <strong className="text-orange-600">
+                                  Nagad app
+                                </strong>{" "}
+                                and select <strong>"Send Money"</strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                2
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Enter number:{" "}
+                                <strong className="text-orange-600 font-mono text-base sm:text-lg">
+                                  01521721946
+                                </strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                3
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Enter amount:{" "}
+                                <strong className="text-green-600 text-base sm:text-lg">
+                                  {formatPrice(finalTotal)}
+                                </strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                4
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Add reference: Your phone number or order note
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                5
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Complete payment and{" "}
+                                <strong className="text-red-600">
+                                  save the transaction ID
+                                </strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                6
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Enter transaction ID below and click "Place
+                                Order"
+                              </span>
+                            </li>
+                          </ol>
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.paymentMethod === "rocket" && (
+                      <div className="space-y-4 sm:space-y-5">
+                        {/* Rocket Number Card */}
+                        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border-2 border-purple-200 shadow-md hover:shadow-lg transition-shadow">
+                          <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                            <span className="text-2xl sm:text-3xl">🚀</span>
+                            <h4 className="text-base sm:text-lg font-bold text-gray-900">
+                              Rocket Payment Number
+                            </h4>
+                          </div>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl border-2 border-purple-300 gap-2">
+                            <div className="flex-1">
+                              <p className="text-xs sm:text-sm text-purple-700 font-semibold mb-1">
+                                🚀 Rocket Account
+                              </p>
+                              <p className="text-xl sm:text-2xl font-bold text-purple-600 font-mono tracking-wide">
+                                016219370359
+                              </p>
+                            </div>
+                            <span className="px-3 py-1.5 bg-purple-500 text-white text-xs sm:text-sm font-bold rounded-full shadow-md self-start sm:self-center">
+                              ✓ Active
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* How to Pay Card */}
+                        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border-2 border-blue-200 shadow-md">
+                          <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <span className="text-xl sm:text-2xl">📝</span>
+                            Step-by-Step Guide
+                          </h4>
+                          <ol className="space-y-3">
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                1
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Dial{" "}
+                                <strong className="text-purple-600 font-mono">
+                                  *322#
+                                </strong>{" "}
+                                or use{" "}
+                                <strong className="text-purple-600">
+                                  Rocket app
+                                </strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                2
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Select <strong>"Send Money"</strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                3
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Enter number:{" "}
+                                <strong className="text-purple-600 font-mono text-base sm:text-lg">
+                                  016219370359
+                                </strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                4
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Enter amount:{" "}
+                                <strong className="text-green-600 text-base sm:text-lg">
+                                  {formatPrice(finalTotal)}
+                                </strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                5
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Add reference: Your phone number or order note
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                6
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Complete payment and{" "}
+                                <strong className="text-red-600">
+                                  save the transaction ID
+                                </strong>
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-md">
+                                7
+                              </span>
+                              <span className="text-sm sm:text-base text-gray-700 pt-1">
+                                Enter transaction ID below and click "Place
+                                Order"
+                              </span>
+                            </li>
+                          </ol>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Important Note */}
+                    <div className="mt-4 sm:mt-5 p-3 sm:p-4 bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 rounded-xl shadow-md">
+                      <div className="flex gap-2 sm:gap-3">
+                        <svg
+                          className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 flex-shrink-0 mt-0.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                          />
+                        </svg>
+                        <div className="text-sm sm:text-base">
+                          <p className="font-bold text-yellow-900 mb-1 sm:mb-2">
+                            ⚠️ Important Note
+                          </p>
+                          <p className="text-yellow-800 leading-relaxed">
+                            Please complete the payment before placing your
+                            order. Our team will verify the transaction and
+                            process your order within <strong>1-2 hours</strong>
+                            .
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Transaction ID Input */}
+                    <div className="mt-4 sm:mt-5 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-green-300 shadow-lg">
+                      <label className="block">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
+                            <svg
+                              className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <span className="text-base sm:text-lg font-bold text-gray-900 block">
+                              📄 Transaction ID
+                              <span className="text-red-500 ml-1">*</span>
+                            </span>
+                            <span className="text-xs sm:text-sm text-gray-600">
+                              Required for payment verification
+                            </span>
+                          </div>
+                        </div>
+                        <input
+                          type="text"
+                          name="transactionId"
+                          value={formData.transactionId}
+                          onChange={handleChange}
+                          required
+                          placeholder="Enter transaction ID (e.g., 8A5B2C3D4E)"
+                          className="w-full px-4 py-3 sm:py-4 border-2 border-green-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all font-mono text-base sm:text-lg font-semibold bg-white shadow-inner"
+                        />
+                        <div className="mt-2 sm:mt-3 flex items-start gap-2">
+                          <span className="text-lg sm:text-xl">💡</span>
+                          <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                            You'll receive this ID after completing the payment
+                            in your mobile banking app. Please save it
+                            carefully.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Special Instructions */}
@@ -1226,8 +1754,8 @@ export default function Checkout() {
                     </p>
                     <ul className="text-xs text-blue-600 mt-1 space-y-1">
                       <li>• Standard delivery: 2-5 business days</li>
-                      <li>• Free delivery on orders over ৳11,000</li>
-                      <li>• Cash on delivery available</li>
+                      <li>• Free delivery on orders over ৳5,500</li>
+                      <li>• Multiple payment options available</li>
                     </ul>
                   </div>
                 </div>

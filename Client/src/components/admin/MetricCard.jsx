@@ -168,7 +168,7 @@ export default function MetricCard({
           {title}
         </h3>
         <div className="flex items-baseline gap-2">
-          <p
+          <div
             className={`text-2xl font-bold text-gray-900 dark:text-white transition-all duration-300 ${
               isAnimating ? "transform scale-105" : ""
             }`}
@@ -178,7 +178,7 @@ export default function MetricCard({
             ) : (
               formatValue(displayValue)
             )}
-          </p>
+          </div>
           {previousValue && !loading && (
             <span className="text-sm text-gray-500 dark:text-gray-400">
               from {formatValue(previousValue)}

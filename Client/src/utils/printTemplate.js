@@ -123,6 +123,16 @@ export const generateProfessionalInvoice = (order) => {
                   <span class="text-gray-600">Payment:</span>
                   <span class="font-semibold text-gray-900">${order.paymentMethod ? order.paymentMethod.toUpperCase() : "N/A"}</span>
                 </div>
+                ${
+                  order.transactionId
+                    ? `
+                <div class="flex justify-between text-xs mt-2 pt-2 border-t border-gray-200">
+                  <span class="text-gray-600">Transaction ID:</span>
+                  <span class="font-mono font-bold text-green-700">${order.transactionId}</span>
+                </div>
+                `
+                    : ""
+                }
               </div>
             </div>
           </div>
@@ -206,8 +216,8 @@ export const generateProfessionalInvoice = (order) => {
             <div>
               <div class="text-xs font-bold text-gray-600 mb-2 uppercase">Contact Us</div>
               <div class="text-xs text-gray-600 space-y-1">
-                <div>📞 +880 1XXX-XXXXXX</div>
-                <div>📧 support@hnilabazar.com</div>
+                <div>📞 +880 1521-721946</div>
+                <div>📧 mdjahedulislamjaved@gmail.com</div>
                 <div>🌐 www.hnilabazar.com</div>
                 <div class="text-gray-500">Dhaka, Bangladesh</div>
               </div>

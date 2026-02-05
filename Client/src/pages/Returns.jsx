@@ -532,7 +532,7 @@ export default function Returns() {
                   }
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
-                  placeholder="01XXXXXXXXX"
+                  placeholder="01521721946"
                   pattern="[0-9]{11}"
                   title="Please enter a valid 11-digit mobile number"
                 />

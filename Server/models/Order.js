@@ -33,9 +33,16 @@ class Order {
     const subtotal = calculatedSubtotal;
     const totalDiscount = orderData.totalDiscount || 0;
 
-    // Calculate delivery charge (always ৳100 = 100/110 USD)
-    const DELIVERY_CHARGE_USD = 100 / 110;
-    let deliveryCharge = DELIVERY_CHARGE_USD;
+    // Get delivery settings from database
+    const deliverySettingsCollection =
+      this.collection.db.collection("deliverysettings");
+    const deliverySettings = await deliverySettingsCollection.findOne({});
+
+    // Default delivery settings if not found
+    const freeDeliveryThreshold = deliverySettings?.freeDeliveryThreshold || 50; // $50 USD (৳5500)
+    const standardDeliveryCharge =
+      deliverySettings?.standardDeliveryCharge || 100 / 110; // ৳100
+    const freeDeliveryEnabled = deliverySettings?.freeDeliveryEnabled !== false;
 
     // Apply coupon discount if provided
     let couponDiscountAmount = 0;
@@ -93,11 +100,35 @@ class Order {
     const pointsDiscountAmount = orderData.pointsDiscount || 0;
     const redeemedPoints = orderData.redeemedPoints || 0;
 
-    // Calculate total discount and final total
+    // Calculate total discount
     const totalDiscountAmount = couponDiscountAmount + pointsDiscountAmount;
+
+    // Calculate order amount after discounts (before delivery)
+    const orderAmountAfterDiscount = subtotal - totalDiscountAmount;
+
+    // Determine delivery charge based on order amount and settings
+    let deliveryCharge = standardDeliveryCharge;
+
+    if (
+      freeDeliveryEnabled &&
+      orderAmountAfterDiscount >= freeDeliveryThreshold
+    ) {
+      deliveryCharge = 0; // Free delivery
+      console.log(
+        `✅ Free delivery applied (order: $${orderAmountAfterDiscount.toFixed(2)}, threshold: $${freeDeliveryThreshold})`,
+      );
+    } else {
+      console.log(
+        `💰 Delivery charge: $${deliveryCharge.toFixed(2)} (order: $${orderAmountAfterDiscount.toFixed(2)}, threshold: $${freeDeliveryThreshold})`,
+      );
+    }
 
     // Calculate final total (secure calculation)
     const finalTotal = subtotal - totalDiscountAmount + deliveryCharge;
+
+    // Determine payment status based on payment method
+    const paymentStatus =
+      orderData.paymentMethod === "cod" ? "pending" : "pending_verification";
 
     const result = await this.collection.insertOne({
       ...orderData,
@@ -109,6 +140,8 @@ class Order {
       total: Math.round(finalTotal * 100) / 100,
       couponApplied,
       redeemedPoints,
+      transactionId: orderData.transactionId || null,
+      paymentStatus,
       status: "pending",
       createdAt: new Date(),
       canCancelUntil: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now

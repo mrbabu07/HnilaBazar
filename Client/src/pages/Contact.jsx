@@ -146,17 +146,10 @@ export default function Contact() {
                     <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
                     <p className="text-gray-600">
                       <a
-                        href="tel:+8801XXXXXXXXX"
+                        href="tel:+8801521721946"
                         className="hover:text-secondary-600 transition-colors"
                       >
-                        +880 1XXX-XXXXXX
-                      </a>
-                      <br />
-                      <a
-                        href="tel:+8801XXXXXXXXX"
-                        className="hover:text-secondary-600 transition-colors"
-                      >
-                        +880 1XXX-XXXXXX
+                        +880 1521-721946
                       </a>
                     </p>
                   </div>
@@ -192,10 +185,10 @@ export default function Contact() {
                       </a>
                       <br />
                       <a
-                        href="mailto:support@hnilabazar.com"
+                        href="mailto:mdjahedulislamjaved@gmail.com"
                         className="hover:text-accent-600 transition-colors"
                       >
-                        support@hnilabazar.com
+                        mdjahedulislamjaved@gmail.com
                       </a>
                     </p>
                   </div>
@@ -343,7 +336,7 @@ export default function Contact() {
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-colors"
-                    placeholder="+880 1XXX-XXXXXX"
+                    placeholder="+880 1521-721946"
                   />
                 </div>
                 <div>
